@@ -22,22 +22,33 @@ val main : < caps ; .. > -> string array -> Exit_code.t
 
 (* internal *)
 val run_conf : < caps ; .. > -> Scan_CLI.conf -> Exit_code.t
-val run_scan_conf : < caps ; .. > -> Scan_CLI.conf -> Exit_code.t
+
+(* internal: on_output is called once the results have been reported, so
+ * that a failure afterwards does not print a second document. *)
+val run_scan_conf :
+  ?on_output:(unit -> unit) -> < caps ; .. > -> Scan_CLI.conf -> Exit_code.t
 
 (* internal: also used in CI *)
 val rules_from_rules_source :
   ?skip_invalid_configs:bool ->
+  (* the line that the spinner animates while the rules are fetched, erased
+     once they are loaded; None when the skin shows no such line *)
+  ?status:string ->
   rewrite_rule_ids:bool ->
   strict:bool ->
   < Cap.network ; Cap.tmp > ->
-  Rules_source.t ->
+  Rule_fetching.source ->
   Rule_fetching.rules_and_origin list * Rule_error.t list
 
 (* internal: also used in CI *)
 val core_errors_of_fatal_rule_errors : Rule_error.t list -> Core_error.t list
 
-(* internal: also used in CI *)
+(* internal: also used in CI. text_message is what text mode reports (it
+ * raises Semgrep_error with it); the other formats output the errors. *)
 val output_and_exit_from_fatal_core_errors_exn :
+  (* the status line that the caller started, stopped before printing *)
+  ?status_bar:Status_bar.t ->
+  text_message:string ->
   exit_code:Exit_code.t ->
   < Cap.stdout > ->
   Scan_CLI.conf ->
@@ -45,12 +56,33 @@ val output_and_exit_from_fatal_core_errors_exn :
   Core_error.t list ->
   Exit_code.t
 
+(* internal: also used in CI. As above, with the exit code of a
+ * configuration that could not be loaded. *)
+val output_and_exit_from_invalid_config_exn :
+  ?status_bar:Status_bar.t ->
+  text_message:string ->
+  < Cap.stdout > ->
+  Scan_CLI.conf ->
+  Profiler.t ->
+  Core_error.t list ->
+  Exit_code.t
+
+(* internal: also used in CI. The targets of the scanning roots, or the exit
+ * code after reporting the roots that do not exist. *)
+val get_targets_or_exit :
+  ?status_bar:Status_bar.t ->
+  < Cap.stdout > ->
+  Scan_CLI.conf ->
+  Profiler.t ->
+  (Target_and_root.t Find_targets.targets, Exit_code.t) result
+
 (* internal: also used in CI.
  * print_summary is python's output(print_summary=...): 'opengrep ci' passes
  * false and prints its own completion lines instead of "Ran N rules ...".
  *)
 val check_targets_with_rules :
   ?print_summary:bool ->
+  ?status_bar:Status_bar.t ->
   (* caps - network *)
   < Cap.stdout
   ; Cap.chdir
@@ -62,7 +94,7 @@ val check_targets_with_rules :
   Scan_CLI.conf ->
   Profiler.t ->
   Rule_fetching.rules_and_origin list ->
-  Fpath.t Find_targets.targets ->
+  Target_and_root.t Find_targets.targets ->
   ( Rule.rule list * Core_runner.result * Semgrep_output_v1_t.cli_output,
     Exit_code.t )
   result

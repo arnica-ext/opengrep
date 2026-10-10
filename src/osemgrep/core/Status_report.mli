@@ -1,7 +1,4 @@
-val pp_status :
-  num_rules:int ->
-  num_targets:int ->
-  respect_gitignore:bool ->
-  Lang_job.t list ->
-  Format.formatter ->
-  unit
+(* The legacy rendering of the scan plan: the "Scan Status" heading, the
+   counts of files and rules, and the per-language and per-origin tables.
+   The plan comes from Scan_plan.of_lang_jobs. *)
+val pp_status : Skin_model.Plan.t Fmt.t

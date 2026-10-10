@@ -829,6 +829,14 @@ and stmt_aux env x =
   | ImportFrom (t, v1, v2) ->
       let v1 = module_name env v1 and v2 = list (alias env) v2 in
       [ G.DirectiveStmt (G.ImportFrom (t, v1, v2) |> G.d) |> G.s ]
+  | TypeAlias (t, v1, v2) ->
+      let v1 = name env v1 and v2 = type_ env v2 in
+      let ent = G.basic_entity v1 in
+      let st = G.DefStmt (ent, G.TypeDef { G.tbody = G.AliasType v2 }) |> G.s in
+      (* The 'type' keyword is not otherwise part of the generic AST, so set
+       * the range explicitly to cover the whole statement. *)
+      st.s_range <- H.range_of_any_opt (G.Anys [ G.Tk t; G.T v2 ]);
+      [ st ]
   | Global (t, v1)
   | NonLocal (t, v1) ->
       let v1 = list (name env) v1 in
@@ -955,25 +963,10 @@ and decorator env (t, v1) =
               Id (x, G.empty_id_info ()),
               Option.value ~default:(Tok.unsafe_fake_bracket []) args )
       | x :: xs, args ->
-          let base = G.N (G.Id (x, G.empty_id_info ())) |> G.e in
-          let dot_access =
-            xs
-            |> List.fold_left
-                 (fun e x ->
-                   let tok = Tok.fake_tok (snd x) "." in
-                   G.DotAccess (e, tok, G.FN (G.Id (x, G.empty_id_info ())))
-                   |> G.e)
-                 base
-          in
-          pip0614_expr_attr t
-            [
-              G.E
-                (G.Call
-                   ( dot_access,
-                     args |> Option.value ~default:(Tok.unsafe_fake_bracket [])
-                   )
-                |> G.e);
-            ]
+          G.NamedAttr
+            ( t,
+              H.name_of_ids (x :: xs),
+              Option.value ~default:(Tok.unsafe_fake_bracket []) args )
       | [], _ -> raise Impossible)
   | None ->
       let v1 = expr env v1 in
