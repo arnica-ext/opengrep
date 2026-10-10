@@ -56,7 +56,7 @@ url = https://github.com/opengrep/semgrep-bash
 
 [submodule "OSS/libs/ocaml-tree-sitter-core"]
 path = libs/ocaml-tree-sitter-core
-url = https://github.com/opengrep/ocaml-tree-sitter-core.git
+url = https://github.com/returntocorp/ocaml-tree-sitter-core.git
 
 [submodule "OSS/languages/php/tree-sitter/semgrep-php"]
 path = languages/php/tree-sitter/semgrep-php
@@ -81,6 +81,10 @@ url = https://github.com/opengrep/semgrep-elixir.git
 [submodule "OSS/languages/swift/tree-sitter/semgrep-swift"]
 path = languages/swift/tree-sitter/semgrep-swift
 url = https://github.com/opengrep/semgrep-swift.git
+
+[submodule "OSS/cli/src/semgrep/semgrep_interfaces"]
+path = cli/src/semgrep/semgrep_interfaces
+url = https://github.com/opengrep/semgrep-interfaces.git
 
 [submodule "OSS/languages/julia/tree-sitter/semgrep-julia"]
 path = languages/julia/tree-sitter/semgrep-julia
@@ -149,7 +153,3 @@ url = https://github.com/opengrep/semgrep-circom.git
 [submodule "languages/apex/tree-sitter/semgrep-apex"]
 path = languages/apex/tree-sitter/semgrep-apex
 url = https://github.com/opengrep/semgrep-apex.git
-[submodule "OSS/languages/crystal/tree-sitter/opengrep-crystal"]
-	path = languages/crystal/tree-sitter/opengrep-crystal
-	url = https://github.com/opengrep/opengrep-crystal
-	branch = main

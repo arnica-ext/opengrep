@@ -356,7 +356,7 @@ and stmt x =
       G.OtherStmt (G.OS_Todo, G.TodoK v1 :: v2) |> G.s
   | M v1 ->
       let v1 = module_directive v1 in
-      G.DirectiveStmt v1 |> G.s
+      G.DirectiveStmt (v1 |> G.d) |> G.s
   | DefStmt v1 ->
       let v1 = definition v1 in
       G.DefStmt v1 |> G.s
@@ -545,20 +545,6 @@ and definition (ent, def) =
   | ClassDef def ->
       let def, more_attrs = class_ def in
       ({ ent with G.attrs = ent.G.attrs @ more_attrs }, G.ClassDef def)
-  | ModuleDef body ->
-      (* the namespace name is carried by [ent]; leaving the ModuleStruct name
-       * as None avoids binding a metavariable name twice (which would make a
-       * pattern like 'namespace $X { ... }' fail the consistency check) *)
-      let items =
-        match body with
-        | None -> []
-        | Some st -> (
-            let s = stmt st in
-            match s.G.s with
-            | G.Block (_, xs, _) -> xs
-            | _ -> [ s ])
-      in
-      (ent, G.ModuleDef { G.mbody = G.ModuleStruct (None, items) })
   | DefTodo (v1, v2) ->
       let v2 = list any v2 in
       (ent, G.OtherDef (v1, v2))
@@ -593,23 +579,7 @@ and fun_ { f_kind; f_attrs = f_props; f_params; f_body; f_rettype } =
 
 and parameter_binding = function
   | ParamClassic x -> parameter x
-  | ParamPattern { pp_pattern; pp_type; pp_default } ->
-      (* Type annotation stays inside the pattern via [PatTyped], the
-       * shape typed-metavariable resolution and the parameter matcher
-       * both expect. Default value moves to [parameter_classic.pdefault]
-       * -- the canonical slot used by [ParamClassic] -- where it is
-       * visible to matching; previously [Assign (...)] at the top of
-       * the destructure expression fell through [expr_to_pattern] to
-       * an opaque [OtherPat (ExprToPattern, ...)]. *)
-      let pat = pattern pp_pattern in
-      let pat =
-        match pp_type with
-        | None -> pat
-        | Some t -> G.PatTyped (pat, type_ t)
-      in
-      let tk = AST_generic_helpers.first_info_of_any (G.P pat) in
-      let pdefault = Option.map expr pp_default in
-      G.ParamPattern (pat, G.implicit_param_classic ?pdefault tk)
+  | ParamPattern x -> G.ParamPattern (pattern x)
   | ParamEllipsis x -> G.ParamEllipsis x
 
 and pattern x =
@@ -700,12 +670,7 @@ and field_classic
   let vt = option type_ vt in
   let ent =
     match v1 with
-    | Left n ->
-        (* "()" / "[]" are synthetic names for the (anonymous) call/index
-         * signatures; mark them hidden so they don't pollute the prefilter
-         * (they never appear as literal text in the source). *)
-        let hidden = match fst n with "()" | "[]" -> true | _ -> false in
-        G.basic_entity n ~attrs:v2 ~hidden
+    | Left n -> G.basic_entity n ~attrs:v2
     | Right e -> { G.name = G.EDynamic e; attrs = v2; tparams = None }
   in
   match v3 with
@@ -764,29 +729,12 @@ and alias v1 =
   let v1 = name v1 in
   (v1, G.empty_id_info ())
 
-and import_attrs (tok : tok) (role : import_role) (binding : import_binding) :
-    G.attribute list =
-  (match role with
-  | Import_binds -> []
-  | Import_reexports -> [ G.KeywordAttr (G.Reexport, tok) ])
-  @
-  match binding with
-  | Binds_value -> []
-  | Binds_type -> [ G.KeywordAttr (G.TypeOnly, tok) ]
-
 and module_directive x =
   match x with
-  | ReExportNamespace (v1, v2, opt_alias, _v3, v4) ->
+  | ReExportNamespace (v1, _v2, _opt_alias, _v3, v4) ->
       let v4 = filename v4 in
-      let d_attrs = [ G.KeywordAttr (G.Reexport, v1) ] in
-      {
-        (match opt_alias with
-        | None -> G.ImportAll (v1, G.FileName v4, v2) |> G.d
-        | Some a -> G.ImportAs (v1, G.FileName v4, Some (alias a)) |> G.d)
-        with
-        G.d_attrs;
-      }
-  | Import (t, role, binding, v1, v2) ->
+      G.OtherDirective (("ReExportNamespace", v1), [ G.Str (fb v4) ])
+  | Import (t, v1, v2) ->
       let v1 =
         List_.map
           (fun (v1, v2) ->
@@ -795,54 +743,26 @@ and module_directive x =
           v1
       in
       let v2 = filename v2 in
-      {
-        (G.ImportFrom (t, G.FileName v2, v1) |> G.d) with
-        G.d_attrs = import_attrs t role binding;
-      }
-  | ModuleAlias (t, binding, v1, v2) ->
+      G.ImportFrom (t, G.FileName v2, v1)
+  | ModuleAlias (t, v1, v2) ->
       let v1 = alias v1 and v2 = filename v2 in
-      {
-        (G.ImportAs (t, G.FileName v2, Some v1) |> G.d) with
-        G.d_attrs = import_attrs t Import_binds binding;
-      }
-  | ImportAlias (t, v1, v2) ->
-      let v1 = alias v1 and v2 = List_.map name v2 in
-      G.ImportAs (t, G.DottedName v2, Some v1) |> G.d
+      G.ImportAs (t, G.FileName v2, Some v1)
   (* sgrep: we used to convert this in an OI_ImportEffect, but
    * we now want import "foo" to be used to match any form of import
    *)
   | ImportFile (t, v1) ->
       let v1 = name v1 in
       (* old: G.OtherDirective (G.OI_ImportEffect, [G.I v1]) *)
-      G.ImportAs (t, G.FileName v1, None) |> G.d
+      G.ImportAs (t, G.FileName v1, None)
   | Export (t, v1) ->
       let v1 = name v1 in
-      G.OtherDirective (("Export", t), [ G.I v1 ]) |> G.d
-
-and namespace_region_stmts (ent : entity) (body : stmt option) : G.stmt list =
-  let v1 = name ent.name in
-  let items =
-    match body with
-    | None -> []
-    | Some st -> (
-        let s = stmt st in
-        match s.G.s with
-        | G.Block (_, xs, _) -> xs
-        | _ -> [ s ])
-  in
-  ((G.DirectiveStmt (G.Package (snd v1, [ v1 ]) |> G.d) |> G.s) :: items)
-  @ [ G.DirectiveStmt (G.PackageEnd (snd v1) |> G.d) |> G.s ]
+      G.OtherDirective (("Export", t), [ G.I v1 ])
 
 and list_stmt xs =
   (* converting require() in import, so they can benefit from the
    * other goodies coming with import in semgrep (e.g., equivalence aliasing)
    *)
-  xs
-  |> List_.map (fun st ->
-         match st with
-         | DefStmt (ent, ModuleDef body) -> namespace_region_stmts ent body
-         | _ -> [ stmt st ])
-  |> List_.flatten
+  xs |> List_.map (fun st -> [ stmt st ]) |> List_.flatten
 
 and program v = list_stmt v
 

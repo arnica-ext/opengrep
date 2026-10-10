@@ -1,6 +1,7 @@
 (*
    Compile a pattern into a regexp.
 *)
+[@@@alert "-deprecated"]
 
 type metavariable_kind =
   | Metavariable
@@ -14,7 +15,7 @@ type metavariable = {
 [@@deriving show, eq]
 
 type t = private {
-  pcre : Pcre2_.t;
+  pcre : Pcre_.t;
   metavariable_groups : (int * metavariable) list;
 }
 [@@deriving show, eq]

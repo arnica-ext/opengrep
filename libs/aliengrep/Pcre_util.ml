@@ -1,6 +1,7 @@
 (*
    PCRE-related code used both for parsing patterns and for scanning targets.
 *)
+[@@@alert "-deprecated"]
 
 open Printf
 
@@ -56,7 +57,7 @@ let char_class_of_list ?(contents_only = false) chars =
    the extended mode in addition to other special characters.
 *)
 let quote =
-  let rex = Pcre2_.regexp "[[:space:]#]" in
+  let rex = Pcre_.regexp "[[:space:]#]" in
   let subst str =
     assert (String.length str = 1);
     (* escape all characters so that it works regardless of whether they're
@@ -66,4 +67,4 @@ let quote =
     | '\t' -> {|\t|}
     | c (* other whitespace or '#' *) -> sprintf {|\x%02X|} (Char.code c)
   in
-  fun str -> Pcre2_.quote str |> Pcre2_.substitute ~rex ~subst
+  fun str -> Pcre_.quote str |> Pcre_.substitute ~rex ~subst

@@ -29,6 +29,9 @@ module H = AST_generic_helpers
 open Matching_generic
 module Log = Log_matching.Log
 
+let hook_find_possible_parents = ref None
+let hook_r2c_pro_was_here = ref None
+
 (*****************************************************************************)
 (* Prelude *)
 (*****************************************************************************)
@@ -143,8 +146,7 @@ let should_match_call = function
   | G.Super
   | G.Self
   | G.Parent
-  | G.LateStatic
-  (* JS `require("fs")`, Lua `require "fs"` *)
+  (* JS `require("fs")` *)
   | G.Require
   | G.Eval ->
       true
@@ -171,24 +173,6 @@ let m_id_string case_insensitive =
 (*****************************************************************************)
 (* Name *)
 (*****************************************************************************)
-
-(* Pattern ident "<prefix>$METAVAR" matches source ident "<prefix><s>"
-   by binding $METAVAR to <s>. Used for parser-synthesised mangled
-   names such as C#/Apex property accessors `get_<PropName>` /
-   `set_<PropName>`. Returns [Some (binder)] if it applies (pass
-   [binder] to the matching monad), [None] otherwise. *)
-let match_prefix_metavar stra (strb, tokb) =
-  if Mvar.is_metavar_name stra then None
-  else if Common.(stra =~ "^\\([^$]+\\)\\(\\$[A-Z_][A-Z_0-9]*\\)$") then
-    let pfx, mvar = Common.matched2 stra in
-    let pfx_len = String.length pfx in
-    if String.length strb > pfx_len
-       && Common.(String.sub strb 0 pfx_len =*= pfx)
-    then
-      let middle = String.sub strb pfx_len (String.length strb - pfx_len) in
-      Some (envf (mvar, tokb) (MV.Id ((middle, tokb), None)))
-    else None
-  else None
 
 (* coupling: modify also m_ident_and_id_info *)
 (* You should prefer to use m_ident_and_id_info if you can *)
@@ -288,8 +272,6 @@ let m_module_name_prefix a b =
       (* TODO figure out what prefix support means here *)
         ~m_string_for_default:m_filepath_prefix a b
   | G.DottedName a1, B.DottedName b1 -> m_dotted_name_prefix_ok a1 b1
-  | G.DottedName [ (s, t) ], B.FileName b1 when Mvar.is_metavar_name s ->
-      envf (s, t) (MV.N (H.name_of_ids [ b1 ]))
   | G.FileName _, _
   | G.DottedName _, _ ->
       fail ()
@@ -382,7 +364,7 @@ let m_with_symbolic_propagation ~is_root f b tin =
     else (
       Log.warn (fun m ->
           m
-            "Aborting symbolic propagation: a bug in Opengrep may be causing an \
+            "Aborting symbolic propagation: a bug in Semgrep may be causing an \
              infinite loop");
       fail () tin)
   else fail () tin
@@ -395,33 +377,6 @@ let m_regexp_options a_opt b_opt =
   | Some a, Some b -> m_ellipsis_or_metavar_or_string a b
   | Some _, None -> fail ()
 
-(* dots: metavars: $...FLDS in record patterns (e.g., JS objects).
- * A `$...FLDS` field parses either as an expression-statement field or,
- * in JS/TS objects, as a shorthand property (a DefStmt whose name and
- * value are both the `$...FLDS` identifier).
- *)
-let m_field_metavar_ellipsis (fld : G.field) :
-    (G.ident * (G.field list -> MV.mvalue)) option =
-  let bind_fields (fields : G.field list) =
-    MV.Ss (fields |> List_.map (fun (G.F st) -> st))
-  in
-  match fld with
-  | G.F { s = G.ExprStmt ({ e = G.N (G.Id ((s, tok), _)); _ }, _); _ }
-    when Mvar.is_metavar_ellipsis s ->
-      Some ((s, tok), bind_fields)
-  | G.F
-      {
-        s =
-          G.DefStmt
-            ( { G.name = G.EN (G.Id ((s, tok), _)); _ },
-              G.FieldDefColon
-                { vinit = Some { e = G.N (G.Id ((s2, _), _)); _ }; _ } );
-        _;
-      }
-    when s = s2 && Mvar.is_metavar_ellipsis s ->
-      Some ((s, tok), bind_fields)
-  | _ -> None
-
 (* start of recursive need *)
 (* TODO: factorize with metavariable and aliasing logic in m_expr
  * TODO: remove MV.Id and use always MV.N?
@@ -432,6 +387,20 @@ let rec m_name_inner a b =
      the inner m_name function.
   *)
   let m_name = m_name_inner in
+  let try_parents dotted =
+    let parents =
+      match !hook_find_possible_parents with
+      | None -> []
+      | Some f -> f dotted
+    in
+    (* less: use a fold *)
+    let rec aux xs =
+      match xs with
+      | [] -> fail ()
+      | x :: xs -> m_name a x >||> aux xs
+    in
+    aux parents
+  in
   let try_alternate_names idb resolved =
     let _, tidb = idb in
     match resolved with
@@ -467,7 +436,26 @@ let rec m_name_inner a b =
           (m_name a (B.Id (idb, { infob with B.id_resolved = ref None }))
           >||> try_alternate_names idb resolved
           (* Try the resolved entity *)
-          >||> m_name a (H.name_of_ids dotted))
+          >||> m_name a (H.name_of_ids dotted)
+          >||>
+          (* Try the resolved entity and parents *)
+          match a with
+          (* > If we're matching against a metavariable, don't bother checking
+           * > the resolved entity or parents. It will only cause duplicate matches
+           * > that can't be deduped, since the captured metavariable will be
+           * > different.
+           *
+           * FIXME:
+           * This is actually not the correct way of dealing with the problem,
+           * because there could be `metavariable-xyz` operators filtering the
+           * potential values of the metavariable. See DeepSemgrep commit
+           *
+           *     5b2766ee30e "test: Tests for matching metavariable patterns against resolved names"
+           *)
+          | G.Id ((str, _tok), _info) when Mvar.is_metavar_name str -> fail ()
+          | _ ->
+              (* Try matching against parent classes *)
+              try_parents dotted)
     | __else__ -> fail ()
   in
   match (a, b) with
@@ -505,7 +493,8 @@ let rec m_name_inner a b =
       let dotted = G.canonical_to_dotted (snd idb) canonical in
       (* coupling: resolved names with wildcards *)
       wipe_wildcard_imports
-        (try_alternate_names idb resolved
+        (try_parents dotted
+        >||> try_alternate_names idb resolved
         (* try without resolving anything *)
         >||> m_name a
                (B.IdQualified { nameinfo with name_info = static_empty_id_info })
@@ -553,18 +542,21 @@ let rec m_name_inner a b =
                  {
                    contents =
                      Some
-                       ( (( B.ImportedEntity _
-                          | B.ImportedModule _
-                          | B.GlobalName _ ) as resolved),
+                       ( (( B.ImportedEntity canonical
+                          | B.ImportedModule canonical
+                          | B.GlobalName (canonical, _) ) as resolved),
                          _sid );
                  };
                _;
              };
            _;
          } as b1) ) ->
+      (* TODO? use all the tokens in the name? not just idb? *)
+      let dotted = G.canonical_to_dotted (snd idb) canonical in
       (* coupling: resolved names with wildcards *)
       wipe_wildcard_imports
-        (try_alternate_names idb resolved
+        (try_parents dotted
+        >||> try_alternate_names idb resolved
         >||>
         match a with
         | IdQualified a1 -> m_name_info a1 b1
@@ -704,22 +696,6 @@ and m_ident_and_id_info (a1, a2) (b1, b2) =
   | (stra, _), (strb, _) when Pattern.is_regexp_string stra ->
       let re_match = Matching_generic.regexp_matcher_of_regexp_string stra in
       if re_match strb then return () else fail ()
-  (* Prefix metavar: pattern "set_$P" matches source "set_X", but
-     only when the pattern-side id_info is marked hidden. Synthetic
-     parser-mangled entities (e.g. C#/Apex `get_<P>` / `set_<P>` or
-     VB.NET `GET_<P>` / `SET_<P>`) are the intended trigger; we avoid
-     spurious decomposition of literal idents containing `$` in JS,
-     Scala, Java etc. by gating on the hidden flag. *)
-  | (stra, _), b1
-    when String.contains stra '$' && IdFlags.is_hidden !(a2.G.id_flags) -> (
-      match match_prefix_metavar stra b1 with
-      | Some tin -> tin
-      | None ->
-          let case_insensitive =
-            G.is_case_insensitive a2 && B.is_case_insensitive b2
-          in
-          let* () = m_wrap (m_id_string case_insensitive) a1 b1 in
-          m_id_info a2 b2)
   (* general case *)
   | _, _ ->
       let case_insensitive =
@@ -744,8 +720,6 @@ and m_id_info a b =
         G.id_resolved = _a1;
         id_resolved_alternatives = _a2;
         id_type = _a3;
-        id_instance_type = _a_instance_type;
-        id_callee_definition = _a_callee_definition;
         id_svalue = _a4;
         id_flags = _a5;
       },
@@ -753,8 +727,6 @@ and m_id_info a b =
         B.id_resolved = _b1;
         id_resolved_alternatives = _b2;
         id_type = _b3;
-        id_instance_type = _b_instance_type;
-        id_callee_definition = _b_callee_definition;
         id_svalue = _b4;
         id_flags = _b5;
       } ) ->
@@ -980,43 +952,7 @@ and m_expr ?(is_root = false) ?(arguments_have_changed = true) a b =
   | G.N (G.Id _ as na), B.N (B.Id _ as nb) ->
       m_name na nb
       >||> m_with_symbolic_propagation ~is_root (fun b1 -> m_expr a b1) b
-  (* Ruby/Crystal equivalence: bare identifier `foo` matches zero-arg call `foo()`.
-     After disambiguation, target bare identifiers become Call(N(Id(x)), [])
-     but patterns keep the bare N(Id(x)) form. Exclude metavars so they
-     fall through to the general metavar case below. *)
-  | G.N (G.Id ((str, _), _) as na), B.Call ({ e = B.N (B.Id _ as nb); _ }, (_, [], _))
-    when not (Mvar.is_metavar_name str) ->
-      with_lang (fun lang ->
-          if lang =*= Lang.Ruby || lang =*= Lang.Crystal then m_name na nb
-          else fail ())
-  (* Elixir/Ruby equivalence: identifier-pattern `body` matches atom literal
-     `:body` (or keyword form `body:` which lowers to the same atom). The
-     keyword shorthand is syntactic sugar for the atom literal in both
-     languages, so a rule written with a bare-identifier reference at a key
-     position should match the corresponding atom-keyed map. Atom inner
-     string is the bare name per AST_generic convention. Exclude metavars
-     so they fall through to the general metavar case below. *)
-  | G.N (G.Id ((str, _), _)), B.L (B.Atom (_, (atom_str, _)))
-    when not (Mvar.is_metavar_name str) ->
-      with_lang (fun lang ->
-          match lang with
-          | Lang.Elixir
-          | Lang.Ruby
-            when String.equal str atom_str ->
-              return ()
-          | _ -> fail ())
   | G.N (G.Id ((str, tok), _id_info)), _b when Mvar.is_metavar_name str ->
-      envf (str, tok) (MV.E b)
-  (* Atom literal whose inner string is a metavariable name. Comes from
-     patterns like [%{$K: $V}] in Elixir or [{:$K => $V}] in Ruby where
-     the parser lowers [$K] in keyword/atom position as
-     [L(Atom (_, ("$K", _)))]. Bind to [MV.E] (the target expression)
-     so [metavariable-pattern]'s [program_of_mvalue] can lift the
-     binding to a program — same shape as the identifier-metavar case
-     just above. Without this, [m_literal]'s atom-vs-atom path binds as
-     [MV.Text], which [metavariable-pattern] cannot consume. *)
-  | G.L (G.Atom (_, (str, tok))), B.L (B.Atom _)
-    when Mvar.is_metavar_name str ->
       envf (str, tok) (MV.E b)
   (* metavar: typed! *)
   | G.TypedMetavar ((str, tok), _, t), _b when Mvar.is_metavar_name str ->
@@ -1505,7 +1441,6 @@ and m_special a b =
   | G.Super, B.Super -> return ()
   | G.Self, B.Self -> return ()
   | G.Parent, B.Parent -> return ()
-  | G.LateStatic, B.LateStatic -> return ()
   | G.Eval, B.Eval -> return ()
   | G.Typeof, B.Typeof -> return ()
   | G.Instanceof, B.Instanceof -> return ()
@@ -1526,7 +1461,6 @@ and m_special a b =
   | G.Super, _
   | G.Self, _
   | G.Parent, _
-  | G.LateStatic, _
   | G.Eval, _
   | G.Typeof, _
   | G.Instanceof, _
@@ -1613,6 +1547,11 @@ and m_container_ordered_elements a b =
  *    style as typechecking could also bind metavariables in the process
  *)
 and m_compatible_type lang typed_mvar t e =
+  let t =
+    match !Naming_AST.pro_hook_normalize_ast_generic_type with
+    | Some f -> f lang t
+    | None -> t
+  in
   match (t.G.t, e.G.e) with
   (* for C specific literals *)
   | G.TyPointer (_, { t = TyN (G.Id (("char", _), _)); _ }), B.L (B.String _) ->
@@ -2935,61 +2874,12 @@ and m_catch a b =
       m_tok at bt >>= fun () ->
       m_catch_exn a1 b1 >>= fun () -> m_stmt a2 b2
 
-(* the types of a union, left to right; a lone type is a union of one *)
-and union_members ty =
-  match ty.G.t with
-  | G.TyOr (t1, _, t2) -> union_members t1 @ union_members t2
-  | _ -> [ ty ]
-
-and is_union_type ty =
-  match ty.G.t with
-  | G.TyOr _ -> true
-  | _ -> false
-
-(* a lone '$T' stands for the whole union, so it needs no per-type pass *)
-and is_metavar_type ty =
-  match ty.G.t with
-  | G.TyN (G.Id ((s, _), _)) -> Mvar.is_metavar_name s
-  | _ -> false
-
 and m_catch_exn a b =
   match (a, b) with
   (* dots: *)
   | G.CatchPattern (G.PatEllipsis _), _ -> return ()
   (* boilerplate *)
   | G.CatchPattern a, CatchPattern b -> m_pattern a b
-  (* a multi-catch such as PHP's 'catch (Exn1 | Exn2 $e)' catches every one of
-   * its types, so it matches a pattern naming any of them: one type, or
-   * several in any order. Trying the union whole first lets a metavariable
-   * still bind to it in full.
-   *)
-  | G.CatchParam a, B.CatchParam ({ B.ptype = Some bty; _ } as b)
-    when is_union_type bty ->
-      let caught = union_members bty in
-      let named =
-        match a.G.ptype with
-        | Some aty when not (is_metavar_type aty) -> union_members aty
-        | _ -> []
-      in
-      m_parameter_classic a b
-      >||>
-      (match named with
-      | [] -> fail ()
-      | _ ->
-          (* every type the pattern names has to be one the clause catches *)
-          named
-          |> List.fold_left
-               (fun acc aty ->
-                 acc >>= fun () ->
-                 caught
-                 |> List.fold_left
-                      (fun acc bty -> acc >||> m_type_ aty bty)
-                      (fail ()))
-               (return ())
-          >>= fun () ->
-          m_parameter_classic
-            { a with G.ptype = None }
-            { b with B.ptype = None })
   | G.CatchParam a, B.CatchParam b -> m_parameter_classic a b
   | G.OtherCatch (a0, a1), B.OtherCatch (b0, b1) ->
       let* () = m_todo_kind a0 b0 in
@@ -3093,7 +2983,7 @@ and m_pattern a b =
   | G.PatTuple a1, B.PatTuple b1 -> m_bracket (m_list_with_ellipsis m_pattern) a1 b1
   | G.PatList a1, B.PatList b1 -> m_bracket (m_list_with_ellipsis m_pattern) a1 b1
   | G.PatRecord a1, B.PatRecord b1 ->
-      m_bracket m_list__m_field_pattern a1 b1
+    m_bracket (m_list(*_with_ellipsis ?*) m_field_pattern) a1 b1
   | G.PatKeyVal (a1, a2), B.PatKeyVal (b1, b2) ->
       m_pattern a1 b1 >>= fun () -> m_pattern a2 b2
   | G.PatWildcard a1, B.PatWildcard b1 -> m_tok a1 b1
@@ -3128,36 +3018,7 @@ and m_pattern a b =
 
 and m_field_pattern a b =
   match (a, b) with
-  | ([ (s_field, _) ], (G.PatId ((s_bound, _), _) as a2)), (_, b2)
-    when String.equal s_field s_bound && Mvar.is_metavar_name s_field ->
-      (* Shorthand record pattern like [{ $X }] — the field-label and the
-       * bound-var pattern carry the same metavariable name. Bind it once
-       * via the inner [PatId] (which carries the target's resolved
-       * id_info) instead of binding twice in conflicting forms. *)
-      m_pattern a2 b2
   | (a1, a2), (b1, b2) -> m_dotted_name a1 b1 >>= fun () -> m_pattern a2 b2
-
-(* Subset-semantic, order-independent matching of [PatRecord] field lists.
- * Every pattern field must match some target field (by [m_field_pattern]),
- * but the target may have additional fields that the pattern does not
- * mention. That matches how destructuring patterns are typically used in
- * sgrep rules — [{$X}] means "has at least field $X", not "has exactly one
- * field named $X". *)
-and m_list__m_field_pattern xsa xsb =
-  match (xsa, xsb) with
-  | [], _ -> return ()
-  | a :: xsa, xsb ->
-      let candidates = all_elem_and_rest_of_list xsb in
-      let rec aux xs =
-        match xs with
-        | [] -> fail ()
-        | (b, xsb_rest) :: xs ->
-            m_field_pattern a b
-            >>= (fun () ->
-                  m_list__m_field_pattern xsa (lazy_rest_of_list xsb_rest))
-            >||> aux xs
-      in
-      aux candidates
 
 (*****************************************************************************)
 (* Definitions *)
@@ -3243,17 +3104,6 @@ and m_definition_kind a b =
         (fun x -> x.arrow_is_function)
         ~then_:(m_function_definition a1 b1)
         ~else_:(fail ())
-  (* In C and C++ a function declaration at file scope is a [FuncDef] whose
-     body is [FBDecl], while the same text written as a pattern carries the
-     variable shape the conversion gives it everywhere else. *)
-  | G.VarDef { G.vtype = Some { G.t = G.TyFun (a1, a2); _ }; vinit = None; _ },
-    B.FuncDef { B.fparams = b1; frettype = Some b2; fbody = B.FBDecl _; _ } ->
-      with_lang (fun lang ->
-        match lang with
-        | Lang.C
-        | Lang.Cpp ->
-          m_parameter_list a1 (Tok.unbracket b1) >>= fun () -> m_type_ a2 b2
-        | _ -> fail ())
   | G.VarDef a1, B.VarDef b1 -> m_variable_definition a1 b1
   | G.FieldDefColon a1, B.FieldDefColon b1 -> m_variable_definition a1 b1
   | G.ClassDef a1, B.ClassDef b1 -> m_class_definition a1 b1
@@ -3384,7 +3234,6 @@ and can_skip_special_cases lang =
       fun p ->
         match p with
         | G.Param p when List.exists is_extern p.pattrs -> true
-        | G.ParamReceiver _ -> true
         | _ -> false
   else
     fun _ -> false
@@ -3447,8 +3296,7 @@ and m_parameter a b =
   | G.ParamHashSplat (a1, a2), B.ParamHashSplat (b1, b2) ->
       let* () = m_tok a1 b1 in
       m_parameter_classic a2 b2
-  | G.ParamPattern (a1, a2), B.ParamPattern (b1, b2) ->
-      m_pattern a1 b1 >>= fun () -> m_parameter_classic a2 b2
+  | G.ParamPattern a1, B.ParamPattern b1 -> m_pattern a1 b1
   | G.ParamReceiver a1, B.ParamReceiver b1 -> m_parameter_classic a1 b1
   | G.OtherParam (a1, a2), B.OtherParam (b1, b2) ->
       m_todo_kind a1 b1 >>= fun () -> (m_list m_any) a2 b2
@@ -3511,49 +3359,34 @@ and m_variable_definition a b =
  * a lot the engine. Simpler to just filter them.
  *)
 and m_fields (xsa : G.field list) (xsb : G.field list) =
-  let is_dots = function
-    | G.F { s = G.ExprStmt ({ e = G.Ellipsis _; _ }, _); _ } -> true
-    | _ -> false
-  in
-  (* dots: metavars: $...FLDS
-   * A '$...FLDS' behaves like a '...': fields are matched in any order, so
-   * it stands for the fields not matched by the rest of the pattern, whatever
-   * their position. It is bound to those leftover fields by m_list__m_field.
-   *)
-  let mvar_ellipsis = xsa |> List_.filter_map m_field_metavar_ellipsis in
-  (* let's filter the '...' and the '$...FLDS' *)
-  let dots, xsa = List.partition is_dots xsa in
+  let has_ellipsis = ref false in
+  (* let's filter the '...' *)
   let xsa =
+    (* TODO: Similar to has_ellipsis_and_filter_ellipsis, refactor? *)
     xsa
-    |> List_.exclude (fun x -> Option.is_some (m_field_metavar_ellipsis x))
+    |> List_.exclude (function
+         | G.F { s = G.ExprStmt ({ e = G.Ellipsis _; _ }, _); _ } ->
+             has_ellipsis := true;
+             true
+         | _ -> false)
   in
-  let less_is_ok = not (List_.null dots && List_.null mvar_ellipsis) in
   if_config
     (fun x -> x.implicit_ellipsis)
-    ~then_:(m_list__m_field ~mvar_ellipsis ~less_is_ok:true xsa xsb)
-    ~else_:(m_list__m_field ~mvar_ellipsis ~less_is_ok xsa xsb)
+    ~then_:(m_list__m_field ~less_is_ok:true xsa xsb)
+    ~else_:(m_list__m_field ~less_is_ok:!has_ellipsis xsa xsb)
 
 (* less: mix of m_list_and_dots and m_list_unordered_keys, hard to factorize *)
-and m_list__m_field ?(mvar_ellipsis = []) ~less_is_ok (xsa : G.field list)
-    (xsb : G.field list) =
+and m_list__m_field ~less_is_ok (xsa : G.field list) (xsb : G.field list) =
   Log.debug (fun m ->
       m "%s"
         (spf "m_list__m_field:%d vs %d" (List.length xsa) (List.length xsb)));
-  (* dots: metavars: $...FLDS is bound to the fields left unmatched *)
-  let bind_leftovers rest =
-    mvar_ellipsis
-    |> List.fold_left
-         (fun acc ((s, tok), metavar_build) ->
-           acc >>= fun () -> envf (s, tok) (metavar_build rest))
-         (return ())
-  in
   match (xsa, xsb) with
-  | [], [] -> bind_leftovers []
+  | [], [] -> return ()
   (* less-is-ok:
    * it's ok to have fields after in the concrete code as long as we
    * matched all the fields in the pattern.
    *)
-  | [], (_ :: _ as rest) -> if less_is_ok then bind_leftovers rest else fail ()
+  | [], _ :: _ -> if less_is_ok then return () else fail ()
   | G.F { s = G.ExprStmt ({ e = G.Ellipsis _; _ }, _); _ } :: _, _ ->
       raise Impossible
   (* Note that we restrict the match-a-field-at-any-position only for
@@ -3593,7 +3426,7 @@ and m_list__m_field ?(mvar_ellipsis = []) ~less_is_ok (xsa : G.field list)
         match there with
         | G.F { s = G.DefStmt bdef; _ } ->
             m_definition adef bdef >>= fun () ->
-            m_list__m_field ~mvar_ellipsis ~less_is_ok xsa (before @ after)
+            m_list__m_field ~less_is_ok xsa (before @ after)
         | _ -> raise Impossible
       with
       | Not_found -> fail ())
@@ -3610,8 +3443,7 @@ and m_list__m_field ?(mvar_ellipsis = []) ~less_is_ok (xsa : G.field list)
         | (b, xsb) :: xs ->
             m_field a b
             >>= (fun () ->
-                  m_list__m_field ~mvar_ellipsis ~less_is_ok xsa
-                    (lazy_rest_of_list xsb))
+                  m_list__m_field ~less_is_ok xsa (lazy_rest_of_list xsb))
             >||> aux xs
       in
       aux candidates
@@ -3694,12 +3526,12 @@ and m_list__m_class_parent (xsa : G.class_parent list)
       if
         lang =*= Lang.Kotlin
         (* in Kotlin the order in cextends does not matter *)
-      then m_list_in_any_order ~less_is_ok:true m_class_parent_basic xsa xsb
+      then m_list_in_any_order ~less_is_ok:true m_class_parent xsa xsb
       else
         (* we could generalize to other languages, but we currently get
          * regressions for python where the order does seem to matter
          *)
-        m_list_with_dots m_class_parent_basic
+        m_list_with_dots m_class_parent
           (function
             | { G.t = G.TyEllipsis _; _ }, None -> true
             (* dots: '...', this is very Python Specific I think *)
@@ -3713,6 +3545,35 @@ and m_class_parent_basic (a1, a2) (b1, b2) =
   (* less: m_option_none_can_match_some? *)
   let* () = m_option m_arguments a2 b2 in
   return ()
+
+and m_class_parent a b =
+  m_class_parent_basic a b >!> (* less: could be >||> *)
+                           fun () ->
+  match (a, b) with
+  (* less: this could be generalized, but let's go simple first *)
+  | (a1, None), ({ t = B.TyN (B.Id (id, { id_resolved; _ })); _ }, None) ->
+      let xs =
+        match !id_resolved with
+        | Some (B.ImportedEntity canonical, _sid) ->
+            G.canonical_to_dotted (snd id) canonical
+        | _ -> [ id ]
+      in
+      (* deep: *)
+      let candidates =
+        match !hook_find_possible_parents with
+        | None -> []
+        | Some f -> f xs
+      in
+      (* less: use a fold *)
+      let rec aux xs =
+        match xs with
+        | [] -> fail ()
+        | x :: xs ->
+            let t = B.TyN x |> B.t in
+            m_type_ a1 t >||> aux xs
+      in
+      aux candidates
+  | _ -> fail ()
 
 (* ------------------------------------------------------------------------- *)
 (* Class definition *)

@@ -33,6 +33,12 @@ include module type of Eq.Operators
 (* Physical (shallow) equality, normally available as (==) *)
 val phys_equal : 'a -> 'a -> bool
 
+(* Physical (shallow) inequality, normally available as (!=) *)
+val phys_not_equal : 'a -> 'a -> bool
+
+val equal_ref_option :
+  ('a -> 'b -> bool) -> 'a option ref -> 'b option ref -> bool
+
 (*****************************************************************************)
 (* Comparison *)
 (*****************************************************************************)
@@ -48,7 +54,9 @@ val compose : ('a -> 'b) -> ('c -> 'a) -> 'c -> 'b
 val flip : ('a -> 'b -> 'c) -> 'b -> 'a -> 'c
 val curry : ('a * 'b -> 'c) -> 'a -> 'b -> 'c
 val uncurry : ('a -> 'b -> 'c) -> 'a * 'b -> 'c
+val do_nothing : unit -> unit
 val const : 'a -> 'b -> 'a
+val applyn : int -> ('a -> 'a) -> 'a -> 'a
 val on : ('b -> 'b -> 'c) -> ('a -> 'b) -> 'a -> 'a -> 'c
 
 (*****************************************************************************)
@@ -113,6 +121,9 @@ val protect : finally:(unit -> unit) -> (unit -> 'a) -> 'a
 (*****************************************************************************)
 (* Debugging *)
 (*****************************************************************************)
+
+(* to be used in pipes as in foo() |> before_return (fun v -> pr2_gen v)*)
+val before_return : ('a -> unit) -> 'a -> 'a
 
 (*****************************************************************************)
 (* Strings and regexps *)
@@ -181,8 +192,6 @@ module SMap : Map.S with type key = String.t
 
 type 'a smap = 'a SMap.t
 
-module SSet : Set.S with type elt = String.t
-
 (*****************************************************************************)
 (* Option *)
 (*****************************************************************************)
@@ -236,7 +245,7 @@ val input_text_line : in_channel -> string
 (* Optimizations *)
 (*****************************************************************************)
 
-val memoized : ?use_cache:bool -> ('a, 'b) Saturn.Htbl.t -> 'a -> (unit -> 'b) -> 'b
+val memoized : ?use_cache:bool -> ('a, 'b) Kcas_data.Hashtbl.t -> 'a -> (unit -> 'b) -> 'b
 val memoized_not_thread_safe : ?use_cache:bool -> ('a, 'b) Hashtbl.t -> 'a -> (unit -> 'b) -> 'b
 
 (*****************************************************************************)
@@ -266,3 +275,10 @@ module Operators : sig
   val ( == ) : Eq.hidden_by_your_nanny
   val ( != ) : Eq.hidden_by_your_nanny
 end
+
+(*****************************************************************************)
+(* Misc *)
+(*****************************************************************************)
+
+(* you should set this flag when you run code compiled by js_of_ocaml *)
+val jsoo : bool ref

@@ -5,6 +5,5 @@
    alcotest
    testo
    commons
-   memprof-limits
  )
 )

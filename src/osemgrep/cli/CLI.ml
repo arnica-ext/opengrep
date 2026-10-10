@@ -23,8 +23,8 @@ module Env = Semgrep_envvars
 
    This module determines the subcommand invoked on the command line
    and has another module handle it as if it was an independent command.
-   Exceptions are caught and turned into an appropriate exit code,
-   with --debug adding their backtrace to the log.
+   Exceptions are caught and turned into an appropriate exit code
+   (unless you used --debug).
 
    alt: we don't use Cmdliner to dispatch subcommands because it's too
    complicated and anyway we want full control on the main help message.
@@ -51,13 +51,23 @@ type caps =
 let default_subcommand = "scan"
 
 (*****************************************************************************)
+(* Hooks *)
+(*****************************************************************************)
+(* alt: define our own Pro_CLI.ml in semgrep-pro
+ * old: was Interactive_subcommand.main
+ *)
+let hook_semgrep_interactive =
+  ref (fun _argv ->
+      failwith "semgrep interactive not available (requires --pro)")
+
+(*****************************************************************************)
 (* Helpers *)
 (*****************************************************************************)
 
 (* Placeholder for adaptation of pysemgrep state.terminal.init_for_cli() *)
 (* TOPORT:
      1. GITHUB_ACTIONS specific output requirements
-   NO_COLOR / SEMGREP_FORCE_NO_COLOR are handled in CLI_common.setup_logging.
+     2. Any NO_COLOR / SEMGREP_FORCE_NO_COLOR behavior
 *)
 (* let init_for_cli () : unit =
    ()
@@ -81,11 +91,9 @@ let known_subcommands =
     "show";
     "test";
     "validate";
+    (* pro-only and osemgrep-only *)
+    "interactive";
   ]
-
-(* Global flags that main below detects on the whole argv and that may
- * legitimately precede the subcommand. *)
-let global_flags = [ "--experimental"; "--debug"; "--profile" ]
 
 let dispatch_subcommand (caps : caps) (argv : string array) =
   match Array.to_list argv with
@@ -109,47 +117,51 @@ let dispatch_subcommand (caps : caps) (argv : string array) =
   | [ _; "--experimental"; ("-h" | "--help") ] ->
       Help.print_semgrep_dashdash_help caps#stdout;
       Exit_code.ok ~__LOC__
-  | argv0 :: args ->
-      (* the subcommand may be preceded by global flags, e.g.
-       * 'opengrep --experimental ci' *)
-      let leading_flags, rest =
-        let rec split acc = function
-          | arg :: tl when List.mem arg global_flags -> split (arg :: acc) tl
-          | tl -> (List.rev acc, tl)
-        in
-        split [] args
-      in
+  | argv0 :: args -> (
       let subcmd, subcmd_args =
-        match rest with
-        | arg1 :: other_args when List.mem arg1 known_subcommands ->
-            (arg1, leading_flags @ other_args)
-        | _else_ ->
-            (* No valid subcommand was found.
-               Assume the 'scan' subcommand was omitted and insert it. *)
-            (default_subcommand, args)
+        match args with
+        | [] -> (default_subcommand, [])
+        | arg1 :: other_args ->
+            if List.mem arg1 known_subcommands then (arg1, other_args)
+            else
+              (* No valid subcommand was found.
+                 Assume the 'scan' subcommand was omitted and insert it. *)
+              (default_subcommand, arg1 :: other_args)
       in
       let subcmd_argv =
         let subcmd_argv0 = argv0 ^ "-" ^ subcmd in
         subcmd_argv0 :: subcmd_args |> Array.of_list
       in
+      let experimental = Array.mem "--experimental" argv in
       (* coupling: with known_subcommands if you add an entry below.
        * coupling: with Help.ml if you add an entry below.
        *)
-      match subcmd with
-      | "scan" -> Scan_subcommand.main caps subcmd_argv
-      | "ci" -> Ci_subcommand.main caps subcmd_argv
-      | "lsp" -> Lsp_subcommand.main caps subcmd_argv
-      (* | "logout" ->
-             Logout_subcommand.main (caps :> < Cap.stdout >) subcmd_argv *)
-      | "install-ci" -> Install_ci_subcommand.main caps subcmd_argv
-      | "show" -> Show_subcommand.main caps subcmd_argv
-      | "test" -> Test_subcommand.main caps subcmd_argv
-      | "validate" -> Validate_subcommand.main caps subcmd_argv
-      | _ ->
-          (* this should never happen because we default to 'scan',
-           * but better to be safe than sorry.
-           *)
-          Error.abort (Printf.sprintf "unknown opengrep command: %s" subcmd)
+      try
+        match subcmd with
+        (* TODO: gradually remove those 'when experimental' guards as
+         * we progress in osemgrep port (or use Pysemgrep.Fallback further
+         * down when we know we don't handle certain kind of arguments).
+         *)
+        (* partial support, still use Pysemgrep.Fallback in it *)
+        | "scan" -> Scan_subcommand.main caps subcmd_argv
+        (* osemgrep-only: and by default! no need for experimental! *)
+        | "lsp" -> Lsp_subcommand.main caps subcmd_argv
+        (* | "logout" ->
+               Logout_subcommand.main (caps :> < Cap.stdout >) subcmd_argv *)
+        | "install-ci" -> Install_ci_subcommand.main caps subcmd_argv
+        | "interactive" -> !hook_semgrep_interactive subcmd_argv
+        | "show" -> Show_subcommand.main caps subcmd_argv
+        | "test" -> Test_subcommand.main caps subcmd_argv
+        | "validate" -> Validate_subcommand.main caps subcmd_argv
+        | _ ->
+            if experimental then
+              (* this should never happen because we default to 'scan',
+               * but better to be safe than sorry.
+               *)
+              Error.abort (Printf.sprintf "unknown opengrep command: %s" subcmd)
+            else raise Pysemgrep.Fallback
+      with
+      | Pysemgrep.Fallback -> Pysemgrep.pysemgrep (caps :> < Cap.exec >) argv)
 [@@profiling]
 
 (*****************************************************************************)
@@ -158,48 +170,30 @@ let dispatch_subcommand (caps : caps) (argv : string array) =
 
 (* Wrapper that catches exceptions and turns them into an exit code
  * TOPORT? "Enforces that exit code 1 is only for findings"
- *
- * --debug is the run a user is asked for when reporting a problem, so it
- * must not change the message or the exit code: the backtrace is logged in
- * addition to the normal handling, not instead of it.
  *)
-let safe_run f : Exit_code.t =
-  (* only shown with --debug, which sets the Debug log level *)
-  let log_backtrace () : unit =
-    Logs.debug (fun m -> m "%s" (Printexc.get_backtrace ()))
-  in
-  try f () with
-  (* say nothing and return the conventional code for a closed pipe *)
-  | exn when Error.is_broken_pipe exn ->
-      Error.silence_std_formatter ();
-      Exit_code.broken_pipe ~__LOC__
-  | Error.Semgrep_error (s, opt_exit_code) -> (
-      Logs.err (fun m -> m "%s" s);
-      log_backtrace ();
-      match opt_exit_code with
-      | None -> Exit_code.fatal ~__LOC__
-      | Some code -> code)
-  | Error.Exit_code code -> code
-  (* a failed git command is already explained by Git_wrapper's own
-   * warning; no backtrace needed *)
-  | Git_wrapper.Error msg ->
-      Logs.err (fun m -> m "%s" msg);
-      log_backtrace ();
-      Exit_code.fatal ~__LOC__
-  (* should never happen, you should prefer Error.Exit to Common.UnixExit
-   * but just in case *)
-  | Common.UnixExit i ->
-      Exit_code.of_int ~__LOC__ ~code:i ~description:"rogue UnixExit"
-  (* TOPORT: PLEASE_FILE_ISSUE_TEXT for unexpected exn *)
-  | Failure msg ->
-      Logs.err (fun m -> m "Error: %s%!" msg);
-      log_backtrace ();
-      Exit_code.fatal ~__LOC__
-  | e ->
-      let trace = Printexc.get_backtrace () in
-      Logs.err (fun m ->
-          m "Error: exception %s\n%s%!" (Printexc.to_string e) trace);
-      Exit_code.fatal ~__LOC__
+let safe_run ~debug f : Exit_code.t =
+  if debug then f ()
+  else
+    try f () with
+    | Error.Semgrep_error (s, opt_exit_code) -> (
+        Logs.err (fun m -> m "%s" s);
+        match opt_exit_code with
+        | None -> Exit_code.fatal ~__LOC__
+        | Some code -> code)
+    | Error.Exit_code code -> code
+    (* should never happen, you should prefer Error.Exit to Common.UnixExit
+     * but just in case *)
+    | Common.UnixExit i ->
+        Exit_code.of_int ~__LOC__ ~code:i ~description:"rogue UnixExit"
+    (* TOPORT: PLEASE_FILE_ISSUE_TEXT for unexpected exn *)
+    | Failure msg ->
+        Logs.err (fun m -> m "Error: %s%!" msg);
+        Exit_code.fatal ~__LOC__
+    | e ->
+        let trace = Printexc.get_backtrace () in
+        Logs.err (fun m ->
+            m "Error: exception %s\n%s%!" (Printexc.to_string e) trace);
+        Exit_code.fatal ~__LOC__
 
 let before_exit ~profile caps : unit =
   (* alt: could be done in Main.ml instead, just before the call to exit() *)
@@ -220,6 +214,7 @@ let before_exit ~profile caps : unit =
  *)
 let main (caps : caps) (argv : string array) : Exit_code.t =
   Printexc.record_backtrace true;
+  let debug = Array.mem "--debug" argv in
   let profile = Array.mem "--profile" argv in
 
   (* LATER: move this function from Core_CLI to here at some point.
@@ -268,40 +263,15 @@ let main (caps : caps) (argv : string array) : Exit_code.t =
   (* pad poor's man profiler *)
   if profile then Profiling.profile := Profiling.ProfAll;
 
+  (* hacks for having a smaller engine.js file *)
   Parsing_init.init ();
-  let proxy_uri (upper : string) (lower : string) : Uri.t option =
-    List.find_map Opengrep_env.getenv_nonempty [ upper; lower ]
-    |> Option.map Uri.of_string
-  in
-  let scheme_proxy =
-    List.filter_map
-      (fun ((scheme : string), (proxy : Uri.t option)) ->
-        Option.map (fun (uri : Uri.t) -> (scheme, uri)) proxy)
-      [
-        ("http", proxy_uri "HTTP_PROXY" "http_proxy");
-        ("https", proxy_uri "HTTPS_PROXY" "https_proxy");
-      ]
-  in
-  let all_proxy = proxy_uri "ALL_PROXY" "all_proxy" in
-  let no_proxy =
-    List.find_map Opengrep_env.getenv_nonempty [ "NO_PROXY"; "no_proxy" ]
-  in
-  let proxy_cache =
-    lazy
-      (Cohttp_lwt_unix.Connection_proxy.create ~scheme_proxy ?all_proxy
-         ?no_proxy ())
-  in
-  Cohttp_lwt_unix.Client.set_cache
-    (fun ?headers ?body ?absolute_form (meth : Cohttp.Code.meth) (uri : Uri.t) ->
-      Cohttp_lwt_unix.Connection_proxy.call (Lazy.force proxy_cache) ?headers
-        ?body ?absolute_form meth uri);
   Http_helpers_.set_client_ref (module Cohttp_lwt_unix.Client);
 
   (* TOPORT: maybe_set_git_safe_directories() *)
   (* TOADAPT? adapt more of Common.boilerplate? *)
 
   (* !The main call! dispatching a subcommand *)
-  let exit_code = safe_run (fun () -> dispatch_subcommand caps argv) in
+  let exit_code = safe_run ~debug (fun () -> dispatch_subcommand caps argv) in
 
   before_exit ~profile (caps :> < Cap.tmp >);
   exit_code

@@ -1,3 +1,0 @@
-match $X:
-    case $P if $G:
-        $Y

@@ -9,18 +9,8 @@ type t =
   | Dir of Fpath.t
   (* ex: 'https://raw.githubusercontent.com/r2c/semgrep-rules/template.yaml' *)
   | URL of Uri.t
-  (* ex: 'git+https://github.com/org/rules', 'git+ssh://git@host/org/rules#v1'
-   * A whole remote git repository of rules, cloned locally then loaded
-   * like a Dir. *)
-  | Git of git_config
   | R of registry_config_kind
-
-(* the config string after the 'git+' prefix: the clone URL and an optional
- * branch/tag given as a '#'-fragment (e.g. '...#v1.2.0'). *)
-and git_config = {
-  url : Uri.t;
-  ref_ : string option;
-}
+  | A of app_config_kind
 
 and registry_config_kind =
   (* r/... *)
@@ -34,6 +24,12 @@ and registry_config_kind =
   | Auto
   (* p/r2c *)
   | R2c
+
+(* Semgrep App shortcuts *)
+and app_config_kind =
+  (* this requires also SEMGREP_REPO_NAME to be set *)
+  | Policy
+  | SupplyChain
 [@@deriving show]
 
 (* the in_docker parameter is useful just for better error reporting *)

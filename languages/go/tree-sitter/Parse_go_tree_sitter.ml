@@ -374,7 +374,8 @@ and constraint_term (env : env) ((v1, v2) : CST.constraint_term) : constraint_ =
     | Some tok -> Some ((* "~" *) token env tok)
     | None -> None
   in
-  let ty = simple_type env v2 in
+  let id = (* identifier *) identifier env v2 in
+  let ty = TName [ id ] in
   (tilde_opt, ty)
 
 and interface_type_name (env : env) (x : CST.interface_type_name) :
@@ -1076,44 +1077,16 @@ and type_spec (env : env) ((v1, v2, v3) : CST.type_spec) =
   let v3 = type_ env v3 in
   DTypeDef (v1, tparams_opt, v3)
 
-and type_parameter_declaration (env : env)
-    ((v1, v2, v3) : CST.type_parameter_declaration) : parameter_binding list =
-  let id1 = identifier env v1 in
-  let ids =
-    id1
-    :: List_.map
-         (fun (v1, v2) ->
-           let _v1 = (* "," *) token env v1 in
-           identifier env v2)
-         v2
-  in
-  let ty =
-    match v3 with
-    | `Choice_simple_type x -> type_ env x
-    | `Cons_elem (v1, v2) ->
-        let v1 = constraint_term env v1 in
-        let v2 =
-          List_.map
-            (fun (v1, v2) ->
-              let _v1 = (* "|" *) token env v1 in
-              constraint_term env v2)
-            v2
-        in
-        let xs = v1 :: v2 in
-        let ftok = Tok.unsafe_fake_tok "interface" in
-        TInterface (ftok, (ftok, [ Constraints xs ], ftok))
-  in
-  List_.map (fun id -> ParamClassic { pname = Some id; ptype = ty; pdots = None }) ids
-
 and type_parameter_list (env : env)
     ((v1, v2, v3, v4, v5) : CST.type_parameter_list) =
   let lbra = (* "[" *) token env v1 in
-  let params = type_parameter_declaration env v2 in
+  let params = parameter_declaration env v2 in
   let paramss =
     List.concat_map
       (fun (v1, v2) ->
         let _v1 = (* "," *) token env v1 in
-        type_parameter_declaration env v2)
+        let v2 = parameter_declaration env v2 in
+        v2)
       v3
   in
   let _v4 = trailing_comma env v4 in
@@ -1127,18 +1100,15 @@ and channel_type (env : env) (x : CST.channel_type) =
       let v2 = type_ env v2 in
       TChan (v1, TBidirectional, v2)
   | `Chan_LTDASH_choice_simple_type (v1, v2, v3) ->
-      (* `chan<- T` is a send-only channel. The menhir Go parser labels
-         this TSend; tree-sitter was previously swapped. *)
       let v1 = token env v1 (* "chan" *) in
       let _v2 = token env v2 (* "<-" *) in
       let v3 = type_ env v3 in
-      TChan (v1, TSend, v3)
+      TChan (v1, TRecv, v3)
   | `LTDASH_chan_choice_simple_type (v1, v2, v3) ->
-      (* `<-chan T` is a receive-only channel. *)
       let _v1 = token env v1 (* "<-" *) in
       let v2 = token env v2 (* "chan" *) in
       let v3 = type_ env v3 in
-      TChan (v2, TRecv, v3)
+      TChan (v2, TSend, v3)
 
 and parameter_list (env : env) ((v1, v2, v3) : CST.parameter_list) :
     parameter_binding list bracket =

@@ -30,9 +30,6 @@ val of_yojson : Yojson.Safe.t -> (Fpath.t, string) result
 (* alias but with derived available *)
 type t = Fpath.t [@@deriving show, eq, ord, sexp]
 
-(* For hash tables keyed by path, e.g. [Saturn.Htbl.create ~hashed_type]. *)
-module Hashed : Hashtbl.HashedType with type t = Fpath.t
-
 (*
    Take a nonempty list of path segments and turn them in to relative path.
    Only the last segment may by empty, representing a trailing slash.
@@ -52,22 +49,6 @@ val ( !! ) : Fpath.t -> string
    equals 'Fpath.v "a"' rather than 'Fpath.v "./a"'. *)
 val append_no_dot : Fpath.t -> Fpath.t -> Fpath.t
 
-(* Drop the leading './' and the trailing '/' of a path, which name no
-   part of it: './src/' becomes 'src' and './.' becomes '.'. The rest is
-   kept as given, so 'a/../b' and 'a/./b' keep their form. *)
-val strip_leading_dot_and_trailing_slash : Fpath.t -> Fpath.t
-
-(* Drop the '.' segments of a path, which name no part of it: 'a/./b'
-   becomes 'a/b' and '.' stays '.'. Only those segments go: a '..' is
-   kept as given, where Fpath.normalize resolves it against the preceding
-   segment and so names another file when that segment is a symlink. *)
-val drop_dot_segments : Fpath.t -> Fpath.t
-
-(* Normalised absolute form of a path, plus the anchor it was resolved
-   against: [(Fpath.(cwd // path) |> normalize, Some cwd)] for a relative
-   path, [(normalize path, None)] for an already-absolute one. *)
-val absolutify : cwd:Fpath.t -> Fpath.t -> Fpath.t * Fpath.t option
-
 (*
    Operators on files or file paths or anything related to files.
    This is module is meant to be opened:
@@ -76,7 +57,6 @@ val absolutify : cwd:Fpath.t -> Fpath.t -> Fpath.t * Fpath.t option
 
      open File.Operators
 *)
-
 module Operators : sig
   (* Fpath.add_seg = Fpath.(/) *)
   val ( / ) : Fpath.t -> string -> Fpath.t

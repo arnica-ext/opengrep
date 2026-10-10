@@ -10,19 +10,17 @@
 
 - Added native support for **Windows**.
 
-- Added support for languages that are not available in Semgrep CE or Semgrep PRO: **Crystal**, **Visual Basic**.
+- Added support for languages that are not available in Semgrep CE or Semgrep PRO: **Apex** and **Visual Basic**.
 
-- Added support for languages that are not available in Semgrep CE: **Apex** and **Elixir**.
+- Added support for languages that are not available in Semgrep CE: **Elixir**.
 
 - Improved support for **Clojure** which now supports tainting, while in Semgrep the translation is very limited.
 
-- Added support for intrafile cross-function tainting, with the flag `--taint-intrafile`, supporting higher-order functions. This works similarly to Semgrep's `--pro-intrafile`.
+- Added support for intrafile cross-function tainting, with the flag `--taint-intrafile`. This works similarly to Semgrep's `--pro-intrafile`.
 
 ### Features
 
-- Improvements in many **existing languages** such as C, C#, C++, Dart, Elixir, Java, Javascript, Kotlin, Php, Ruby, Rust, Scala.
-
-- **Self-contained binaries** for multiple architectures, compiled from OCaml. This is a departure from Semgrep, which is typically distributed using python wheels or homebrew. User environments do not need to have python installed. On Windows the package holds `opengrep.exe` and the DLLs it needs, which are to be kept together in the installed directory.
+- **Self-contained binaries** for multiple architectures, built using **Nuitka** for fast and self-contained executables. This is a departure from Semgrep, which is typically distributed using python wheels or homebrew. Now user environments do not need to have python installed, and the performance is comparable to the python wheel.
 
 - **Install script** for macOS and Linux.
 
@@ -32,13 +30,13 @@
 
 - Added support for reporting the **enclosing context** of a match (e.g., class, function, module) in the JSON output. Use the flag: `--output-enclosing-context`
 
-- **Per rule timeouts** that override the `--timeout` CLI parameter. Requires `--allow-rule-timeout-control` and also a CLI `--timeout` that is bigger than 0 (which disables timeouts). Set using the `timeout` rule option.
+- **Per rule timeouts** that override the `--timeout` CLI parameter. Require `--allow-rule-timeout-control` and also a CLI `--timeout` that is bigger than 0 (which disables timeouts). Set using the `timeout` rule option.
 
 - **Dynamic timeouts** that scale with file size. Enabled via `--dynamic-timeout`, but can also be controlled per rule using `dynamic_timeout: true` together with `--allow-rule-timeout-control`. The behaviour can be finetuned with `--dynamic-timeout-unit-kb` (rule option: `dynamic_timeout_unit_kb`) and `--dynamic-timeout-max-multiplier` (rule option `dynamic_timeout_max_multiplier`); see the CLI man page for details.
 
 - Added a per-rule **limit on the number of reported matches**. Use the rule option: `max-match-per-file`.
 
-- Taint analysis now supports **per-rule timeout configuration**. Use the rule option: `taint-fixpoint-timeout`. This should be mostly be reserved for cases where results are not very stable on consecutive runs, and should remain relatively low, for example between 0.2 and 2 seconds. **Update:** this is now deprecated: taint fixpoint timeouts no longer exist.
+- Taint analysis now supports **per-rule timeout configuration**. Use the rule option: `taint-fixpoint-timeout`. (This should be mostly be reserved for cases where results are not very stable on consecutive runs, and should remain relatively low, for example between 0.2 and 2 seconds.) **Update:** this is now deprecated: taint fixpoint timeouts no longer exist.
 
 - **Postprocessing** (autofix and `nosem` annotations) now works with **incremental output**. Use the flag: `--incremental-output-postprocess.`
 
@@ -52,11 +50,7 @@
 
 - The `test` command now accepts **multiple target files**.
 
-- **Taint intrafile**: support for rest/variadic parameters in IL and taint signatures [#538](https://github.com/opengrep/opengrep/pull/538)
-
-- Many **performance** improvements.
-
-- Many **bug** fixes.
+- Multiple **performance** improvements.
 
 ### Important bug fixes and language feature support
 
@@ -70,23 +64,7 @@
 
 - **C#**: Fix string literals in the parser [#186](https://github.com/opengrep/opengrep/pull/186)
 
-- **C#**: Allow implicit variables in properties to be taint sources [#516](https://github.com/opengrep/opengrep/pull/516)
-
-- **C#**: Conditional array access in l-values [#535](https://github.com/opengrep/opengrep/pull/535)
-
-- **C#**: Primary constructor arguments on base class [#589](https://github.com/opengrep/opengrep/pull/589)
-
 - **Clojure**: New translation in [#501](https://github.com/opengrep/opengrep/pull/501) and [#517](https://github.com/opengrep/opengrep/pull/517)
-
-- **Dart**: Use identifier casing to guess Call vs New [#555](https://github.com/opengrep/opengrep/pull/555)
-
-- **Dart**: Add typed metavariables [#551](https://github.com/opengrep/opengrep/pull/551)
-
-- **Dockerfile**: Add missing BuildKit constructs [#581](https://github.com/opengrep/opengrep/pull/581)
-
-- **Elixir**: Fix short lambdas [#556](https://github.com/opengrep/opengrep/pull/556)
-
-- **Go**: Add goroutine call to IL [#559](https://github.com/opengrep/opengrep/pull/559)
 
 - **Kotlin**: Fix string templates [#191](https://github.com/opengrep/opengrep/pull/191)
 
@@ -102,17 +80,9 @@
 
 - **PHP**: Add `match` and `enum` in the primary parser [#306](https://github.com/opengrep/opengrep/pull/306)
 
-- **PHP**: Property hooks, asymmetric visibility, first-class callable syntax, union/intersection DNF types [#529](https://github.com/opengrep/opengrep/pull/529)
-
-- **Python**: Taint propagation via for comprehensions [#564](https://github.com/opengrep/opengrep/pull/564)
-
 - **Ruby**: Improve Ruby tainting [#324](https://github.com/opengrep/opengrep/pull/324)
 
-- **Rust**: Propagate taint through variable shadowing [#572](https://github.com/opengrep/opengrep/pull/572)
-
-- **Rust**: Fix missing type alias translation [#549](https://github.com/opengrep/opengrep/pull/549)
-
-- **Scala**: Support metavariables as elements in interpolated strings [#403](https://github.com/opengrep/opengrep/pull/403)
+- **Scala**: Support metavariabless as elements in interpolated strings [#403](https://github.com/opengrep/opengrep/pull/403)
 
 - **Typescript**: Fix bug related to lambdas [#378](https://github.com/opengrep/opengrep/pull/378)
 

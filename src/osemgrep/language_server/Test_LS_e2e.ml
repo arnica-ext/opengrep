@@ -91,7 +91,7 @@ let project_root () =
 
 let get_rule_path () =
   match Git_wrapper.project_root_for_files_in_dir Fpath_.current_dir with
-  | Some root -> root // Fpath.v "tests/ls/rules.yaml"
+  | Some root -> root // Fpath.v "cli/tests/default/e2e/targets/ls/rules.yaml"
   | None ->
       failwith "The test program must run from within the semgrep git project"
 
@@ -105,16 +105,6 @@ if x == 5: # auto rule
     print("hello")
 if x == 4: # CI rule
     print("hello")
-|}
-
-let taint_content =
-  {|
-def get_data():
-    return ls_taint_source()
-
-def ls_taint_main():
-    x = get_data()
-    ls_taint_sink(x)
 |}
 
 let login_url_regex =
@@ -386,15 +376,6 @@ let mock_workspaces root =
   ( (Fpath.v workspace1_root, workspace1_files),
     (Fpath.v workspace2_root, workspace2_files) )
 
-let mock_taint_file root : Fpath.t =
-  let file = Fpath.(root / "taint.py") in
-  let oc =
-    open_out_gen [ Open_creat; Open_wronly ] 0o777 (Fpath.to_string file)
-  in
-  output_string oc taint_content;
-  close_out oc;
-  file
-
 let mock_search_files root : Fpath.t list =
   let path1 = root / "a" / "b" / "c.py" in
   let path2 = root / "test.py" in
@@ -417,8 +398,7 @@ let send_exit info =
   expect_empty_msg empty;
   Lwt.return info
 
-let send_initialize info ?(only_git_dirty = true) ?(taint_intrafile = false)
-    workspaceFolders =
+let send_initialize info ?(only_git_dirty = true) workspaceFolders =
   let request =
     let rootUri =
       match workspaceFolders with
@@ -447,7 +427,6 @@ let send_initialize info ?(only_git_dirty = true) ?(taint_intrafile = false)
                 ("maxTargetBytes", `Int 0);
                 ("onlyGitDirty", `Bool only_git_dirty);
                 ("ci", `Bool false);
-                ("taintIntrafile", `Bool taint_intrafile);
               ] );
           ("trace", `Assoc [ ("server", `String "verbose") ]);
           ( "metrics",
@@ -767,10 +746,16 @@ let with_session caps (f : test_info -> unit Lwt.t) : unit Lwt.t =
        Logs.err (fun m -> m "Got exception: %s" err);
        Logs.err (fun m -> m "Traceback:\n%s" traceback);
        Alcotest.fail "Got exception in Lwt.async during tests");
-  with_git_tmp_path (fun root ->
-      let server_info = create_info caps in
-      let test_info = { server = server_info; root } in
-      f test_info)
+  (* we want to start every test logged out, or the LS won't behave
+     predictably, because the testing structure assumes a fresh start
+  *)
+  Testutil_login.with_login_test_env ~chdir:false
+    (fun () ->
+      with_git_tmp_path (fun root ->
+          let server_info = create_info caps in
+          let test_info = { server = server_info; root } in
+          f test_info))
+    ()
 
 let test_ls_specs caps () =
   with_session caps (fun { server = info; root } ->
@@ -1245,35 +1230,6 @@ let test_ls_delete_cache caps () =
 
       Lwt.return ())
 
-let test_ls_taint_intrafile ~taint_intrafile ~expected_ids caps () =
-  with_session caps (fun { server = info; root } ->
-      let file = mock_taint_file root in
-      let%lwt info =
-        send_initialize info ~only_git_dirty:false ~taint_intrafile [ root ]
-      in
-      let%lwt info, _ = send_did_open info file receive_notification in
-      let%lwt _info, packets = send_initialized info Fun.id in
-      let remaining =
-        map_asserts
-          (assert_progress "Refreshing Rules"
-          @ [
-              ("received rules refreshed", assert_notif "semgrep/rulesRefreshed");
-            ]
-          @ assert_progress "Scanning Open Documents")
-          packets
-      in
-      let scan_notifications = receive_and_sort_diagnostics remaining in
-      let leftover =
-        map_asserts
-          [
-            ( "taint-cross-fn diagnostic check",
-              check_diagnostics file expected_ids );
-          ]
-          scan_notifications
-      in
-      Alcotest.(check int) "no leftover packets" 0 (List.length leftover);
-      Lwt.return_unit)
-
 (*****************************************************************************)
 (* Entry point *)
 (*****************************************************************************)
@@ -1302,12 +1258,6 @@ let promise_tests caps =
     pair "LS with no folders" (test_ls_no_folders caps);
     pair "LS multi-workspaces" (test_ls_multi caps) ~tolerate_chdir:true;
     pair "Test LS cache deletion" (test_ls_delete_cache caps);
-    pair "LS taint-intrafile enabled"
-      (test_ls_taint_intrafile ~taint_intrafile:true
-         ~expected_ids:[ `String "taint-cross-fn" ]
-         caps);
-    pair "LS taint-intrafile disabled"
-      (test_ls_taint_intrafile ~taint_intrafile:false ~expected_ids:[] caps);
   ]
   |> List_.split
 

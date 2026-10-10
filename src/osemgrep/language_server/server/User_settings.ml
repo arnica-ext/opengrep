@@ -49,7 +49,6 @@ type t = {
   ci : bool; [@default true]
   do_hover : bool; [@default false]
   pro_intrafile : bool; [@default false]
-  taint_intrafile : bool; [@key "taintIntrafile"] [@default false]
 }
 [@@deriving yojson]
 
@@ -67,6 +66,8 @@ let find_targets_conf_of_t settings : Find_targets.conf =
     exclude = settings.exclude;
     include_;
     max_target_bytes = settings.max_target_bytes;
+    (* TODO: explain or use the default value of default_conf.diff_depth *)
+    diff_depth = 0;
     (* If you're editing minified files then ???
        TODO: explain or use the same default as in default_conf. *)
     exclude_minified_files = true;
@@ -85,19 +86,12 @@ let core_runner_conf_of_t settings : Core_runner.conf =
       dynamic_timeout_unit_kb = settings.dynamic_timeout_unit_kb;
       allow_rule_timeout_control = settings.allow_rule_timeout_control;
       timeout_threshold = settings.timeout_threshold;
-      interfile_timeout = Core_runner.default_conf.interfile_timeout;
       dataflow_traces = false;
       nosem = true;
       strict = false;
       matching_explanations = false;
       time_flag = false;
       inline_metavariables = false;
-      taint_intrafile = settings.taint_intrafile || settings.pro_intrafile;
-      effect_guards = false;
-      taint_interfile = false;
-      taint_interfile_depth = Limits_semgrep.taint_INTERFILE_DEPTH;
-      disable_intrafile = false;
-      disable_interfile = false;
-      interfile_dedup_by = Core_scan_config.default.interfile_dedup_by;
+      taint_intrafile = false;
       engine_config = Engine_config.default;
     }

@@ -101,18 +101,21 @@ let label_node state labels nodei =
   |> List.iter (fun label ->
          Hashtbl.add state.labels (key_of_label label) nodei)
 
-let resolve_gotos (state : state) =
+let resolve_gotos state =
   !(state.gotos)
   |> List.iter (fun (srci, label_key) ->
          match Hashtbl.find state.labels label_key with
          | dsti -> state.g |> add_arc (srci, dsti)
          | exception Not_found ->
+             (* We won't move that stuff inside the function below, because
+              * warning is on by default, and logging is protected by a mutex,
+              * which would slow down default operation as a result. *)
+             let loc_str =
+               match state.opt_tok with
+               | None -> ""
+               | Some tok -> spf " (%s)" (Tok.stringpos_of_tok tok)
+             in
              Log.warn (fun m ->
-                 let loc_str =
-                   match state.opt_tok with
-                   | None -> ""
-                   | Some tok -> spf " (%s)" (Tok.stringpos_of_tok tok)
-                 in
                  m ~tags "Could not resolve label: %s%s" (fst label_key) loc_str));
   state.gotos := []
 
@@ -453,6 +456,6 @@ and cfg_of_fdef fdef =
   mark_at_exit_nodes cfg;
   IL.{ params = fdef.fparams; cfg; lambdas }
 
-let cfg_of_gfdef lang fdef =
-  let fdef_il = AST_to_IL.function_definition lang fdef in
+let cfg_of_gfdef lang ?ctx fdef =
+  let fdef_il = AST_to_IL.function_definition lang ?ctx fdef in
   cfg_of_fdef fdef_il

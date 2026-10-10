@@ -1,5 +1,5 @@
 (*
-   Unit tests for Pcre2_
+   Unit tests for SPcre
 *)
 
 let t = Testo.create

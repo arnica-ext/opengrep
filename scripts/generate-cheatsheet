@@ -24,10 +24,9 @@ EOF
 fi
 
 (
-  # the script runs 'opengrep' on each example
-  export PATH=$repo_root/bin:$PATH
+  cd "$repo_root"/cli
 
-  python3 "$repo_root"/scripts/generate_cheatsheet.py --json \
+  pipenv run python3 ../scripts/generate_cheatsheet.py --json \
     --directory "$input" \
     --output-file "$output"
   cat <<EOF

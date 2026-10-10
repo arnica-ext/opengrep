@@ -120,14 +120,11 @@ type ident = string wrap [@@deriving show]
 (* the string contains the $ prefix *)
 type var = string wrap [@@deriving show]
 
-(* The keyword 'namespace' can be in a leading position. The leading
- * backslash of a fully qualified name is the typed field [n_root] of
- * [name], not a segment of [qualified_ident].
+(* The keyword 'namespace' can be in a leading position. The special
+ * ident 'ROOT' can also be leading.
  *)
 type qualified_ident = ident list [@@deriving show]
-
-type name = { n_root : tok option; n_parts : qualified_ident }
-[@@deriving show]
+type name = qualified_ident [@@deriving show]
 
 (*****************************************************************************)
 (* Expression *)
@@ -207,8 +204,6 @@ type expr =
   | Infix of AST_generic.incr_decr wrap * expr
   | Postfix of AST_generic.incr_decr wrap * expr
   | Binop of expr * binaryOp wrap * expr
-  (* PHP 8.5 pipe operator, see Cst_php.Pipe *)
-  | Pipe of expr * tok (* |> *) * expr
   | Unop of unaryOp wrap * expr
   | Guil of expr list bracket
   | ConsArray of array_value list bracket
@@ -230,7 +225,6 @@ and cast_type =
   | StringTy
   | ArrayTy
   | ObjectTy
-  | VoidTy (* PHP 8.5 *)
 
 and special =
   (* often transformed in Var "$this" in the analysis *)
@@ -239,7 +233,6 @@ and special =
   | Self
   (* represents the "parent" keyword expression in a class *)
   | Parent
-  | LateStatic
   | FuncLike of funclike
 
 (* language constructs that look like functions *)
@@ -318,22 +311,19 @@ and stmt =
   (* the qualified_ident below can not have a leading '\', it can also
    * be the root namespace *)
   | NamespaceDef of tok * qualified_ident * stmt list bracket
-  | NamespaceUse of tok * use_kind * name * ident option
+  | NamespaceUse of tok * qualified_ident * ident option (* when alias *)
   (* Note that there is no LocalVars constructor. Variables in PHP are
    * declared when they are first assigned. *)
   | StaticVars of tok * (var * expr option) list
   (* expr is most of the time a simple variable name *)
   | Global of tok * expr list
 
-and use_kind = Use_class | Use_function | Use_constant
-
 and case = Case of tok * expr * stmt list | Default of tok * stmt list | CaseEllipsis of (* ... *) tok 
 
-(* catch(Exception $exn) { ... } => ("Exception", Some "$exn", [...]).
- * 'Exn1 | Exn2' is a HintUnion, and the var is absent in a non-capturing
- * catch.
+(* catch(Exception $exn) { ... } => ("Exception", "$exn", [...])
+ * TODO: can now be a list of hint_type, Exn1 | Exn2 like in Java.
  *)
-and catch = tok * hint_type * var option * stmt
+and catch = tok * hint_type * var * stmt
 and finally = tok * stmt
 
 (*****************************************************************************)
@@ -383,12 +373,7 @@ and parameter_classic = {
   p_name : var;
   p_default : expr option;
   p_attrs : attribute list;
-  (* constructor property promotion: a visibility, Readonly, or an
-   * asymmetric visibility; empty for regular parameters *)
-  p_modifiers : modifier list;
   p_variadic : tok option;
-  (* PHP 8.4: hooks on a constructor-promoted property *)
-  p_hooks : property_hook list;
 }
 
 (* for methods, and below for fields too *)
@@ -417,8 +402,6 @@ and constant_def = {
   cst_body : expr;
   (* PHP 7.1: class constant visibility *)
   cst_modifiers : modifier list;
-  (* PHP 8.0 attributes, e.g. '#[\Deprecated]' (PHP 8.4) *)
-  cst_attrs : attribute list;
 }
 
 and enum_type = { e_base : hint_type; e_constraint : hint_type option }
@@ -445,11 +428,6 @@ and xhp_field = class_var * bool
 
 (* PHP 8.4 property hooks *)
 and property_hook = {
-  ph_attrs : attribute list;
-  (* only 'final' is allowed here *)
-  ph_modifiers : modifier list;
-  (* by-reference getter, as in '&get' *)
-  ph_ref : tok option;
   ph_kind : property_hook_kind;
   ph_params : parameter list; (* set($value) parameter *)
   ph_body : stmt option; (* None for abstract, Some for body *)
@@ -464,7 +442,6 @@ and class_var = {
   cv_value : expr option;
   cv_modifiers : modifier list;
   cv_hooks : property_hook list; (* PHP 8.4 property hooks *)
-  cv_attrs : attribute list;
 }
 
 and method_def = func_def
@@ -535,27 +512,16 @@ let tok_of_ident (_, x) = x
 
 exception TodoNamespace of tok
 
-let name_of_ids (n_parts : qualified_ident) : name =
-  { n_root = None; n_parts }
-
-let expr_id (n_parts : qualified_ident) : expr = Id (name_of_ids n_parts)
-
-let rooted_name_of_ids (root : tok) (n_parts : qualified_ident) : name =
-  { n_root = Some root; n_parts }
-
-let str_of_name (n : name) =
-  match n.n_parts with
+let str_of_name = function
   | [ id ] -> str_of_ident id
   | [] -> raise Common.Impossible
   | x :: _xs -> raise (TodoNamespace (tok_of_ident x))
 
-let tok_of_name (n : name) =
-  match (n.n_root, n.n_parts) with
-  | Some root, _ -> root
-  | None, [ id ] -> tok_of_ident id
-  | None, [] -> raise Common.Impossible
+let tok_of_name = function
+  | [ id ] -> tok_of_ident id
+  | [] -> raise Common.Impossible
   (* pick first one *)
-  | None, x :: _xs -> tok_of_ident x
+  | x :: _xs -> tok_of_ident x
 
 (* we sometimes need to remove the '$' prefix *)
 let remove_first_char s = String.sub s 1 (String.length s - 1)
@@ -567,7 +533,7 @@ let str_of_class_name x =
 
 let name_of_class_name x =
   match x with
-  | Hint { n_root = None; n_parts = [ name ] } -> name
-  | Hint { n_parts = []; _ } -> raise Common.Impossible
+  | Hint [ name ] -> name
+  | Hint [] -> raise Common.Impossible
   | Hint name -> raise (TodoNamespace (tok_of_name name))
   | _ -> raise Common.Impossible

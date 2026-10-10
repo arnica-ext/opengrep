@@ -67,9 +67,6 @@ type code = AST_generic.expr
 exception NotHandled of code
 exception NotInEnv of Metavariable.mvar
 
-let is_bool = function Bool _ -> true | _ -> false
-let get_bool = function Bool b -> b | _ -> assert false
-
 (*****************************************************************************)
 (* JSON Parsing *)
 (*****************************************************************************)
@@ -229,7 +226,9 @@ let eval_regexp_matches ?(base_offset = 0) ~file ~regexp str =
      * alt: let s = value_to_string v in
      * to convert anything in a string before using regexps on it
   *)
-  Xpattern_match_regexp.regexp_matcher ~base_offset str file regexp
+  Xpattern_match_regexp.regexp_matcher ~base_offset
+    Xpattern_match_regexp.pcre2_regex_functions str file regexp
+[@@alert "-deprecated"]
 
 let eval_regexp_pattern_matches ?(base_offset = 0) ~file ~regexp str =
   let compiled = Pcre2_.regexp ~flags:[ `ANCHORED ] regexp in
@@ -376,11 +375,9 @@ and eval_op op values code =
       (* To compare `AST` values one needs to explicitly use the `str()`
        * function! Otherwise we would introduce regressions. *)
       raise (NotHandled code)
-  | G.And, vs when List.for_all is_bool vs ->
-      Bool (List.for_all get_bool vs)
+  | G.And, [ Bool b1; Bool b2 ] -> Bool (b1 && b2)
   | G.Not, [ Bool b1 ] -> Bool (not b1)
-  | G.Or, vs when List.for_all is_bool vs ->
-      Bool (List.exists get_bool vs)
+  | G.Or, [ Bool b1; Bool b2 ] -> Bool (b1 || b2)
   | G.Gt, [ Int i1; Int i2 ] -> Bool (i1 > i2)
   | G.Gt, [ Float i1; Float i2 ] -> Bool (i1 > i2)
   | G.Gt, [ Int i1; Float i2 ] -> Bool (Int64.to_float i1 > i2)
@@ -603,13 +600,27 @@ let eval_opt env e =
       Log.err (fun m -> m "NotHandled: %s" (G.show_expr e));
       None
 
-let eval_bool env e =
+let eval_bool env e facts bindings =
   let res = eval_opt env e in
   match res with
   | Some (Bool b) -> b
-  | Some res ->
+  | Some res -> (
       Log.err (fun m -> m "not a boolean: %s" (show_value res));
-      false
-  | None ->
+      (* facts_satisfy_e is just a stub, but we intend to prioritize the results of
+       * eval_bool, so if eval_opt returns a bool, that will be the source of truth.
+       * otherwise (i.e. if eval_opt fails), we will resort to pattern when (if the
+       * pro flag is enabled).
+       *
+       * TODO: eventually we should merge this into eval_opt. consider the condition
+       * $X == 0 && $Y > 0, maybe $X == 0 needs const-prop info to be resolved,
+       * and $Y > 0 needs the facts. perhaps instead of raise (NotHandled code) in
+       * eval_op, we can first try to find a fact that implies $X > 0 or its negation.
+       *)
+      match !Dataflow_when.hook_facts_satisfy_e with
+      | None -> false
+      | Some facts_satisfy_e -> facts_satisfy_e bindings facts e)
+  | None -> (
       Log.err (fun m -> m "got exn during eval_bool");
-      false
+      match !Dataflow_when.hook_facts_satisfy_e with
+      | None -> false
+      | Some facts_satisfy_e -> facts_satisfy_e bindings facts e)

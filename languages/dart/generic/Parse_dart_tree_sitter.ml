@@ -35,6 +35,7 @@ open AST_generic
 type context = Program | Pattern
 type env = context H.env
 
+let todo (_env : env) _ = failwith "not implemented"
 let str = H.str
 let token = H.token
 let fb = Tok.unsafe_fake_bracket
@@ -184,7 +185,7 @@ let map_assignment_operator (env : env) (x : CST.assignment_operator) =
   | `AMPEQ tok -> (BitAnd, (* "&=" *) token env tok)
   | `HATEQ tok -> (BitXor, (* "^=" *) token env tok)
   | `BAREQ tok -> (BitOr, (* "|=" *) token env tok)
-  | `QMARKQMARKEQ tok -> (Nullish, (* "??=" *) token env tok)
+  | `QMARKQMARKEQ tok -> todo env ((), (* "??=" *) token env tok)
 
 let _map_decimal_integer_literal (env : env) (tok : CST.decimal_integer_literal)
     =
@@ -510,23 +511,46 @@ and map_anon_elem_rep_COMMA_elem_opt_COMMA_4ec364f (env : env)
 
 and map_argument (env : env) (x : CST.argument) = G.Arg (map_expression env x)
 
-and map_argument_list (env : env) ((v1, v2) : CST.argument_list) :
-    G.argument list =
-  (* the overlay grammar allows positional/named args (and semgrep ellipses) to
-   * interleave freely, so this is a flat comma-separated list. *)
-  let item = function
-    | `Arg x -> map_argument env x
-    | `Named_arg x -> map_named_argument env x
-  in
-  let v1 = item v1 in
-  let v2 =
-    List_.map
-      (fun (v1, v2) ->
-        let _v1 = (* "," *) token env v1 in
-        item v2)
-      v2
-  in
-  v1 :: v2
+and map_argument_list (env : env) (x : CST.argument_list) : G.argument list =
+  match x with
+  | `Named_arg_rep_COMMA_named_arg (v1, v2) ->
+      let v1 = map_named_argument env v1 in
+      let v2 =
+        List_.map
+          (fun (v1, v2) ->
+            let _v1 = (* "," *) token env v1 in
+            let v2 = map_named_argument env v2 in
+            v2)
+          v2
+      in
+      v1 :: v2
+  | `Arg_rep_COMMA_arg_rep_COMMA_named_arg_rep_COMMA_named_arg (v1, v2, v3) ->
+      let v1 = map_argument env v1 in
+      let v2 =
+        List_.map
+          (fun (v1, v2) ->
+            let _v1 = (* "," *) token env v1 in
+            let v2 = map_argument env v2 in
+            v2)
+          v2
+      in
+      let v3 =
+        List.concat_map
+          (fun (v1, v2, v3) ->
+            let _v1 = (* "," *) token env v1 in
+            let v2 = map_named_argument env v2 in
+            let v3 =
+              List_.map
+                (fun (v1, v2) ->
+                  let _v1 = (* "," *) token env v1 in
+                  let v2 = map_named_argument env v2 in
+                  v2)
+                v3
+            in
+            v2 :: v3)
+          v3
+      in
+      (v1 :: v2) @ v3
 
 and map_argument_part (env : env) ((v1, v2) : CST.argument_part) :
     type_arguments * arguments =
@@ -576,32 +600,25 @@ and map_assertion (env : env) ((v1, v2, v3, v4, v5, v6) : CST.assertion) :
   let v6 = (* ")" *) token env v6 in
   (v1, (v2, v3 :: v4, v6))
 
-and map_assignable_expression (env : env) (p : CST.assignable_expression) : expr =
-  match p with
-  | `Choice_prim_assi_sele_part x ->
-      begin
-        match x with
-        | `Prim_assi_sele_part (v1, v2) ->
-            let v1 = map_primary env v1 in
-            let v2 = map_assignable_selector_part env v2 in
-            v2 v1
-        | `Super_unco_assi_sele (v1, v2) ->
-            let v1 = (* "super" *) token env v1 in
-            let expr = IdSpecial (Super, v1) |> G.e in
-            let v2 = map_unconditional_assignable_selector env v2 in
-            v2 expr
-        | `Cons_invo_assi_sele_part (v1, v2) ->
-            let v1 = map_constructor_invocation env v1 in
-            let v2 = map_assignable_selector_part env v2 in
-            v2 v1
-        | `Id tok ->
-            G.N (Id ((* pattern [a-zA-Z_$][\w$]* *) str env tok, empty_id_info ()))
-            |> G.e
-      end
-  | `Typed_meta (_v1, v2, v3, _v4) ->
-      let typ = map_type_ env v2 in
-      let id = (* semgrep_metavariable *) str env v3 in
-      G.TypedMetavar (id, fake ":", typ) |> G.e
+and map_assignable_expression (env : env) (x : CST.assignable_expression) : expr
+    =
+  match x with
+  | `Prim_assi_sele_part (v1, v2) ->
+      let v1 = map_primary env v1 in
+      let v2 = map_assignable_selector_part env v2 in
+      v2 v1
+  | `Super_unco_assi_sele (v1, v2) ->
+      let v1 = (* "super" *) token env v1 in
+      let expr = IdSpecial (Super, v1) |> G.e in
+      let v2 = map_unconditional_assignable_selector env v2 in
+      v2 expr
+  | `Cons_invo_assi_sele_part (v1, v2) ->
+      let v1 = map_constructor_invocation env v1 in
+      let v2 = map_assignable_selector_part env v2 in
+      v2 v1
+  | `Id tok ->
+      G.N (Id ((* pattern [a-zA-Z_$][\w$]* *) str env tok, empty_id_info ()))
+      |> G.e
 
 and map_assignable_selector (env : env) (x : CST.assignable_selector) :
     expr -> expr =
@@ -717,112 +734,47 @@ and map_block (env : env) ((v1, v2, v3) : CST.block) : stmt list bracket =
   let v3 = (* "}" *) token env v3 in
   (v1, v2, v3)
 
-(* A cascade 'e..s1..s2' applies each section to the same receiver 'e' and
- * evaluates to 'e'. We desugar each section into the equivalent operation on
- * the receiver (e.foo(), e.bar = x, e[i], ...) so the operations are visible
- * to matching/analysis. See map_expression for how they are recombined. *)
 and map_cascade_assignment_section (env : env)
     ((v1, v2) : CST.cascade_assignment_section) =
   let v1 = map_assignment_operator env v1 in
   let v2 = map_expression_without_cascade env v2 in
-  (v1, v2)
+  todo env (v1, v2)
 
 and map_cascade_section (env : env) ((v1, v2, v3, v4, v5) : CST.cascade_section)
-    : expr -> expr =
- fun receiver ->
-  let dotdot =
+    =
+  let v1 =
     match v1 with
     | `DOTDOT tok -> (* ".." *) token env tok
     | `QMARKDOTDOT tok -> (* "?.." *) token env tok
   in
-  let base = map_cascade_selector env ~dotdot v2 receiver in
-  let base =
-    List.fold_left
-      (fun acc argpart ->
-        let _tyargs_TODO, args = map_argument_part env argpart in
-        Call (acc, args) |> G.e)
-      base v3
+  let v2 = map_cascade_selector env v2 in
+  let v3 = List_.map (map_argument_part env) v3 in
+  let v4 = List_.map (map_cascade_subsection env) v4 in
+  let v5 =
+    match v5 with
+    | Some x -> Some (map_cascade_assignment_section env x)
+    | None -> None
   in
-  let base =
-    List.fold_left (fun acc sub -> map_cascade_subsection env sub acc) base v4
-  in
-  match v5 with
-  | None -> base
-  | Some x -> (
-      let opwrap, value = map_cascade_assignment_section env x in
-      match opwrap with
-      | Eq, tk -> Assign (base, tk, value) |> G.e
-      | op -> AssignOp (base, op, value) |> G.e)
+  todo env (v1, v2, v3, v4, v5)
 
-and map_cascade_selector (env : env) ~dotdot (x : CST.cascade_selector) :
-    expr -> expr =
- fun receiver ->
+and map_cascade_selector (env : env) (x : CST.cascade_selector) =
   match x with
   | `Opt_null_type_LBRACK_exp_RBRACK (v1, v2, v3, v4) ->
-      let _v1 =
+      let v1 =
         match v1 with
         | Some tok -> Some ((* "?" *) token env tok)
         | None -> None
       in
       let v2 = (* "[" *) token env v2 in
-      let v3 = map_expression env v3 in
+      let v3 = map_argument env v3 in
       let v4 = (* "]" *) token env v4 in
-      ArrayAccess (receiver, (v2, v3, v4)) |> G.e
-  | `Id tok ->
-      let id = (* pattern [a-zA-Z_$][\w$]* *) str env tok in
-      DotAccess (receiver, dotdot, FN (Id (id, empty_id_info ()))) |> G.e
+      todo env (v1, v2, v3, v4)
+  | `Id tok -> todo env ((* pattern [a-zA-Z_$][\w$]* *) token env tok)
 
-and map_cascade_subsection (env : env) ((v1, v2) : CST.cascade_subsection) :
-    expr -> expr =
- fun receiver ->
-  let receiver = map_assignable_selector env v1 receiver in
-  List.fold_left
-    (fun acc argpart ->
-      let _tyargs_TODO, args = map_argument_part env argpart in
-      Call (acc, args) |> G.e)
-    receiver v2
-
-(* Desugar 'e..s1..s2' into a block that binds a hidden local to the receiver,
- * applies each section to it, and yields it:
- *   { !cascade = e; !cascade.s1; !cascade.s2; !cascade }
- * The binder is hidden (like Clojure's implicit vars) so it doesn't show up in
- * results, and Naming scopes it per block so it stays unique. This needs no
- * special handling in AST_to_IL. *)
-and map_cascade_expr (env : env) (recv : CST.real_expression)
-    (sections : CST.cascade_section list) : expr =
-  match sections with
-  | [] -> map_real_expression env recv
-  | _ ->
-      (* Desugar 'e..s1..s2' into a block that applies each section to the
-       * receiver and yields it. If the receiver is a simple lvalue we embed it
-       * directly (re-mapped per use), so field taint through 'v..x = src()'
-       * reaches 'v.x' (the engine is copy-based, so a '!tmp = v' binder would
-       * break it) and '$X.m(...)' binds the real receiver. Otherwise (a
-       * constructor/call/...) we must NOT duplicate it, so we evaluate it once
-       * into a hidden binder; there is no field-taint-back concern since such a
-       * receiver is anonymous. No AST_to_IL code needed. *)
-      let recv_e = map_real_expression env recv in
-      let mk_recv, prelude =
-        match recv_e.G.e with
-        | N _ | DotAccess _ | ArrayAccess _ | IdSpecial (This, _) ->
-            ((fun () -> map_real_expression env recv), [])
-        | _ ->
-            let id_info = empty_id_info ~hidden:true () in
-            (* real token so a metavar binding this hidden var still has a range *)
-            let name = ("!cascade", H2.first_info_of_any (G.E recv_e)) in
-            let bind =
-              ExprStmt (LetPattern (PatId (name, id_info), recv_e) |> G.e, G.sc)
-              |> G.s
-            in
-            ((fun () -> N (Id (name, id_info)) |> G.e), [ bind ])
-      in
-      let ops =
-        List_.map
-          (fun s -> ExprStmt (map_cascade_section env s (mk_recv ()), G.sc) |> G.s)
-          sections
-      in
-      let value = ExprStmt (mk_recv (), G.sc) |> G.s in
-      StmtExpr (Block (fb (prelude @ ops @ [ value ])) |> G.s) |> G.e
+and map_cascade_subsection (env : env) ((v1, v2) : CST.cascade_subsection) =
+  let v1 = map_assignable_selector env v1 in
+  let v2 = List_.map (map_argument_part env) v2 in
+  todo env (v1, v2)
 
 and map_constructor_invocation (env : env)
     ((v1, v2, v3, v4, v5) : CST.constructor_invocation) : expr =
@@ -853,7 +805,8 @@ and map_constructor_param (env : env)
     | Some x -> map_final_const_var_or_type env x
     | None -> ([], None)
   in
-  let v2 = (* "this" *) token env v2 in
+  (* Choosing to ignore the `this` for the more useful name of the variable. *)
+  let _v2 = (* "this" *) token env v2 in
   let _v3 = (* "." *) token env v3 in
   let v4 = (* pattern [a-zA-Z_$][\w$]* *) str env v4 in
   let _typarams_TODO, _params_TODO =
@@ -861,10 +814,7 @@ and map_constructor_param (env : env)
     | Some x -> map_formal_parameter_part env x
     | None -> (None, fb [])
   in
-  (* Mark as a Dart "initializing formal": the constructor body later injects
-     [this.X = X] so field-tracking sees the implicit field write. *)
-  let init_formal_marker = unhandled_keywordattr ("InitFormal", v2) in
-  Param (param_of_id ~pattrs:(init_formal_marker :: pattrs) ?ptype v4)
+  Param (param_of_id ~pattrs ?ptype v4)
 
 and map_declared_identifier (env : env)
     ((v1, v2, v3, v4) : CST.declared_identifier) :
@@ -1021,7 +971,10 @@ and map_expression (env : env) (x : CST.expression) : G.expr =
       match x with
       | `Assign_exp x -> map_assignment_expression env x
       | `Throw_exp x -> map_throw_expression env x
-      | `Real_exp_rep_casc_sect (v1, v2) -> map_cascade_expr env v1 v2)
+      | `Real_exp_rep_casc_sect (v1, v2) ->
+          let v1 = map_real_expression env v1 in
+          let _v2 = R.List (List_.map (map_cascade_section env) v2) in
+          v1)
   | `Semg_ellips tok -> Ellipsis ((* "..." *) token env tok) |> G.e
   | `Semg_named_ellips tok ->
       N
@@ -1033,7 +986,7 @@ and map_expression (env : env) (x : CST.expression) : G.expr =
       let v2 = map_expression env v2 in
       let v3 = (* "...>" *) token env v3 in
       DeepEllipsis (v1, v2, v3) |> G.e
-    
+
 and map_expression_statement (env : env) (x : CST.expression_statement) : stmt =
   match x with
   | `Exp_semi (v1, v2) ->
@@ -1591,8 +1544,7 @@ and map_native (env : env) ((v1, v2) : CST.native) =
     | Some x -> Some (map_uri env x)
     | None -> None
   in
-  (* the result is currently discarded by all callers *)
-  (v1, v2)
+  todo env (v1, v2)
 
 and map_normal_formal_parameters (env : env)
     ((v1, v2) : CST.normal_formal_parameters) : parameter list =
@@ -1832,61 +1784,51 @@ and map_postfix_expression_ (env : env) (x : CST.postfix_expression_) =
       let v2 = map_selectors env v2 in
       v2 v1
 
-and map_primary (env : env) (p : CST.primary) : expr =
-  match p with
-  | `Choice_lit x -> begin
-        match x with
-        | `Lit x -> map_literal env x
-        | `Func_exp (v1, v2) ->
-            let _tparams, fparams = map_formal_parameter_part env v1 in
-            let lparen, _, _ = fparams in
-            let fbody = map_function_expression_body env v2 in
-            Lambda
-                { fkind = (LambdaKind, lparen); fparams; frettype = None; fbody }
-            |> G.e
-        | `Id tok ->
-            N (Id ((* pattern [a-zA-Z_$][\w$]* *) str env tok, empty_id_info ()))
-            |> G.e
-        | `New_exp (v1, v2, v3, v4) ->
-            let v1 = (* "new" *) token env v1 in
-            let v2 = map_type_not_void env v2 in
-            (* Dunno what this means. *)
-            let _v3_TODO =
-                match v3 with
-                | Some x -> Some (map_dot_identifier env x)
-                | None -> None
-            in
-            let v4 = map_arguments env v4 in
-            New (v1, v2, empty_id_info (), v4) |> G.e
-        | `Const_obj_exp (v1, v2, v3, v4) ->
-            let v1 = (* const_builtin *) token env v1 in
-            let v2 = map_type_not_void env v2 in
-            let _v3_TODO =
-                match v3 with
-                | Some x -> Some (map_dot_identifier env x)
-                | None -> None
-            in
-            let v4 = map_arguments env v4 in
-            (* Seems to be similar to the above case, but with the
-                added stipulation it must be `const`.
-            *)
-            New (v1, v2, empty_id_info (), v4) |> G.e
-        | `LPAR_exp_RPAR x -> map_parenthesized_expression env x
-        | `This tok -> IdSpecial (This, (* "this" *) token env tok) |> G.e
-        | `Super_unco_assi_sele (v1, v2) ->
-            let v1 = (* "super" *) token env v1 in
-            let v1 = IdSpecial (Super, v1) |> G.e in
-            let v2 = map_unconditional_assignable_selector env v2 in
-            v2 v1
-        end
-  | `Typed_meta (_v1, v2, v3, _v4) ->
-      let typ = map_type_ env v2 in
-      let id = (* semgrep_metavariable *) str env v3 in
-      G.TypedMetavar (id, fake ":", typ) |> G.e
+and map_primary (env : env) (x : CST.primary) : expr =
+  match x with
+  | `Lit x -> map_literal env x
+  | `Func_exp (v1, v2) ->
+      let _tparams, fparams = map_formal_parameter_part env v1 in
+      let fbody = map_function_expression_body env v2 in
+      Lambda
+        { fkind = (LambdaKind, fake "lambda"); fparams; frettype = None; fbody }
+      |> G.e
+  | `Id tok ->
+      N (Id ((* pattern [a-zA-Z_$][\w$]* *) str env tok, empty_id_info ()))
+      |> G.e
+  | `New_exp (v1, v2, v3, v4) ->
+      let v1 = (* "new" *) token env v1 in
+      let v2 = map_type_not_void env v2 in
+      (* Dunno what this means. *)
+      let _v3_TODO =
+        match v3 with
+        | Some x -> Some (map_dot_identifier env x)
+        | None -> None
+      in
+      let v4 = map_arguments env v4 in
+      New (v1, v2, empty_id_info (), v4) |> G.e
+  | `Const_obj_exp (v1, v2, v3, v4) ->
+      let v1 = (* const_builtin *) token env v1 in
+      let v2 = map_type_not_void env v2 in
+      let _v3_TODO =
+        match v3 with
+        | Some x -> Some (map_dot_identifier env x)
+        | None -> None
+      in
+      let v4 = map_arguments env v4 in
+      (* Seems to be similar to the above case, but with the
+         added stipulation it must be `const`.
+      *)
+      New (v1, v2, empty_id_info (), v4) |> G.e
+  | `LPAR_exp_RPAR x -> map_parenthesized_expression env x
+  | `This tok -> IdSpecial (This, (* "this" *) token env tok) |> G.e
+  | `Super_unco_assi_sele (v1, v2) ->
+      let v1 = (* "super" *) token env v1 in
+      let v1 = IdSpecial (Super, v1) |> G.e in
+      let v2 = map_unconditional_assignable_selector env v2 in
+      v2 v1
 
-and map_real_expression (env : env) (p : CST.real_expression) : expr =
-  match p with
-  | `Choice_cond_exp x -> begin
+and map_real_expression (env : env) (x : CST.real_expression) : expr =
   match x with
   | `Cond_exp (v1, v2, v3, v4, v5) ->
       let v1 = map_real_expression env v1 in
@@ -1938,11 +1880,6 @@ and map_real_expression (env : env) (p : CST.real_expression) : expr =
       let v2 = map_type_test env v2 in
       v2 v1
   | `Un_exp x -> map_unary_expression env x
-  end
-  | `Typed_meta (_v1, v2, v3, _v4) ->
-      let typ = map_type_ env v2 in
-      let id = (* semgrep_metavariable *) str env v3 in
-      G.TypedMetavar (id, fake ":", typ) |> G.e
 
 and map_relational_expression (env : env) (x : CST.relational_expression) =
   match x with
@@ -1961,39 +1898,14 @@ and map_relational_expression (env : env) (x : CST.relational_expression) =
 and map_selector (env : env) (x : CST.selector) : expr -> expr =
  fun expr ->
   match x with
-  (* sgrep-ext: member-access ellipsis 'expr. ... .foo' *)
-  | `Semg_dot_ellips (v1, v2) ->
-      let _dot = (* "." *) token env v1 in
-      let dots = (* "..." *) token env v2 in
-      DotAccessEllipsis (expr, dots) |> G.e
-  | `Choice_excl_op x -> (
-      match x with
-      (* Seems to be a null-assert pattern.
-         https://dart.dev/language/pattern-types#null-assert
-      *)
-      | `Excl_op tok -> Ref ((* "!" *) token env tok, expr) |> G.e
-      | `Assi_sele x -> map_assignable_selector env x expr
-      | `Arg_part x -> (
-          let tyargs, args = map_argument_part env x in
-          (* Just by looking at the syntax, we cannot know when a(...) is
-           * a function call or a "new" expression, because the "new" keyword
-           * is optional. However, there is almost universal convention in
-           * Dart that types begin with an uppercase, while everything else
-           * with a lowercase character. We use this convention as a heuristic:
-           * if an identifier starts with an uppercase char, we convert it to
-           * G.New; othwerwise, it is a call. *)
-          match expr.e with
-          | N (Id ((s, _), id_info) as n)
-            when String.length s > 0 && s.[0] >= 'A' && s.[0] <= 'Z' ->
-              (* keep the type arguments on a generic constructor, e.g. the
-               * '<String, int>' in 'Bar<String, int>(y)' *)
-              let ty =
-                match tyargs with
-                | _, [], _ -> TyN n |> t
-                | _ -> TyApply (TyN n |> t, tyargs) |> t
-              in
-              G.New (fake "new", ty, id_info, args) |> G.e
-          | _ -> G.Call (expr, args) |> G.e))
+  (* Seems to be a null-assert pattern.
+     https://dart.dev/language/pattern-types#null-assert
+  *)
+  | `Excl_op tok -> Ref ((* "!" *) token env tok, expr) |> G.e
+  | `Assi_sele x -> map_assignable_selector env x expr
+  | `Arg_part x ->
+      let _tyargs_TODO, args = map_argument_part env x in
+      Call (expr, args) |> G.e
 
 and map_selectors (env : env) (x : CST.selector list) : expr -> expr =
   x
@@ -2634,8 +2546,8 @@ and map_var_or_type (env : env) (x : CST.var_or_type) : type_ =
       let v1 = TyAny ((* "var" *) token env v1) |> G.t in
       let v2 =
         match v2 with
-        (* both 'var' and an explicit type: keep the more precise explicit type *)
-        | Some x -> map_type_ env x
+        (* I don't know why you should be able to have both var and a type *)
+        | Some x -> todo env (Some (map_type_ env x))
         | None -> v1
       in
       v2
@@ -2896,8 +2808,7 @@ let map_uri_test (env : env) ((v1, v2) : CST.uri_test) =
            (v1, v2))
     | None -> None
   in
-  (* the result is currently discarded by the caller *)
-  (v1, v2)
+  todo env (v1, v2)
 
 let map_interfaces (env : env) ((v1, v2) : CST.interfaces) =
   let _v1 = (* "implements" *) token env v1 in
@@ -2982,7 +2893,8 @@ let map_initializer_list_entry (env : env) (x : CST.initializer_list_entry) :
         | None -> G.N offset |> G.e
       in
       let v3 = (* "=" *) token env v3 in
-      let v4 = map_cascade_expr env v4 v5 in
+      let v4 = map_real_expression env v4 in
+      let _v5_TODO = R.List (List_.map (map_cascade_section env) v5) in
       Assign (lhs, v3, v4) |> G.e
   | `Asse x ->
       let assert_tok, args = map_assertion env x in
@@ -3078,36 +2990,6 @@ let map_mixin_application_class ~attrs ~class_tok (env : env)
   let _sc = map_semicolon env v5 in
   DefStmt (basic_entity id ~attrs ?tparams, cdef) |> G.s
 
-(* Materialise [this.X = X] for Dart initializing formals (Params marked
-   "InitFormal" by [map_constructor_param]). *)
-let is_init_formal_attr (attr : G.attribute) : bool =
-  match attr with
-  | NamedAttr (_, Id (("InitFormal", _), _), _) -> true
-  | _ -> false
-
-let init_formal_assignments (fparams : parameter list) : expr list =
-  List.filter_map
-    (fun (p : parameter) ->
-      match p with
-      | Param { pname = Some (n, ntok); pattrs; _ }
-        when List.exists is_init_formal_attr pattrs ->
-          (* Fake tokens throughout: [this.x = x] is synthesised for taint
-             field-tracking (driven by the field NAME [n]), but it has no
-             source syntax — with the real param token [ntok] a search rule
-             like [this.$F = $V] would report a phantom match at the
-             parameter. A fake-only node has no computable range and is
-             dropped from matches, while taint still sees the field write. *)
-          let ftok = Tok.fake_tok ntok "" in
-          let this = IdSpecial (This, ftok) |> G.e in
-          let lhs =
-            DotAccess (this, fake ".", FN (Id ((n, ftok), empty_id_info ())))
-            |> G.e
-          in
-          let rhs = N (Id ((n, ftok), empty_id_info ())) |> G.e in
-          Some (Assign (lhs, ftok, rhs) |> G.e)
-      | _ -> None)
-    fparams
-
 (* For use to augment the body of a function with "initializers", which are
    code that runs prior to the body of the constructor, on invocation.
    https://dart.dev/language/constructors#initializer-list
@@ -3137,10 +3019,7 @@ let map_method_signature (env : env) (x : CST.method_signature) (attrs, body) =
         | None -> []
       in
       let ent = { name = EN (H2.name_of_ids dotted); attrs; tparams = None } in
-      let fbody =
-        augment_body
-          (init_formal_assignments (Tok.unbracket fparams) @ v2) body
-      in
+      let fbody = augment_body v2 body in
       DefStmt
         ( ent,
           FuncDef
@@ -3296,11 +3175,7 @@ let map_declaration_ ?(attrs = []) (env : env) (x : CST.declaration_) :
         | None -> []
       in
       let ent = { name = EN (H2.name_of_ids dotted); attrs; tparams = None } in
-      let fbody =
-        augment_body
-          (init_formal_assignments (Tok.unbracket fparams) @ initializers)
-          FBNothing
-      in
+      let fbody = augment_body initializers FBNothing in
       [
         DefStmt
           ( ent,
@@ -3622,18 +3497,14 @@ let map_declaration_as_stmt (env : env) (x : CST.declaration_) : stmt =
 let map_class_member_definition ~attrs (env : env)
     (x : CST.class_member_definition) : field =
   match x with
-  | `Choice_decl__semi x -> (
-      match x with
-      | `Decl__semi (v1, v2) ->
-          let v1 = map_declaration_as_stmt env v1 in
-          let _sc = map_semicolon env v2 in
-          G.F v1
-      | `Meth_sign_func_body (v1, v2) ->
-          let v1 = map_method_signature env v1 in
-          let fattrs, v2 = map_function_body env v2 in
-          G.F (v1 (attrs @ fattrs, v2)))
-  (* sgrep-ext: '...' as a class member, e.g. 'class C { ... }' *)
-  | `Semg_ellips tok -> G.field_ellipsis ((* "..." *) token env tok)
+  | `Decl__semi (v1, v2) ->
+      let v1 = map_declaration_as_stmt env v1 in
+      let _sc = map_semicolon env v2 in
+      G.F v1
+  | `Meth_sign_func_body (v1, v2) ->
+      let v1 = map_method_signature env v1 in
+      let fattrs, v2 = map_function_body env v2 in
+      G.F (v1 (attrs @ fattrs, v2))
 
 let map_extension_body (env : env) ((v1, v2, v3) : CST.extension_body) :
     stmt list =

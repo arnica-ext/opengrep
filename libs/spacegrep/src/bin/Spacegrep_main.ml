@@ -2,6 +2,9 @@
    Entrypoint for the 'spacegrep' command.
 *)
 
+(* for cmdliner >= 1.1.0 *)
+[@@@alert "-deprecated"]
+
 open Printf
 open Cmdliner
 open Spacegrep
@@ -486,18 +489,20 @@ let man =
     `S Manpage.s_authors;
     `P "Martin Jambon <martin@semgrep.com>";
     `S Manpage.s_bugs;
-    `P "Check out bug reports at https://github.com/opengrep/opengrep/issues.";
+    `P "Check out bug reports at https://github.com/semgrep/semgrep/issues.";
     `S Manpage.s_see_also;
-    `P "opengrep, spacecat";
+    `P "semgrep, spacecat";
   ]
 
-let info name = Cmd.info ~doc ~man name
+let info name = Term.info ~doc ~man name
 
 let parse_command_line name =
-  match Cmd.eval_value (Cmd.v (info name) cmdline_term) with
-  | Ok (`Ok config) -> config
-  | Ok (`Version | `Help) -> exit 0
-  | Error _ -> exit 1
+  match Term.eval (cmdline_term, info name) with
+  | `Error _ -> exit 1
+  | `Version
+  | `Help ->
+      exit 0
+  | `Ok config -> config
 
 (*
    Entry point for calling the command 'spacegrep' directly.

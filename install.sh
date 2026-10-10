@@ -38,86 +38,27 @@ check_has_curl() {
     }
 }
 
-fetch_failed() {
-    echo "Error: Failed to fetch available versions from GitHub${1:+: $1}." 1>&2
-    exit 1
-}
-
-# Lists the COUNT most recent releases, newest first, marking pre-releases.
-list_versions() {
-    local COUNT="$1"
+# Function to get available versions - already checked when running main
+get_available_versions() {
     check_has_curl
-    local RESPONSE HTTP_STATUS BODY REASON VERSIONS
-    RESPONSE=$(curl -sS -w '\n%{http_code}' \
-        "https://api.github.com/repos/opengrep/opengrep/releases?per_page=${COUNT}") || {
-        # curl -sS has already printed its error on stderr.
-        fetch_failed
-    }
-    HTTP_STATUS="${RESPONSE##*$'\n'}"
-    BODY="${RESPONSE%$'\n'*}"
-    if [ "$HTTP_STATUS" != "200" ]; then
-        # GitHub API error bodies explain the failure in a "message" field.
-        REASON=$(echo "$BODY" | awk -F'"' '$2 == "message" { print $4; exit }')
-        fetch_failed "HTTP status ${HTTP_STATUS}${REASON:+ (${REASON})}"
-    fi
-    # Split on double quotes, so $2 is the JSON key and $4 its string value.
-    # Tags that are not release tags are not listed.
-    VERSIONS=$(echo "$BODY" | awk -F'"' -v TAG_RE="$RELEASE_TAG_REGEX" '
-        $2 == "tag_name" && $4 ~ TAG_RE { TAG = $4 }
-        $2 == "prerelease" && TAG != "" {
-            if ($3 ~ /true/) { print TAG " (pre-release)" } else { print TAG }
-            TAG = ""
-        }')
-    if [ -z "$VERSIONS" ]; then
-        fetch_failed
-    fi
-    echo "$VERSIONS"
+    curl -s https://api.github.com/repos/opengrep/opengrep/releases |
+        grep '"tag_name":' |
+        sed -E 's/.*"([^"]+)".*/\1/'
 }
 
-print_available_versions() {
-    local COUNT="$1"
-    echo "Available versions (latest ${COUNT}):"
-    list_versions "$COUNT"
-}
-
-# Function to get the latest version. The /releases/latest web redirect never
-# points to a pre-release or draft, and does not use the rate-limited API.
-# curl's exit status is ignored: even if the connection dies after the
-# redirect was followed, url_effective already holds the tag URL.
-get_latest_version() {
-    check_has_curl
-    local FINAL_URL
-    FINAL_URL=$(curl -ILsS -o /dev/null -w '%{url_effective}' \
-        https://github.com/opengrep/opengrep/releases/latest) || true
-    if [[ "$FINAL_URL" =~ /releases/tag/([^/]+)$ ]]; then
-        echo "${BASH_REMATCH[1]}"
-    else
-        echo "Error: Failed to determine the latest version from GitHub." 1>&2
-        exit 1
-    fi
-}
-
-# The version is interpolated into the install path and download URL, so accept
-# only a release tag. Same semver shape as validate-inputs in rolling-release,
-# with the suffix restricted to tag characters so no path separator gets through.
-# [.] rather than \. so the same regex works in bash =~ and as an awk -v value.
-readonly RELEASE_TAG_REGEX='^v[0-9]+[.][0-9]+[.][0-9]+(-[A-Za-z0-9._-]+)?$'
-
-validate_version_format() {
+# Function to validate version
+validate_version() {
     local VERSION="$1"
-    if ! [[ "$VERSION" =~ $RELEASE_TAG_REGEX ]]; then
-        echo "Error: Invalid version '${VERSION}'. Expected a release tag such as v1.27.1." 1>&2
+    local AVAILABLE_VERSIONS
+    AVAILABLE_VERSIONS=$(get_available_versions)
+    if echo "$AVAILABLE_VERSIONS" | grep -q "^$VERSION$"; then
+        return 0
+    else
+        echo "Error: Version $VERSION not found"
+        echo "Available versions (latest 3):"
+        echo "$AVAILABLE_VERSIONS" | head -3
         exit 1
     fi
-}
-
-# Releases before 2.0.0 ship one self-extracting executable per platform,
-# with separate glibc and musl builds. From 2.0.0 the asset is the static
-# binary itself, one per architecture. The tag has already been checked
-# against RELEASE_TAG_REGEX, so the major component is an integer.
-is_2_or_later() {
-    local V="${1#v}"
-    [ "${V%%.*}" -ge 2 ]
 }
 
 # pre: $SIG_EXISTS == "true"
@@ -150,7 +91,6 @@ cleanup_on_failure() {
     local P="$1"
     echo "An error occurred during the installation. Cleaning up ${P}..."
     rm -f "${P}/opengrep" || true
-    rm -f "${P}/opengrep.download" || true
     rm -f "${P}/opengrep.sig" || true
     rm -f "${P}/opengrep.cert" || true
     rmdir "${P}" || true
@@ -172,13 +112,7 @@ main() {
 
     # check and set "os_arch"
     if [ "$OS" = "Linux" ]; then
-        if is_2_or_later "$VERSION"; then
-            if [ "$ARCH" = "x86_64" ] || [ "$ARCH" = "amd64" ]; then
-                DIST="opengrep_linux_x86"
-            elif [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then
-                DIST="opengrep_linux_aarch64"
-            fi
-        elif ldd /bin/sh 2>&1 | grep -qi musl; then
+        if ldd /bin/sh 2>&1 | grep -qi musl; then
             if [ "$ARCH" = "x86_64" ] || [ "$ARCH" = "amd64" ]; then
                 DIST="opengrep_musllinux_x86"
             elif [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then
@@ -220,7 +154,7 @@ main() {
         echo "*** Installing Opengrep ${VERSION} for ${OS} (${ARCH}) ***"
 
         # cleanup on error
-        trap '[ "$?" -eq 0 ] || cleanup_on_failure "$INST"' EXIT
+        trap '[ "$?" -eq 0 ] || cleanup_on_failure $INST' EXIT
 
         mkdir -p "${INST}"
         if [ ! -d "${INST}" ]; then
@@ -228,27 +162,7 @@ main() {
             exit 1
         fi
 
-        # The download also validates the version, avoiding the rate-limited
-        # GitHub API: a 404 means the tag does not exist or has no asset for
-        # this platform. A temporary name, renamed only on success, so an
-        # interrupted download is never mistaken for an installed binary.
-        HTTP_STATUS=$(curl --show-error --location --progress-bar \
-            --write-out '%{http_code}' --output "${INST}/opengrep.download" "${URL}") || HTTP_STATUS=""
-
-        if [[ -z "$HTTP_STATUS" ]]; then
-            # curl has already printed its error on stderr.
-            echo "Error: Failed to download ${URL}." 1>&2
-            exit 1
-        elif [[ "$HTTP_STATUS" == "404" ]]; then
-            echo "Error: Version ${VERSION} not found, or it has no ${DIST} asset." 1>&2
-            # Subshell, so a listing failure cannot mask the diagnosis above.
-            (print_available_versions 3) 1>&2 || true
-            exit 1
-        elif [[ "$HTTP_STATUS" != 200 ]]; then
-            echo "Error: Failed to download ${URL}: HTTP status ${HTTP_STATUS}." 1>&2
-            exit 1
-        fi
-        mv "${INST}/opengrep.download" "${INST}/opengrep"
+        curl --fail --location --progress-bar "${URL}" > "${INST}/opengrep"
 
         local SIG_EXISTS=true
 
@@ -301,26 +215,11 @@ main() {
         fi
 
         echo "Testing binary..."
-        # Test by calling --version on the downloaded binary.
-        # Set OPENGREP_SKIP_BINARY_TEST=1 to bypass this check in environments where
-        # binary execution is unreliable (e.g. docker buildx multi-platform builds).
-        if [[ "${OPENGREP_SKIP_BINARY_TEST:-}" == "1" ]]; then
-            echo "Skipping binary test (OPENGREP_SKIP_BINARY_TEST=1)."
-        else
-            STDERR_LOG=$(mktemp)
-            TEST=$("${INST}/opengrep" --version 2>"$STDERR_LOG" || true)
-            if [ -z "$TEST" ]; then
-                echo "Failed to execute installed binary: ${INST}/opengrep." 1>&2
-                if [ -s "$STDERR_LOG" ]; then
-                    echo "Error output:" 1>&2
-                    cat "$STDERR_LOG" 1>&2
-                    echo 1>&2
-                    echo "Full error log saved to: $STDERR_LOG" 1>&2
-                fi
-                echo "If reporting this issue, please include the above output." 1>&2
-                exit 1
-            fi
-            rm -f "$STDERR_LOG"
+        # Test by calling --version on the downloaded binary
+        TEST=$("${INST}/opengrep" --version 2> /dev/null || true)
+        if [ -z "$TEST" ]; then
+            echo "Failed to execute installed binary: ${INST}/opengrep." 1>&2
+            exit 1
         fi
 
         echo
@@ -367,7 +266,10 @@ main() {
 # Argument parsing
 if command -v cosign &> /dev/null; then
     HAS_COSIGN=true
-    COSIGN_MAJOR_VERSION=$(cosign version | grep GitVersion | sed 's/GitVersion:[[:space:]]*v\{0,1\}//' | grep -oE '^[0-9]+' || true)
+    COSIGN_MAJOR_VERSION=$(cosign version | grep GitVersion | sed 's/GitVersion:[[:space:]]*v\{0,1\}//' | grep -oE '^[0-9]+')
+    if [[ "$COSIGN_MAJOR_VERSION" -lt 2 ]]; then
+        echo "Warning: cosign version is less than 2.0.0, signature validation may fail."
+    fi;
 else
     HAS_COSIGN=false
 fi
@@ -420,18 +322,7 @@ if $VERIFY_SIGNATURES && ! $HAS_COSIGN; then
     exit 1
 elif ! $HAS_COSIGN; then
     echo "Warning: cosign is required for --verify-signatures but is not installed. Skipping signature validation."
-    echo "Go to https://github.com/sigstore/cosign to install it."
-elif [[ -z "$COSIGN_MAJOR_VERSION" ]]; then
-    if $VERIFY_SIGNATURES; then
-        echo "Error: could not determine cosign version and --verify-signatures was requested."
-        echo "Your cosign binary may have been built without version metadata (e.g. distro packages)."
-        echo "Install cosign from https://github.com/sigstore/cosign or run without --verify-signatures."
-        exit 1
-    else
-        echo "Warning: could not determine cosign version. Signature validation may not work correctly."
-    fi
-elif [[ "$COSIGN_MAJOR_VERSION" -lt 2 ]]; then
-    echo "Warning: cosign version is less than 2.0.0, signature validation may fail."
+    echo "Go to https:/github.com/sigstore/cosign to install it."
 fi
 
 if "$HELP"; then
@@ -440,13 +331,17 @@ if "$HELP"; then
 fi
 
 if $LIST; then
-    print_available_versions 3
+    echo "Available versions (latest 3):"
+    get_available_versions | head -3
     exit 0
 fi
 
+shift $((OPTIND - 1))
+
 if [ -z "$VERSION" ]; then
-    VERSION=$(get_latest_version)
+    VERSION=$(get_available_versions | head -1)
+else
+    validate_version "$VERSION"
 fi
-validate_version_format "$VERSION"
 
 main "$VERSION" "$VERIFY_SIGNATURES"

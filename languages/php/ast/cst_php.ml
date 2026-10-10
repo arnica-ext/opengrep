@@ -16,6 +16,54 @@
 open Common
 
 (*****************************************************************************)
+(* Prelude *)
+(*****************************************************************************)
+(* Concrete Syntax Tree (CST) for PHP.
+ *
+ * Currently, the CST supports mostly PHP 5.2 with
+ * a few extensions from PHP 5.3 (e.g. closures, namespace, const) and
+ * PHP 5.4 (e.g. traits) as well as support for many Facebook
+ * extensions (XHP, generators, annotations, generics, collections,
+ * type definitions, implicit fields via constructor parameters).
+ *
+ * Update: I removed many facebook extensions to simplify (e.g., XHP).
+ * Moreover, this CST is mostly used for semgrep now, so we may
+ * gradually transform it into ast_php.ml to avoid an extra intermediate
+ * when converting from PHP to the generic AST.
+ * For example, use Foo\Bar\{A, B} is not represented faithfully anymore
+ * in this CST, and it's unsugared in use Foo\Bar\A and use Foo\Bar\B
+ * (like in ast_php.ml).
+ * The main requirement for this hybrid CST/AST
+ * is to get the range of an expr/stmt/... correct so you must keep
+ * the first and last token of an expr/stmt/... in the AST.
+ *
+ *
+ * A CST is convenient in a refactoring context or code visualization
+ * context, but if you need to do some heavy static analysis, consider
+ * instead lang_php/analyze/foundation/pil.ml which defines a
+ * PHP Intermediate Language a la CIL.
+ *
+ * todo:
+ *  - unify toplevel statement vs statements? hmmm maybe not
+ *  - maybe even in a refactoring context a PIL+comment
+ *    (see pretty/ast_pp.ml) would make more sense.
+ *
+ * NOTE: data from this type are often marshalled in berkeley DB tables
+ * which means that if you add a new constructor or field in the types below,
+ * you must erase the berkeley DB databases otherwise pfff
+ * will probably ends with a segfault (OCaml serialization is not
+ * type-safe). A hacky solution is to add new constructors only at the end
+ * of a type definition.
+ *
+ * COUPLING: some programs in other languages (e.g. Python) may
+ * use some of the pfff binding, or json/sexp exporters, so if you
+ * change the name of constructors in this file, don't forget
+ * to regenerate the json/sexp exporters, but also to modify the
+ * dependent programs !!!! An easier solution is to not change this
+ * file, or to only add new constructors.
+ *)
+
+(*****************************************************************************)
 (* Token (leaf) *)
 (*****************************************************************************)
 
@@ -123,7 +171,6 @@ and ptype =
   | StringTy
   | ArrayTy
   | ObjectTy
-  | VoidTy (* PHP 8.5 *)
 
 (*****************************************************************************)
 (* Expression *)
@@ -175,10 +222,6 @@ and expr =
   (* start of expr_without_variable in original PHP lexer/parser terminology *)
   | Sc of scalar
   | Binary of expr * binaryOp wrap * expr
-  (* PHP 8.5 pipe operator: '$x |> f(...)' calls f with $x as its only
-   * argument. Kept as its own node rather than a binaryOp because turning it
-   * into the equivalent call needs both operands. *)
-  | Pipe of expr * tok (* |> *) * expr
   | Unary of unaryOp wrap * expr
   (* should be a statement ... *)
   | Assign of lvalue * tok (* = *) * expr
@@ -202,10 +245,6 @@ and expr =
   | New of tok * class_name_reference * arguments option
   | NewAnonClass of tok * arguments option * class_def (* c_name = "!ANON!" *)
   | Clone of tok * expr
-  (* PHP 8.5 clone-with: 'clone($obj, ['p' => $v])' returns a copy of $obj
-   * with those properties replaced. The one-argument 'clone($obj)' is still
-   * a Clone applied to a ParenExpr. *)
-  | CloneWith of tok (* clone *) * (expr * tok (* , *) * expr) paren
   | AssignRef of lvalue * tok (* = *) * tok (* & *) * lvalue
   | AssignNew of
       lvalue
@@ -244,9 +283,7 @@ and expr =
    * understand yield so for now just make it simple and add yield
    * at the expression level.
    *)
-  (* the operand is absent in a bare 'yield;' *)
-  | Yield of tok * array_pair option (* should have no ref inside *)
-  | YieldFrom of tok * tok (* from *) * expr
+  | Yield of tok * array_pair (* should have no ref inside *)
   | YieldBreak of tok * tok
   (* php-facebook-ext: Just like yield, this should be at the statement level *)
   | Await of tok * expr
@@ -344,17 +381,11 @@ and castOp = ptype
 (* less: merge with foreach_pattern, list($k => $v) = ... is allowed no? *)
 and list_assign =
   | ListVar of lvalue
-  (* assignment by reference, as in 'list(&$a, &$b) = $arr' *)
-  | ListRef of tok (* & *) * lvalue
-  (* keyed destructuring, as in 'list("k" => $v) = $arr' *)
-  | ListArrow of expr * tok (* => *) * list_assign
   | ListList of tok * list_assign comma_list paren
   | ListEmpty
 
 and array_pair =
   | ArrayExpr of expr
-  (* array unpacking, as in '[...$a, ...$b]' *)
-  | ArrayUnpack of tok (* ... *) * expr
   | ArrayRef of tok (* & *) * lvalue
   | ArrayArrowExpr of expr * tok (* => *) * expr
   | ArrayArrowRef of expr * tok (* => *) * tok (* & *) * lvalue
@@ -496,9 +527,7 @@ and foreach_pattern =
   | ForeachList of tok (* list *) * list_assign comma_list paren
 
 and foreach_variable = is_ref * lvalue
-(* the class_name is a HintUnion for a multi-catch; the dname is absent in a
- * non-capturing catch, as in 'catch (Exception) {}' *)
-and catch = tok * (class_name * dname option) paren * stmt_and_def list brace
+and catch = tok * (class_name * dname) paren * stmt_and_def list brace
 and finally = tok * stmt_and_def list brace
 and use_filename = UseDirect of string wrap | UseParen of string wrap paren
 and declare = ident * static_scalar_affect
@@ -553,19 +582,16 @@ and function_type =
 
 and parameter = {
   p_attrs : attributes option;
-  (* constructor property promotion (PHP 8.0, was a php-facebook-ext),
-   * this is always empty except for constructors, and the modifiers can
-   * be only a visibility, Readonly (PHP 8.1), an asymmetric visibility
-   * (PHP 8.4) or Final (PHP 8.5), but never Static, Abstract, etc.
+  (* php-facebook-ext: implicit field via constructor parameter,
+   * this is always None except for constructors and the modifier
+   * can be only Public or Protected or Private (but never Static, etc).
    *)
-  p_modifiers : modifier wrap list;
+  p_modifier : modifier wrap option;
   p_type : hint_type option;
   p_ref : is_ref;
   p_name : dname;
   p_default : static_scalar_affect option;
   p_variadic : tok (* ... *) option;
-  (* PHP 8.4: hooks on a constructor-promoted property *)
-  p_hooks : property_hook list brace option;
 }
 
 and is_ref = tok (* bool wrap ? *) option
@@ -581,13 +607,9 @@ and lexical_var = LexicalVar of is_ref * dname
  * is a simple expression
  *)
 and short_lambda_def = {
-  (* "async" and "static" are the only valid modifiers *)
+  (* "async" is the only valid modifier *)
   sl_modifiers : modifier wrap list;
-  (* returns by reference, as in 'fn&($x) => ...' *)
-  sl_ref : is_ref;
-  sl_attrs : attributes option;
   sl_params : short_lambda_params;
-  sl_return_type : (tok (* : *) * hint_type) option;
   sl_tok : tok (* ==> *) option; (* async { } doesn't use a ==> *)
   sl_body : short_lambda_body;
 }
@@ -607,8 +629,6 @@ and constant_def = {
   cst_name : ident;
   cst_type : hint_type option;
   cst_val : static_scalar;
-  (* PHP 8.5 attributes on constants *)
-  cst_attrs : attributes option;
 }
 
 (* ------------------------------------------------------------------------- *)
@@ -664,15 +684,13 @@ and class_stmt =
   (* This is abused to represent class constants in enums, so sometimes
    * tok is actually fakeInfo. *)
   | ClassConstants of
-      attributes option (* PHP 8.0, e.g. '#[\Deprecated]' (PHP 8.4) *)
-      * modifier wrap list
+      modifier wrap list
       * tok (* const *)
       * hint_type option
       * class_constant comma_list
       * tok (*;*)
   | ClassVariables of
-      attributes option
-      * class_var_modifier
+      class_var_modifier
       * (* static-php-ext: *)
       hint_type option
       * class_variable comma_list
@@ -692,11 +710,6 @@ and class_constant = ident * static_scalar_affect
 
 (* PHP 8.4 property hooks *)
 and property_hook = {
-  ph_attrs: attributes option;
-  (* only 'final' is allowed here *)
-  ph_modifiers: modifier wrap list;
-  (* by-reference getter, as in '&get' *)
-  ph_ref: is_ref;
   ph_kind: property_hook_kind wrap;
   ph_params: parameter comma_list_dots paren option; (* set($value) *)
   ph_body: property_hook_body;
@@ -707,8 +720,6 @@ and property_hook_kind = PhGet | PhSet
 and property_hook_body =
   | PHExpr of tok (* => *) * expr * tok (* ; *)
   | PHBlock of stmt_and_def list brace
-  (* no body, as in interfaces and abstract classes: 'public int $x { get; }' *)
-  | PHAbstract of tok (* ; *)
 
 and class_variable = dname * static_scalar_affect option * property_hook list brace option
 
@@ -797,9 +808,8 @@ and static_scalar_affect = tok (* = *) * static_scalar
 
 (* HPHP extension similar to http://en.wikipedia.org/wiki/Java_annotation *)
 and attribute =
-  (* the name can be qualified ('#[A\B]') or root-prefixed ('#[\Deprecated]') *)
-  | Attribute of name
-  | AttributeWithArgs of name * argument comma_list paren
+  | Attribute of string wrap
+  | AttributeWithArgs of string wrap * static_scalar comma_list paren
 
 and attributes = attribute comma_list angle
 
@@ -826,15 +836,13 @@ and toplevel =
   | NamespaceBracketDef of tok * qualified_ident option * toplevel list brace
   | NamespaceUse of
       tok
-      * use_keyword option
+      * tok option (* 'function|const' *)
       * namespace_use_rule comma_list
       * tok
   (* ; *)
   (* old:  | Halt of tok * unit paren * tok (* __halt__ ; *) *)
   | NotParsedCorrectly of tok list (* when Flag.error_recovery = true *)
   | FinalDef of tok (* EOF *)
-
-and use_keyword = Use_function_keyword of tok | Use_const_keyword of tok
 
 (* the qualified_ident can have a leading '\' *)
 and namespace_use_rule = qualified_ident * alias option

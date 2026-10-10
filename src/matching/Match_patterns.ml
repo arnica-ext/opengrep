@@ -315,7 +315,7 @@ class ['self] check_visitor range_filter m_env has_as_metavariable
   xml_attribute_rules fld_rules flds_rules partial_rules name_rules
   raw_rules
   =
-  object (self : 'self)
+  object (_self : 'self)
     inherit [_] Matching_visitor.matching_visitor as super
 
     val range_filter = range_filter
@@ -472,42 +472,6 @@ class ['self] check_visitor range_filter m_env has_as_metavariable
           | _ -> super#visit_stmt env x)
       | _ -> super#visit_stmt env x
           
-    (* Report the matches found by a statement-sequence rule (shared by
-       [v_stmts] and [v_fields]). *)
-    method private report_stmts_matches rule matches_with_env =
-      matches_with_env
-      |> List.iter (fun (env : MG.tin) ->
-             let matched = env.stmts_matched in
-             match location_stmts matched with
-             | None -> () (* empty sequence or bug *)
-             | Some range_loc ->
-                 let mv = env.mv in
-                 let tokens = lazy (list_original_tokens_stmts matched) in
-                 let rule_id = rule_id_of_mini_rule rule in
-                 let pm =
-                   {
-                     PM.rule_id;
-                     path;
-                     env = mv;
-                     range_loc;
-                     (* as-metavariable: *)
-                     ast_node =
-                       (if has_as_metavariable then Some (Ss matched) else None);
-                     enclosure = Option.map (!) enclosure;
-                     tokens;
-                     taint_trace = None;
-                     engine_of_match = `OSS;
-                     validation_state = `No_validator;
-                     severity_override = None;
-                     metadata_override = None;
-                     sca_match = None;
-                     fix_text = None;
-                     facts = [];
-                   }
-                 in
-                 Stack_.push pm mp_env.matches;
-                 hook pm)
-
     method! v_stmts env x =
       (* this is potentially slower than what we did in Coccinelle with
        * CTL. We try every sequences. Hopefully the first statement in
@@ -521,8 +485,45 @@ class ['self] check_visitor range_filter m_env has_as_metavariable
       stmts_rules
       |> List.iter (fun (pattern, rule) ->
              Profiling.profile_code "Semgrep_generic.kstmts" (fun () ->
-                 self#report_stmts_matches rule
-                   (match_sts_sts rule pattern x m_env)));
+                 let matches_with_env =
+                   match_sts_sts rule pattern x m_env
+                 in
+                 matches_with_env
+                 |> List.iter (fun (env : MG.tin) ->
+                        let matched = env.stmts_matched in
+                        match location_stmts matched with
+                        | None -> () (* empty sequence or bug *)
+                        | Some range_loc ->
+                            let mv = env.mv in
+                            let tokens =
+                              lazy (list_original_tokens_stmts matched)
+                            in
+                            let rule_id = rule_id_of_mini_rule rule in
+                            let pm =
+                              {
+                                PM.rule_id;
+                                path;
+                                env = mv;
+                                range_loc;
+                                (* as-metavariable: *)
+                                ast_node =
+                                  (if has_as_metavariable then
+                                     Some (Ss matched)
+                                   else None);
+                                enclosure = Option.map (!) enclosure;
+                                tokens;
+                                taint_trace = None;
+                                engine_of_match = `OSS;
+                                validation_state = `No_validator;
+                                severity_override = None;
+                                metadata_override = None;
+                                sca_match = None;
+                                fix_text = None;
+                                facts = [];
+                              }
+                            in
+                            Stack_.push pm mp_env.matches;
+                            hook pm)));
       super#v_stmts env x
 
     method! visit_type_ env x =
@@ -533,25 +534,6 @@ class ['self] check_visitor range_filter m_env has_as_metavariable
         x
 
     method! visit_pattern env x =
-      (* Binding patterns (e.g. the [body] in a destructured [{ body }]
-       * parameter, or the [a], [b] in [(a, b)]) are simultaneously a
-       * binding site and a reference to the bound names. Rules written
-       * against the reference position — e.g. [focus-metavariable: $REQ]
-       * followed by [pattern: body] — expect an expression node at
-       * that token, which did exist under the old
-       * [OtherPat "ExprToPattern"] encoding but no longer does under
-       * [PatRecord]/[PatId]. [AST_generic_helpers.pattern_to_expr]
-       * formalises the pattern/expression equivalence for the forms
-       * that have an expression view ([PatId], [PatTuple], [PatList],
-       * [PatConstructor], [PatLiteral]); use it to run the expression
-       * rules against the synthesised expression at the same tokens.
-       * For forms without a clean expression view ([PatRecord],
-       * [PatAs], [PatTyped], …) it raises [NotAnExpr] and we simply
-       * skip — [super#visit_pattern] below still recurses into their
-       * children, so inner [PatId] leaves are caught at their own
-       * [visit_pattern] call. *)
-      (try self#visit_expr env (AST_generic_helpers.pattern_to_expr x)
-       with AST_generic_helpers.NotAnExpr -> ());
       match_rules_and_recurse mp_env pattern_rules match_p_p
         (super#visit_pattern env)
         (fun x -> P x)
@@ -604,25 +586,50 @@ class ['self] check_visitor range_filter m_env has_as_metavariable
 
          So if someone writes a pattern which could be interpreted as a sequence of
          fields, we allow it to match to fields.
-
-         Since [m_stmts_deep] anchors the pattern at the head of the list, we
-         run it on every suffix so the pattern can start at any field.
       *)
-      (* This runs on every class body / record / object literal, so only pay
-         for unwrapping the fields when there is a sequence pattern to match.
-         The suffixes don't depend on the rule, so compute them once. *)
-      let stmts_suffixes =
-        match stmts_rules with
-        | [] -> []
-        | _ :: _ -> List_.suffixes (List_.map (fun (F x) -> x) x)
-      in
       stmts_rules
       |> List.iter (fun (pattern, rule) ->
              Profiling.profile_code "Semgrep_generic.kfields" (fun () ->
-                 stmts_suffixes
-                 |> List.iter (fun stmts ->
-                        self#report_stmts_matches rule
-                          (match_sts_sts rule pattern stmts m_env))));
+                 let x = List_.map (fun (F x) -> x) x in
+                 let matches_with_env =
+                   match_sts_sts rule pattern x m_env
+                 in
+                 matches_with_env
+                 |> List.iter (fun (env : MG.tin) ->
+                        let matched = env.stmts_matched in
+                        match location_stmts matched with
+                        | None -> () (* empty sequence or bug *)
+                        | Some range_loc ->
+                            let mv = env.mv in
+                            let tokens =
+                              lazy (list_original_tokens_stmts matched)
+                            in
+                            let rule_id = rule_id_of_mini_rule rule in
+                            let pm =
+                              {
+                                PM.rule_id;
+                                path;
+                                env = mv;
+                                range_loc;
+                                (* as-metavariable: *)
+                                ast_node =
+                                  (if has_as_metavariable then
+                                     Some (Ss matched)
+                                   else None);
+                                enclosure = Option.map (!) enclosure;
+                                tokens;
+                                taint_trace = None;
+                                engine_of_match = `OSS;
+                                validation_state = `No_validator;
+                                severity_override = None;
+                                metadata_override = None;
+                                sca_match = None;
+                                fix_text = None;
+                                facts = [];
+                              }
+                            in
+                            Stack_.push pm mp_env.matches;
+                            hook pm)));
       match_rules_and_recurse mp_env flds_rules match_flds_flds
         (super#v_fields env)
         (fun x -> Flds x)

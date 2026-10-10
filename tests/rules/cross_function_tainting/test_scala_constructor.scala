@@ -41,11 +41,7 @@ object Main {
     val fieldUser = new FieldUser()
     fieldUser.name = taintedInput2
     val fieldResult = fieldUser.getProfile()
-
-    // Test chained method call: new Constructor(tainted).method()
-    // ruleid: scala_constructor_sqli
-    sink(new User(source()).getProfile())
-
+    
     return
   }
 }

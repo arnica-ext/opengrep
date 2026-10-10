@@ -16,9 +16,7 @@ type conf = {
   dynamic_timeout_max_multiplier : int;
   dynamic_timeout_unit_kb : int;
   allow_rule_timeout_control : bool;
-  timeout_threshold : int;
-  (* time limit of the interfile analysis of a rule *)
-  interfile_timeout : int;
+  timeout_threshold : int; (* output flags *)
   (* features *)
   nosem : bool;
   strict : bool;
@@ -28,14 +26,6 @@ type conf = {
   matching_explanations : bool;
   dataflow_traces : bool;
   taint_intrafile : bool;
-  effect_guards : bool;
-  taint_interfile : bool;
-  taint_interfile_depth : int;
-  (* override taint_intrafile/taint_interfile and the rule options of the
-   * same names *)
-  disable_intrafile : bool;
-  disable_interfile : bool;
-  interfile_dedup_by : Core_match.interfile_dedup_by;
   (* Engine configuration for various features *)
   engine_config : Engine_config.t;
 }
@@ -46,8 +36,6 @@ type result = {
   core : Semgrep_output_v1_t.core_output;
   hrules : Rule.hrules;
   scanned : Fpath.t Set_.t;
-  taint_interfile : bool;
-  interfile_dedup_by : Core_match.interfile_dedup_by;
 }
 
 (* This type is similar to Core_scan.func, but taking a list of
@@ -57,49 +45,32 @@ type result = {
  * The list of targets below are final targets (not scanning roots).
  * no further scanning of the filesystem shall be performed.
  * The Find_targets.conf argument is for explicit target management.
- * git_repo says whether the targets came from git, for the scan status.
- * on_plan receives the plan once the language jobs pair targets with rules;
- * the runner prints nothing itself, and builds no plan without on_plan.
  *)
 type func = {
   run :
     ?file_match_hook:(Fpath.t -> Core_result.matches_single_file -> unit) ->
-    ?on_plan:(Scan_plan.t -> unit) ->
-    ?progress_hook:(Core_scan_config.progress -> unit) ->
-    git_repo:bool ->
-    scanning_roots:Scanning_root.directory list ->
     conf ->
     Find_targets.conf ->
     Match_patterns.matching_conf ->
     Rule_error.rules_and_invalid ->
-    Target_and_root.t list ->
+    Fpath.t list ->
     Core_result.result_or_exn;
+}
+
+type pro_conf = {
+  diff_config : Differential_scan_config.t;
+  roots : Scanning_root.t list;
+  engine_type : Engine_type.t;
 }
 
 val default_conf : conf
 
-(* The (taint_intrafile, taint_interfile) pair left after applying
-   [disable_intrafile] and [disable_interfile]. Interfile implies intrafile,
-   and disabling intrafile disables interfile too. *)
-val effective_taint_modes :
-  disable_intrafile:bool ->
-  disable_interfile:bool ->
-  intrafile:bool ->
-  interfile:bool ->
-  bool * bool
-
-(* The rules with their taint_intrafile/taint_interfile options restricted
-   by [conf.disable_intrafile] and [conf.disable_interfile]. *)
-val restrict_rule_taint_modes : conf -> Rule.rules -> Rule.rules
+(* Semgrep Pro hook for osemgrep *)
+val hook_mk_pro_core_run_for_osemgrep : (pro_conf -> func) option ref
+val hook_pro_git_remote_scan_setup : (func -> func) option ref
 
 (* builder *)
-val mk_result :
-  ?inline:bool ->
-  ?taint_interfile:bool ->
-  ?interfile_dedup_by:Core_match.interfile_dedup_by ->
-  Rule.rule list ->
-  Core_result.t ->
-  result
+val mk_result : ?inline:bool -> Rule.rule list -> Core_result.t -> result
 
 (* Core_scan.func adapter to be used in osemgrep.
 
@@ -114,12 +85,12 @@ val mk_result :
 *)
 val mk_core_run_for_osemgrep : Core_scan.func -> func
 
+(* Helper used also in Steps_scan.ml *)
+val core_scan_config_of_conf : conf -> Core_scan_config.t
 
-(* Helper used in Test_subcommand.ml: the targets of the files given and
-   the rules as a scan runs them *)
-val targets_and_rules_for_files :
-  Fpath.t list -> Rule.t list -> Target.t list * Rule.t list
-
-(* the targets of each language of the rules *)
+(* reused in semgrep-server in pro and for Git_remote.ml in pro *)
 val split_jobs_by_language :
-  Find_targets.conf -> Rule.t list -> Target_and_root.t list -> Lang_job.t list
+  Find_targets.conf -> Rule.t list -> Fpath.t list -> Lang_job.t list
+
+(* Helper used in Test_subcommand.ml *)
+val targets_for_files_and_rules : Fpath.t list -> Rule.t list -> Target.t list

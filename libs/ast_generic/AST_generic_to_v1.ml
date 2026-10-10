@@ -134,8 +134,6 @@ and map_id_info x =
    G.id_resolved = v_id_resolved;
    id_resolved_alternatives = _not_available_in_v1_;
    id_type = v_id_type;
-   id_instance_type = _not_available_in_v1__;
-   id_callee_definition = _not_available_in_v1___;
    id_svalue = v3;
    id_flags = _not_available_in_v1;
   } ->
@@ -479,7 +477,6 @@ and map_special x =
   | Spread -> `Spread
   | HashSplat -> `HashSplat
   | NextArrayIndex -> `OtherSpecial "NextArrayIndex"
-  | LateStatic -> `OtherSpecial "LateStatic"
   | Require -> `Require
   | Op v1 ->
       let v1 = map_arithmetic_operator v1 in
@@ -677,7 +674,7 @@ and map_attribute = function
       let v1 = map_wrap map_keyword_attribute v1 in
       match v1 with
       | Either.Left v1, tok -> `KeywordAttr (v1, tok)
-      | Either.Right s, tok -> `OtherAttribute ((s, tok), [ `Tk tok ]))
+      | Either.Right s, tok -> `OtherAttribute (s, [ `Tk tok ]))
   | NamedAttr (t, v1, v3) ->
       let t = map_tok t in
       let v1 = map_name v1 and v3 = map_bracket (map_of_list map_argument) v3 in
@@ -690,10 +687,6 @@ and map_keyword_attribute = function
   | Static -> Left `Static
   | Volatile -> Left `Volatile
   | Extern -> Left `Extern
-  | GlobalScope -> Right "global"
-  | Callable -> Right "function"
-  | TypeOnly -> Right "type"
-  | Reexport -> Right "reexport"
   | Public -> Left `Public
   | Private -> Left `Private
   | Protected -> Left `Protected
@@ -720,7 +713,6 @@ and map_keyword_attribute = function
   | Throws -> Left `Throws
   | Rethrows -> Left `Rethrows
   | Lazy -> Left `Lazy
-  | KeywordOnly -> Right "keyword_only"
   | RecordClass -> Left `RecordClass
   | AnnotationClass -> Left `AnnotationClass
   | EnumClass -> Left `EnumClass
@@ -1164,9 +1156,7 @@ and map_parameter = function
       let v0 = map_tok v0 in
       let v1 = map_parameter_classic v1 in
       `ParamHashSplat (v0, v1)
-  | ParamPattern (v1, _) ->
-      (* The v1 synthetic parameter_classic is not part of the v1 spec;
-       * drop it. *)
+  | ParamPattern v1 ->
       let v1 = map_pattern v1 in
       `ParamPattern v1
   | ParamEllipsis v1 -> raise (SemgrepConstruct v1)

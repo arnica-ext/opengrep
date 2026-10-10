@@ -57,108 +57,16 @@ let debug_offset offset =
 (* Misc *)
 (*********************************************************)
 
-(* Does [shape] carry any content relevant to taint propagation?
- * - [`Tainted] xtaint on any cell — direct taint.
- * - [Arg _] — polymorphic caller-supplied taint yet to be instantiated.
- * - [Fun _] — function reference; HOF analysis tracks the callback's
- *   signature via this shape, so an assignment of a lambda to a
- *   variable is not a sanitizer even though no [`Tainted] cell is
- *   reachable through the shape.
- * - [`Clean] cell with [Bot] subshape — literal construction observed
- *   no taint here; does NOT count as content.
- * - [Bot] — nothing. *)
-let rec shape_has_relevant_content = function
-  | Bot -> false
-  | Arg _
-  | Fun _ ->
-      true
-  | Obj obj ->
-      Fields.exists (fun _ cell -> cell_has_relevant_content cell) obj
-
-and cell_has_relevant_content (Cell (xtaint, shape)) =
-  Xtaint.is_tainted xtaint || shape_has_relevant_content shape
-
 let taints_and_shape_are_relevant taints shape =
-  (* An assignment whose RHS carries neither taints nor tainted shape
-   * content triggers the [Lval_env.clean] side-effect in the transfer
-   * function — i.e. the RHS acts as a sanitizer for the LHS's prior
-   * taint. Before literal record/dict construction could produce
-   * [Obj {field = Cell (`Clean, Bot); …}] shapes (all fields known
-   * clean), a non-[Bot] shape was guaranteed to carry taint by the
-   * invariant, and a [shape ≠ Bot] check was enough. With the clean-
-   * cell preservation in [add_field_to_obj_check_invariant], we must
-   * now walk the shape and confirm it contains at least one [`Tainted]
-   * cell (or an [Arg] polymorphic taint) before treating the RHS as
-   * "relevant". *)
-  (not (Taints.is_empty taints)) || shape_has_relevant_content shape
+  match (Taints.is_empty taints, shape) with
+  | true, Bot -> false
+  | __else__ ->
+      (* Either 'taints' is non-empty, or 'shape' is non-'Bot' and hence
+       * by INVARIANT(cell) it contains some taint or has field marked clean. *)
+      true
 
 (* TODO: This should fix shapes too. *)
-(* Deep-struct languages over large codebases explode poly-taint width
-   at the default bound; lower them (none has a test needing more). See
-   [taint_MAX_POLY_OFFSET]. *)
-let max_poly_offset (lang : Lang.t) : int =
-  match lang with
-  (* Cap 2 measured on grafana (2026-07, 13 go rules): converges at ~4x
-     the cap-1 scan time (488s vs ~120s) and removes 22 of 806 findings
-     by source/sink identity — all field-confusion FPs (at cap 1 every
-     field of a depth-1-truncated struct aliases, so e.g. an int
-     threshold "flows" into a filepath.Join sink). No sink location
-     gains or loses coverage. Raising the cap is a 4x-cost /
-     trace-precision tradeoff; cap 4 explodes (composition width). *)
-  | Lang.Go -> Limits_semgrep.taint_MAX_POLY_OFFSET_FLAT
-  | _ -> Limits_semgrep.taint_MAX_POLY_OFFSET
-
-(* A repeated segment is a composition cycle only when it is the same
-   OCCURRENCE — [x = x.getX ()] re-composes the same field token each
-   round.  Same-named distinct fields ([x.data.data]) are legitimate
-   chains, and field idents carry default sids, so [T.equal_offset]
-   alone cannot tell the two apart: compare source positions as well.
-   Tokenless segments (ints, strings, slices) have no occurrence to
-   compare; identical repetition still counts as a cycle there, and
-   the cap bounds composition regardless. *)
-let same_offset_occurrence (o1 : T.offset) (o2 : T.offset) : bool =
-  T.equal_offset o1 o2
-  &&
-  match (o1, o2) with
-  | T.Ofld n1, T.Ofld n2 -> (
-      match
-        (Tok.loc_of_tok (snd n1.ident), Tok.loc_of_tok (snd n2.ident))
-      with
-      | Ok l1, Ok l2 -> Pos.equal l1.Tok.pos l2.Tok.pos
-      | _ -> true)
-  | _ -> true
-
-(* Append [offset]'s segments to [base] one at a time, under the same two
-   bounds as [add_offset_to_lval] below: stop at the first segment already
-   present as the same occurrence (the cycle guard, cf. [x = x.getX ()])
-   and at [max_poly_offset] segments total.  [base] is respected as-is;
-   only extensions are guarded. *)
-(* [max] overrides [max_poly_offset lang]: a recursive call composes under
-   the flat bound, see [Taint_rule_inst.recursive]. *)
-let compose_offset ?(max : int option) ~(lang : Lang.t)
-    (base : T.offset list) (offset : T.offset list) : T.offset list =
-  let cap = Option.value max ~default:(max_poly_offset lang) in
-  let rec go (rev_acc : T.offset list) (n : int) (os : T.offset list) =
-    match os with
-    | [] -> List.rev rev_acc
-    | o :: rest ->
-        if n >= cap then (
-          (* Dropping segments loses field-sensitivity past the cap: the
-             truncated taint over-approximates every sibling under the
-             kept prefix (pinned by test_poly_offset_cap_python). Debug,
-             not warn: this composes in the fixpoint's hottest loops. *)
-          Log.debug (fun m ->
-              m "compose_offset: dropping %d segment(s) past poly-offset cap %d: base=%s offset=%s"
-                (List.length os) cap (debug_offset base) (debug_offset offset));
-          List.rev rev_acc)
-        else if List.exists (same_offset_occurrence o) rev_acc then
-          List.rev rev_acc
-        else go (o :: rev_acc) (n + 1) rest
-  in
-  go (List.rev base) (List.length base) offset
-
-let fix_poly_taint_with_offset ?(max : int option) ~(lang : Lang.t) offset
-    taints =
+let fix_poly_taint_with_offset offset taints =
   let type_of_offset o =
     match o with
     | T.Ofld n -> !(n.id_info.id_type)
@@ -176,26 +84,23 @@ let fix_poly_taint_with_offset ?(max : int option) ~(lang : Lang.t) offset
            if `x` started with an `Arg` taint:
            while (true) { x = x.getX(); }
       *)
-      (* For perf reasons we don't allow offsets to get too long.
-       * Otherwise in a long chain of function calls where each
-       * function adds some offset, we could end up a very large
-       * amount of polymorphic taint.
-       * This actually happened with rule
-       * semgrep.perf.rules.express-fs-filename from the Pro
-       * benchmarks, and file
-       * WebGoat/src/main/resources/webgoat/static/js/libs/ace.js.
-       *
-       * TODO: This is way less likely to happen if we had better
-       *   type info and we used it to remove taint, e.g. if Boolean
-       *   and integer expressions didn't propagate taint. *)
-      (* Both bounds live in [compose_offset]; extension happened iff the
-         composed offset is longer. *)
-      List.compare_lengths (compose_offset ?max ~lang offset [ o ]) offset > 0
+      (not (List.mem o offset))
+      && (* For perf reasons we don't allow offsets to get too long.
+          * Otherwise in a long chain of function calls where each
+          * function adds some offset, we could end up a very large
+          * amount of polymorphic taint.
+          * This actually happened with rule
+          * semgrep.perf.rules.express-fs-filename from the Pro
+          * benchmarks, and file
+          * WebGoat/src/main/resources/webgoat/static/js/libs/ace.js.
+          *
+          * TODO: This is way less likely to happen if we had better
+          *   type info and we used it to remove taint, e.g. if Boolean
+          *   and integer expressions didn't propagate taint. *)
+      List.length offset < Limits_semgrep.taint_MAX_POLY_OFFSET
     then extended_lval
     else (
-      (* Debug, not warn: fires per capped lval in the fixpoint's hottest
-         loop — tens of millions of times on offset-heavy scans. *)
-      Log.debug (fun m ->
+      Log.warn (fun m ->
           m "Taint_lval_env.fix_poly_taint_with_offset: %s is too long"
             (T.show_lval extended_lval));
       orig_lval)
@@ -205,245 +110,62 @@ let fix_poly_taint_with_offset ?(max : int option) ~(lang : Lang.t) offset
        (fun taints o ->
          match (type_of_offset o, o) with
          | Some { t = TyFun _; _ }, _ ->
-            (* We have an l-value like `o.f` where `f` has a function type,
-             * so it's a method call, we return nothing here. We cannot just
-             * return `xtaint`, which is the taint of `o` in the environment;
-             * whether that taint propagates or not is determined in
-             * 'check_tainted_instr'/'Call'. Otherwise, if `o` had taint var
-             * 'o@i', the call `o.getX()` would have taints '{o@i, o@i.x}'
-             * when it should only have taints '{o@i.x}'. *)
-            Taints.empty
+             (* We have an l-value like `o.f` where `f` has a function type,
+              * so it's a method call, we return nothing here. We cannot just
+              * return `xtaint`, which is the taint of `o` in the environment;
+              * whether that taint propagates or not is determined in
+              * 'check_tainted_instr'/'Call'. Otherwise, if `o` had taint var
+              * 'o@i', the call `o.getX()` would have taints '{o@i, o@i.x}'
+              * when it should only have taints '{o@i.x}'. *)
+             Taints.empty
          | _, Oany ->
-            (* Cannot handle this offset. *)
-            taints
-         | __any__, ((Ofld _ | Ostr _ | Oint _ | Oslice _) as o) ->
-            (* Not a method call (to the best of our knowledge) or
-             * an unresolved Java `getX` method. *)
+             (* Cannot handle this offset. *)
              taints
-             (* [f] rewrites the taint identity (Map key), so must re-key. *)
-             |> Taints.map_taint (fun (taint : T.taint) ->
-                    match taint.orig with
-                    | Var lval ->
-                        let lval' = add_offset_to_lval o lval in
-                        { taint with orig = Var lval' }
-                    | Shape_var lval ->
-                        let lval' = add_offset_to_lval o lval in
-                        { taint with orig = Shape_var lval' }
-                    | Src _
-                    | Control ->
-                        taint))
+         | __any__, ((Ofld _ | Ostr _ | Oint _) as o) ->
+             (* Not a method call (to the best of our knowledge) or
+              * an unresolved Java `getX` method. *)
+             let taints' =
+               taints
+               |> Taints.map (fun taint ->
+                      match taint.orig with
+                      | Var lval ->
+                          let lval' = add_offset_to_lval o lval in
+                          { taint with orig = Var lval' }
+                      | Shape_var lval ->
+                          let lval' = add_offset_to_lval o lval in
+                          { taint with orig = Shape_var lval' }
+                      | Src _
+                      | Control ->
+                          taint)
+             in
+             taints')
        taints
-
-(* A read of [offset] on a parameter's shape 'Arg (arg, base_offsets)', whose
- * value carries [taints]: the polymorphic taints extended by [offset], under
- * the shape extended the same way. 'None' when [offset] is a method call. *)
-let find_in_arg ?max ~lang ~taints offset arg base_offsets =
-  (* Mirror the method-vs-field discriminator from
-   * [fix_poly_taint_with_offset]: when any offset segment has a
-   * function type ([TyFun]), this is a method call on an [Arg]-shaped
-   * value (e.g. [arr.begin()] in C++). Extending the Arg shape through
-   * the method would make the receiver look like a callback and fire
-   * false HOF dispatch. Fall through to the poly-taint path instead. *)
-  let offset_is_method =
-    List.exists
-      (function
-        | T.Ofld n -> (
-            match !(n.id_info.id_type) with
-            | Some { t = G.TyFun _; _ } -> true
-            | _ -> false)
-        | _ -> false)
-      offset
-  in
-  if offset_is_method then None
-  else
-    (* Extend each alternative path with the additional [offset],
-     * via [compose_offset] (cycle guard + [taint_MAX_POLY_OFFSET]
-     * cap). The poly-taints
-     * below are bounded by [fix_poly_taint_with_offset]; without the
-     * same bound here the Arg shape's offset grows with structure depth
-     * (e.g. a deep [x = x.f] forwarding chain). Since [Shape.equal] and
-     * [Shape.compare] traverse the whole offset list, an unbounded
-     * offset makes each shape comparison O(depth) and degrades
-     * performance on such chains. *)
-    let extended =
-      base_offsets
-      |> List.map (fun base_off -> compose_offset ?max ~lang base_off offset)
-      |> List.sort_uniq (List.compare T.compare_offset)
-    in
-    let taints = fix_poly_taint_with_offset ?max ~lang offset taints in
-    Some (Cell (Xtaint.of_taints taints, Arg (arg, extended)))
 
 (*********************************************************)
 (* Unification (merging shapes) *)
 (*********************************************************)
 
-(* [cell] with every 'Clean' leaf, at any depth, given the taint a read of
- * the leaf gives on the other path: [leaf], the taint of that path's whole
- * value, extended by the leaf's [offset] from the joined cell
- * ('fix_poly_taint_with_offset', as 'option_of_find_result' extends a
- * carried taint; a method offset gives none). The leaf is dropped when a
- * read of it would carry exactly [leaf] down to it anyway ([carry] is what
- * the read carries into [cell]: the taint of the nearest enclosing cell that
- * has one, 'find_in_cell_w_carry'), else replaced by a cell holding that
- * taint. Every other cell keeps its own taint. 'None' when nothing is left
- * of [cell] (INVARIANT(cell)); [cell] itself when it has no 'Clean' leaf, in
- * one pass, so a join that changes nothing allocates nothing. *)
-let rec replace_clean_leaves ~lang ~offset ~carry ~leaf
-    (Cell (xtaint, shape) as cell) =
-  match (xtaint, shape) with
-  | `Clean, _ ->
-      if Taints.equal leaf carry then None
-      else
-        let taints = fix_poly_taint_with_offset ~lang offset leaf in
-        if Taints.is_empty taints then None
-        else Some (Cell (`Tainted taints, Bot))
-  | _, Obj obj -> (
-      let carry =
-        match xtaint with
-        | `Tainted taints -> taints
-        | `None
-        | `Clean ->
-            carry
-      in
-      let obj' =
-        Fields.fold
-          (fun o c acc ->
-            match
-              replace_clean_leaves ~lang ~offset:(offset @ [ o ]) ~carry ~leaf c
-            with
-            | Some c' when phys_equal c' c -> acc
-            | Some c' -> Fields.add o c' acc
-            | None -> Fields.remove o acc)
-          obj obj
-      in
-      if phys_equal obj' obj then Some cell
-      else
-        match (xtaint, Fields.is_empty obj') with
-        | (`None | `Clean), true -> None
-        | `Tainted _, true -> Some (Cell (xtaint, Bot))
-        | _, false -> Some (Cell (xtaint, Obj obj')))
-  | _, (Bot | Arg _ | Fun _) -> Some cell
-
-let rec unify_cell ~lang cell1 cell2 =
+let rec unify_cell cell1 cell2 =
   let (Cell (xtaint1, shape1)) = cell1 in
   let (Cell (xtaint2, shape2)) = cell2 in
   (* TODO: Apply 'Flag_semgrep.max_taint_set_size' here too ? *)
   let xtaint = Xtaint.union xtaint1 xtaint2 in
-  let carry = Xtaint.to_taints xtaint in
-  let shape =
-    unify_shape ~lang
-      (taint_untracked_fields ~lang ~carry ~other:cell2 shape1)
-      (taint_untracked_fields ~lang ~carry ~other:cell1 shape2)
-  in
-  match (xtaint, shape) with
-  (* Restore INVARIANT(cell).2: 'Xtaint.union' gives 'Clean ∪ None = Clean'
-   * while 'unify_shape' gives 'Bot ∪ shape = shape', so unifying
-   * 'Cell(Clean, Bot)' with 'Cell(None, Obj _)' would produce
-   * 'Cell(Clean, Obj _)'. The 'Clean' claim only held on one side, and a
-   * join must not hide the taint recorded under the other side's shape
-   * ('find_in_cell_w_carry' stops at a 'Clean' cell). *)
-  | `Clean, (Obj _ | Arg _ | Fun _) -> Cell (`None, shape)
-  | ( (`Clean | `None | `Tainted _),
-      (Bot | Obj _ | Arg _ | Fun _) ) ->
-      Cell (xtaint, shape)
+  let shape = unify_shape shape1 shape2 in
+  Cell (xtaint, shape)
 
-(* [shape] as it must be seen at a join whose other side is [other].
- *
- * A field of [shape] that [other] does not track is, on the path of [other],
- * what a read of it there gives ('find_in_cell_w_carry'): the 'Oany' entry
- * of an object, the field of a parameter, or else the taint of the whole
- * value. The first two are joined into the field. For the third only the
- * 'Clean' leaves of the field take the taint ('replace_clean_leaves'), and
- * only when a read of the leaf would not carry it there by itself. A cell
- * of the field with a taint of its own keeps just that, although a read of
- * it on the other path gives the whole value's taint too: joining that into
- * every cell of the field would store the same set once per cell, at every
- * depth, for every later walk of the shape to pay for. Otherwise the field
- * would survive the join as it is, because 'unify_shape' keeps the object
- * ('Bot ∪ Obj = Obj', 'Arg ∪ Obj = Obj') and 'unify_obj' keeps a field that
- * is on one side only, and a 'Clean' field would hide the taint of the whole
- * value, e.g. 'q' in
- *
- *     p, q = s.split("?", 1) if c else (s, "")
- *
- * A literal records its untainted fields as 'Clean', and so does a
- * sanitizer. A field that [other] tracks is left to 'unify_obj'. *)
-and taint_untracked_fields ~lang ~carry ~other:(Cell (xtaint, other_shape))
-    shape =
-  match shape with
-  | Obj obj ->
-      let whole =
-        match xtaint with
-        | `Tainted taints -> Some taints
-        | `None
-        | `Clean ->
-            None
-      in
-      let read_on_other o =
-        match (other_shape, xtaint) with
-        | Obj other_obj, _ when Fields.mem o other_obj -> `Tracked
-        | Obj other_obj, _ -> (
-            match Fields.find_opt T.Oany other_obj with
-            | Some any_cell -> `Cell any_cell
-            | None -> `Whole)
-        | Arg (arg, base_offsets), `Tainted taints -> (
-            match find_in_arg ~lang ~taints [ o ] arg base_offsets with
-            | Some cell -> `Cell cell
-            | None -> `Whole)
-        | Arg _, (`None | `Clean)
-        | (Bot | Fun _), _ ->
-            `Whole
-      in
-      let obj =
-        Fields.filter_map
-          (fun o field ->
-            match (read_on_other o, whole) with
-            | `Tracked, _
-            | `Whole, None ->
-                Some field
-            | `Cell cell, _ -> Some (unify_cell ~lang cell field)
-            | `Whole, Some leaf ->
-                replace_clean_leaves ~lang ~offset:[ o ] ~carry ~leaf field)
-          obj
-      in
-      if Fields.is_empty obj then Bot else Obj obj
-  | Bot
-  | Arg _
-  | Fun _ ->
-      shape
-
-and unify_shape ~lang shape1 shape2 =
+and unify_shape shape1 shape2 =
   match (shape1, shape2) with
   | Bot, shape
   | shape, Bot ->
       (* 'Bot' acts like a do-not-care. *)
       shape
-  | Obj obj1, Obj obj2 -> Obj (unify_obj ~lang obj1 obj2)
-  | ( Fun { params = params1; params_il = params_il1; effects = effects1 },
-      Fun { params = params2; params_il = params_il2; effects = effects2 } )
-    ->
-      let equal_il_param p1 p2 =
-        match
-          (IL_helpers.pname_of_param p1, IL_helpers.pname_of_param p2)
-        with
-        | None, None -> true
-        | Some n1, Some n2 -> IL.equal_name n1 n2
-        | _ -> false
-      in
-      if Signature.equal_params params1 params2
-         && List.equal equal_il_param params_il1 params_il2
-      then
-        Fun {
-          params = params1;
-          params_il = params_il1;
-          effects = Effects.union effects1 effects2;
-        }
+  | Obj obj1, Obj obj2 -> Obj (unify_obj obj1 obj2)
+  | ( Fun { params = params1; effects = effects1 },
+      Fun { params = params2; effects = effects2 } ) ->
+      if Signature.equal_params params1 params2 then
+        Fun { params = params1; effects = Effects.union effects1 effects2 }
       else (
-        (* Two Fun shapes from different lambdas. Their effects'
-         * guards anchor in distinct IL.names (sids differ), so we
-         * cannot pick a single [params_il] that lets the walker
-         * substitute both sides' captures. Keep shape1; drop shape2.
-         * Same precedent as below for non-equal simplified params. *)
+        (* TODO: We could actually handle this. *)
         Log.warn (fun m ->
             m
               "Trying to unify two fun shapes with different parameters: %s ~ \
@@ -451,29 +173,24 @@ and unify_shape ~lang shape1 shape2 =
               (Signature.show_params params1)
               (Signature.show_params params2));
         shape1)
-  | Arg (arg1, offsets1), Arg (arg2, offsets2) when T.equal_arg arg1 arg2 ->
-      (* Same parameter — set-union the alternative offsets so a value
-       * bound to different offsets across branches retains every
-       * alternative. [sort_uniq] gives a canonical order and dedups. *)
-      let merged =
-        List.sort_uniq (List.compare T.compare_offset) (offsets1 @ offsets2)
-      in
-      Arg (arg1, merged)
-  | Arg (arg1, _), Arg (arg2, _) ->
-      (* Different parameters: the shape lattice would need constraint
-       * solving to handle this precisely. See e.g.
-       *
-       *     def foo(a, b):
-       *       tup = (a,)
-       *       tup[0] = b
-       *       return tup
-       *
-       * Here the signature of [foo] would ignore the shape of [b].
-       * TODO: record and solve constraints. *)
-      Log.warn (fun m ->
-          m "Trying to unify two different arg shapes: %s ~ %s"
-            (T.show_arg arg1) (T.show_arg arg2));
-      shape1
+  | Arg arg1, Arg arg2 ->
+      if T.equal_arg arg1 arg2 then shape1
+      else (
+        (* TODO: We do not handle this right now, we would need to record and
+         *   solve constraints. It can happen with code like e.g.
+         *
+         *     def foo(a, b):
+         *       tup = (a,)
+         *       tup[0] = b
+         *       return tup
+         *
+         * Then the consequence would be that the signature of `foo` would ignore
+         * the shape of `b`.
+         *)
+        Log.warn (fun m ->
+            m "Trying to unify two different arg shapes: %s ~ %s"
+              (T.show_arg arg1) (T.show_arg arg2));
+        shape1)
   (* 'Arg' acts like a shape variable. *)
   | Arg _, (Obj _ as obj)
   | (Obj _ as obj), Arg _ ->
@@ -492,9 +209,9 @@ and unify_shape ~lang shape1 shape2 =
       (* Not sure what to do here, so we just pick one arbitrary shape. *)
       shape1
 
-and unify_obj ~lang obj1 obj2 =
+and unify_obj obj1 obj2 =
   (* THINK: Apply taint_MAX_OBJ_FIELDS limit ? *)
-  Fields.union (fun _ x y -> Some (unify_cell ~lang x y)) obj1 obj2
+  Fields.union (fun _ x y -> Some (unify_cell x y)) obj1 obj2
 
 (*********************************************************)
 (* Object shapes *)
@@ -503,18 +220,8 @@ and unify_obj ~lang obj1 obj2 =
 let add_field_to_obj_check_invariant obj offset taints shape =
   match (Xtaint.of_taints taints, shape) with
   | `None, Bot ->
-      (* Literal record/tuple construction observed this field with no
-       * taint and no sub-structure. Record it as [`Clean] rather than
-       * dropping it: a missing entry in an [Obj] makes
-       * [find_in_obj_w_carry] fall through to [`Not_found] and leak
-       * the caller's flattened poly-taint, breaking field-sensitive
-       * taint across literal record/dict construction. [`Clean] blocks
-       * that fallback in [find_in_cell_w_carry] while still letting
-       * later writes (e.g. [obj.body = source()]) take effect via
-       * [Xtaint.union `Clean (`Tainted _) = `Tainted _]. The cell
-       * [(`Clean, Bot)] satisfies INVARIANT(cell).1 (xtaint ≠ None)
-       * and INVARIANT(cell).2 (Clean ⇒ shape = Bot). *)
-      Fields.add offset (Cell (`Clean, Bot)) obj
+      (* We skip this offset to maintain INVARIANT(cell). *)
+      obj
   | xtaint, shape -> Fields.add offset (Cell (xtaint, shape)) obj
 
 let tuple_like_obj taints_and_shapes : shape =
@@ -531,7 +238,7 @@ let tuple_like_obj taints_and_shapes : shape =
   (* See INVARIANT(cell) *)
   if Fields.is_empty obj then Bot else Obj obj
 
-let record_or_dict_like_obj ~lang taints_and_shapes : shape =
+let record_or_dict_like_obj taints_and_shapes : shape =
   let obj =
     taints_and_shapes
     |> List.fold_left
@@ -547,13 +254,12 @@ let record_or_dict_like_obj ~lang taints_and_shapes : shape =
                      | None -> T.Oany
                      | Some i -> T.Oint i)
                  | Literal (String (_, (s, _), _)) -> Ostr s
-                 | Literal (Atom (_, (s, _))) -> Ostr s
                  | __else__ -> T.Oany
                in
                add_field_to_obj_check_invariant obj offset taints shape
            | `Spread shape -> (
                match shape with
-               | Obj obj' -> unify_obj ~lang obj obj'
+               | Obj obj' -> unify_obj obj obj'
                | Bot
                | Arg _
                | Fun _ ->
@@ -586,14 +292,9 @@ let rec gather_all_taints_in_cell_acc acc cell =
 and gather_all_taints_in_shape_acc acc = function
   | Bot -> acc
   | Obj obj -> gather_all_taints_in_obj_acc acc obj
-  | Arg (arg, offsets) ->
-      (* One [Shape_var] per alternative offset. *)
-      List.fold_left
-        (fun acc off ->
-          let lval = { T.base = T.BArg arg; offset = off } in
-          let taint = { T.orig = T.Shape_var lval; tokens = [] } in
-          Taints.add_taint taint acc)
-        acc offsets
+  | Arg arg ->
+      let taint = { T.orig = T.Shape_var (T.lval_of_arg arg); tokens = [] } in
+      Taints.add taint acc
   | Fun _ ->
       (* Consider a third-party/opaque function to which we pass a record that
        * contains a function object. Should be gather the taints in the function
@@ -613,187 +314,10 @@ let gather_all_taints_in_cell = gather_all_taints_in_cell_acc Taints.empty
 let gather_all_taints_in_shape = gather_all_taints_in_shape_acc Taints.empty
 
 (*********************************************************)
-(* Depth widening (shape truncation) *)
-(*********************************************************)
-
-(* Widen a cell to at most [budget] further levels of [Obj] nesting.
- *
- * A self-recursive tree-builder (a function that wraps its own recursive
- * result in a fresh container) has no fixpoint in the shape domain: each
- * SCC round of the interfile fold nests its return shape one level deeper,
- * and branch unification can double the node count per round.
- * [Limits_semgrep.taint_MAX_SHAPE_DEPTH] only widens the *equality* test,
- * which stops the iteration after near-depth-50 shapes have already been
- * built and instantiated — far past any practical cost. This truncates
- * where the cost is incurred, when a signature is stored.
- *
- * Subtrees below the cutoff collapse into the cutoff cell's xtaint via
- * [gather_all_taints_in_cell]: fields below the cutoff then inherit the
- * cell's own taint (see the 'x.a.v' example in INVARIANT(cell)'s doc), so
- * reachability of the deep taints is preserved at the price of offset
- * precision. [`Clean] markers below the cutoff are dropped (conservative
- * towards taint). [Fun] shapes are left untouched here: truncating one would
- * drop its effects (real false negatives), they don't participate in the
- * tree-builder ascending chain bounded here, and their inner shapes were
- * already truncated when the lambda's own signature was stored. Their own
- * nesting is bounded separately by [bound_fun_shape].
- *
- * Returns [None] when the truncated cell carries no information
- * ([`None]/[Bot]), so obj entries can be dropped and INVARIANT(cell) is
- * preserved. *)
-let rec truncate_cell ~budget cell : cell option =
-  let (Cell (xtaint, shape)) = cell in
-  match shape with
-  | Bot
-  | Arg _
-  | Fun _ ->
-      Some cell
-  | Obj obj ->
-      if budget <= 0 then (
-        let deep = gather_all_taints_in_cell cell in
-        if Taints.is_empty deep then None
-        else Some (Cell (`Tainted deep, Bot)))
-      else
-        let obj' =
-          Fields.filter_map
-            (fun _o inner -> truncate_cell ~budget:(budget - 1) inner)
-            obj
-        in
-        let shape' = if Fields.is_empty obj' then Bot else Obj obj' in
-        (match (xtaint, shape') with
-        (* Restore INVARIANT(cell).1 *)
-        | `None, Bot -> None
-        (* Restore INVARIANT(cell).2, see 'unify_cell'. *)
-        | `Clean, (Obj _ | Arg _ | Fun _) -> Some (Cell (`None, shape'))
-        | ( (`Clean | `None | `Tainted _),
-            (Bot | Obj _ | Arg _ | Fun _) ) ->
-            Some (Cell (xtaint, shape')))
-
-(* Fast path for [truncate_shape]: [record_effects] truncates every effect
- * it records, and almost all shapes are nowhere near the cutoff, so don't
- * rebuild (reallocate) a shape that is already within budget. Short-circuits
- * via [Fields.exists]. *)
-let rec cell_depth_exceeds ~budget (Cell (_xtaint, shape)) =
-  shape_depth_exceeds ~budget shape
-
-and shape_depth_exceeds ~budget shape =
-  match shape with
-  | Bot
-  | Arg _
-  | Fun _ ->
-      false
-  | Obj obj ->
-      budget <= 0
-      || Fields.exists
-           (fun _o cell -> cell_depth_exceeds ~budget:(budget - 1) cell)
-           obj
-
-(* Widen [shape] to at most [max_depth] levels of [Obj] nesting;
- * see [truncate_cell]. *)
-let truncate_shape ~max_depth shape =
-  if max_depth < 1 then shape
-  else
-    match shape with
-    | Bot
-    | Arg _
-    | Fun _ ->
-        shape
-    | Obj obj ->
-        if not (shape_depth_exceeds ~budget:max_depth shape) then shape
-        else
-          let obj' =
-            Fields.filter_map
-              (fun _o cell -> truncate_cell ~budget:(max_depth - 1) cell)
-              obj
-          in
-          if Fields.is_empty obj' then Bot else Obj obj'
-
-(* Widen the shapes an effect stores: [Obj] nesting by [truncate_shape],
- * [Fun] nesting by [bound_fun_shape]. Identity-preserving: returns [eff] itself
- * when no shape changed (both widenings return a shape physically unchanged
- * when it is within budget), so [Effects.map] in [truncate_signature] can
- * keep the original set without re-inserting structurally-equal effects. *)
-let rec map_effect_shapes ~(widen : shape -> shape)
-    (eff : Shape_and_sig.Effect.t) : Shape_and_sig.Effect.t =
-  match eff with
-  | Shape_and_sig.Effect.ToReturn tr ->
-      let data_shape = widen tr.data_shape in
-      if phys_equal data_shape tr.data_shape then eff
-      else Shape_and_sig.Effect.ToReturn { tr with data_shape }
-  | Shape_and_sig.Effect.ToSinkInCall r ->
-      let widen_arg arg =
-        match arg with
-        | IL.Unnamed (taints, shape) ->
-            let shape' = widen shape in
-            if phys_equal shape' shape then arg
-            else IL.Unnamed (taints, shape')
-        | IL.Named (ident, (taints, shape)) ->
-            let shape' = widen shape in
-            if phys_equal shape' shape then arg
-            else IL.Named (ident, (taints, shape'))
-      in
-      let args_taints = List_.map widen_arg r.args_taints in
-      if List.for_all2 phys_equal args_taints r.args_taints then eff
-      else Shape_and_sig.Effect.ToSinkInCall { r with args_taints }
-  | Shape_and_sig.Effect.ToSink _
-  | Shape_and_sig.Effect.ToLval _ ->
-      eff
-
-(* Bound the nesting of [Fun] shapes to [levels] below this point; see
- * [Limits_semgrep.taint_MAX_SIG_FUN_DEPTH] for why a stored signature
- * otherwise grows without bound. A [Fun] past the budget collapses to
- * [Bot]; within it, the same bound applies one level down to the shapes
- * its own effects store. Identity-preserving like [truncate_shape]. *)
-and bound_fun_shape ~levels (shape : shape) : shape =
-  match shape with
-  | Bot
-  | Arg _ ->
-      shape
-  | Fun sig_ ->
-      if levels <= 0 then Bot
-      else
-        let effects =
-          Effects.map
-            (map_effect_shapes ~widen:(bound_fun_shape ~levels:(levels - 1)))
-            sig_.Signature.effects
-        in
-        if phys_equal effects sig_.Signature.effects then shape
-        else Fun { sig_ with Signature.effects }
-  | Obj obj ->
-      let changed = ref false in
-      let obj' =
-        Fields.map
-          (fun (Cell (xtaint, inner) as cell) ->
-            let inner' = bound_fun_shape ~levels inner in
-            if phys_equal inner' inner then cell
-            else (
-              changed := true;
-              Cell (xtaint, inner')))
-          obj
-      in
-      if !changed then Obj obj' else shape
-
-let truncate_effect ~max_depth (eff : Shape_and_sig.Effect.t) :
-    Shape_and_sig.Effect.t =
-  let widen shape =
-    truncate_shape ~max_depth shape
-    |> bound_fun_shape ~levels:Limits_semgrep.taint_MAX_SIG_FUN_DEPTH
-  in
-  map_effect_shapes ~widen eff
-
-(* Widen every shape stored in a signature's effects; the entry point used
- * by the interfile fold when a signature is (re-)stored. [Effects.map]
- * returns the set physically unchanged when [truncate_effect] is the
- * identity on every element, so the common case allocates nothing. *)
-let truncate_signature ~max_depth (s : Signature.t) : Signature.t =
-  let effects = Effects.map (truncate_effect ~max_depth) s.effects in
-  if phys_equal effects s.effects then s else { s with effects }
-
-(*********************************************************)
 (* Find an offset *)
 (*********************************************************)
 
-let rec find_in_cell_w_carry ?max ~lang ~taints offset cell =
+let rec find_in_cell_w_carry ~taints offset cell =
   let (Cell (xtaint, shape)) = cell in
   match offset with
   | [] -> `Found cell
@@ -804,24 +328,21 @@ let rec find_in_cell_w_carry ?max ~lang ~taints offset cell =
             Log.err (fun m ->
                 m "BUG: Taint_shape.find_in_cell: INVARIANT(cell).2 is broken");
           `Clean
-      | `None -> find_in_shape_w_carry ?max ~lang ~taints offset shape
-      | `Tainted taints ->
-          find_in_shape_w_carry ?max ~lang ~taints offset shape)
+      | `None -> find_in_shape_w_carry ~taints offset shape
+      | `Tainted taints -> find_in_shape_w_carry ~taints offset shape)
 
-and find_in_shape_w_carry ?max ~lang ~taints offset shape =
+and find_in_shape_w_carry ~taints offset shape =
   let not_found = `Not_found (taints, shape, offset) in
   match shape with
   (* offset <> [] *)
   | Bot -> not_found
-  | Obj obj -> find_in_obj_w_carry ?max ~lang ~taints offset obj
-  | Arg (arg, base_offsets) -> (
-      match find_in_arg ?max ~lang ~taints offset arg base_offsets with
-      | Some cell -> `Found cell
-      | None ->
-          Log.debug (fun m ->
-              m "Could not find offset %s in polymorphic shape %s"
-                (debug_offset offset) (show_shape shape));
-          not_found)
+  | Obj obj -> find_in_obj_w_carry ~taints offset obj
+  | Arg _ ->
+      (* TODO: Here we should "refine" the arg shape, it should be an Obj shape. *)
+      Log.debug (fun m ->
+          m "Could not find offset %s in polymorphic shape %s"
+            (debug_offset offset) (show_shape shape));
+      not_found
   | Fun _ ->
       (* This is an error, we just don't want to crash here. *)
       Log.err (fun m ->
@@ -829,7 +350,7 @@ and find_in_shape_w_carry ?max ~lang ~taints offset shape =
             (debug_offset offset) (show_shape shape));
       not_found
 
-and find_in_obj_w_carry ?max ~lang ~taints (offset : T.offset list) obj =
+and find_in_obj_w_carry ~taints (offset : T.offset list) obj =
   let not_found = `Not_found (taints, Obj obj, offset) in
   (* offset <> [] *)
   match offset with
@@ -843,51 +364,12 @@ and find_in_obj_w_carry ?max ~lang ~taints (offset : T.offset list) obj =
           match
             Fields.fold
               (fun _ cell acc ->
-                match (acc, find_in_cell_w_carry ?max ~lang ~taints offset cell) with
+                match (acc, find_in_cell_w_carry ~taints offset cell) with
                 | None, (`Not_found _ | `Clean) -> None
                 | Some cell, (`Not_found _ | `Clean)
                 | None, `Found cell ->
                     Some cell
-                | Some cell1, `Found cell2 ->
-                    Some (unify_cell ~lang cell1 cell2))
-              obj None
-          with
-          | None -> not_found
-          | Some cell -> `Found cell)
-      | Oslice n -> (
-          (* Read the trailing-rest from index [n]. Filter [Fields] to
-           * entries that intersect the slice [n, infinity), recurse with
-           * the appropriate composed offset, unify all matches.
-           * The composition law lets a coarser sub-slice [Oslice m]
-           * (m < n) contribute its tail-from-(n-m):
-           *   Oslice n :: Oslice m :: rest = Oslice (n-m) :: rest. *)
-          match
-            Fields.fold
-              (fun key cell acc ->
-                let recur_offset =
-                  match key with
-                  | Oint k when k >= n -> Some offset
-                  | Oslice m when m >= n -> Some offset
-                  | Oslice m ->
-                      (* m < n by case order; n - m > 0 *)
-                      Some (T.Oslice (n - m) :: offset)
-                  | Oint _
-                  | Ofld _
-                  | Ostr _
-                  | Oany ->
-                      None
-                in
-                match recur_offset with
-                | None -> acc
-                | Some recur_offset -> (
-                    match
-                      (acc, find_in_cell_w_carry ?max ~lang ~taints recur_offset cell)
-                    with
-                    | None, (`Not_found _ | `Clean) -> None
-                    | Some cell, (`Not_found _ | `Clean)
-                    | None, `Found cell ->
-                        Some cell
-                    | Some c1, `Found c2 -> Some (unify_cell ~lang c1 c2)))
+                | Some cell1, `Found cell2 -> Some (unify_cell cell1 cell2))
               obj None
           with
           | None -> not_found
@@ -896,43 +378,29 @@ and find_in_obj_w_carry ?max ~lang ~taints (offset : T.offset list) obj =
       | Oint _
       | Ostr _ -> (
           match Fields.find_opt o obj with
-          | Some o_cell -> find_in_cell_w_carry ?max ~lang ~taints offset o_cell
-          | None -> (
-              (* Per INVARIANT(obj) in [Shape_and_sig], an [Oany] entry
-               * carries the taint and shape of any field that is not
-               * explicitly tracked — e.g. after `arr[i] = tainted` the
-               * taint lives under [Oany], and a read of the untracked
-               * `arr[0]` must find it. A *tracked* field does not consult
-               * [Oany]: writes through [Oany] weak-update every tracked
-               * entry (see [update_offset_in_obj]), so tracked entries
-               * are already up to date. *)
-              match Fields.find_opt T.Oany obj with
-              | None -> not_found
-              | Some any_cell ->
-                  find_in_cell_w_carry ?max ~lang ~taints offset any_cell)))
+          | None -> not_found
+          | Some o_cell -> find_in_cell_w_carry ~taints offset o_cell))
 
-let find_in_cell ?max ~lang offset cell =
-  find_in_cell_w_carry ?max ~lang ~taints:Taints.empty offset cell
+let find_in_cell offset cell =
+  find_in_cell_w_carry ~taints:Taints.empty offset cell
 
-let option_of_find_result ?max ~lang res =
+let option_of_find_result res =
   match res with
   | `Clean -> None
   | `Not_found (taints, _shape, offset) ->
       (* TODO: Fix _shape too. *)
-      let taints = fix_poly_taint_with_offset ?max ~lang offset taints in
+      let taints = fix_poly_taint_with_offset offset taints in
       Some (taints, Bot)
   | `Found (Cell (xtaint, shape)) -> Some (Xtaint.to_taints xtaint, shape)
 
-let find_in_cell_poly ?max ~lang offset cell =
-  find_in_cell ?max ~lang offset cell
-  |> option_of_find_result ?max ~lang
+let find_in_cell_poly offset cell =
+  find_in_cell offset cell |> option_of_find_result
 
-let find_in_shape_poly ?max ~lang ~taints offset shape =
+let find_in_shape_poly ~taints offset shape =
   match offset with
   | [] -> Some (taints, shape)
   | _ :: _ ->
-      find_in_shape_w_carry ?max ~lang ~taints offset shape
-      |> option_of_find_result ?max ~lang
+      find_in_shape_w_carry ~taints offset shape |> option_of_find_result
 
 (*********************************************************)
 (* Update the xtaint and shape of an offset *)
@@ -991,25 +459,6 @@ and update_offset_in_obj ~f offset obj =
         | Oany (* arbitrary index [*] *) ->
             (* consider all fields/indexes *)
             Fields.filter_map (fun _o' -> update_offset_in_cell ~f offset) obj
-        | Oslice n ->
-            (* Update the trailing-rest from index [n]. For each entry
-             * intersecting [n, infinity), apply the update with the
-             * appropriately composed inner offset; entries outside the
-             * slice pass through unchanged. *)
-            Fields.filter_map
-              (fun key cell ->
-                match key with
-                | Oint k when k >= n -> update_offset_in_cell ~f offset cell
-                | Oslice m when m >= n -> update_offset_in_cell ~f offset cell
-                | Oslice m ->
-                    (* m < n by case order; n - m > 0 *)
-                    update_offset_in_cell ~f (T.Oslice (n - m) :: offset) cell
-                | Oint _
-                | Ofld _
-                | Ostr _
-                | Oany ->
-                    Some cell)
-              obj
         | Ofld _
         | Oint _
         | Ostr _ ->
@@ -1024,7 +473,7 @@ and update_offset_in_obj ~f offset obj =
 (* Updating an offset *)
 (*********************************************************)
 
-let update_offset_and_unify ~lang new_taints new_shape offset opt_cell =
+let update_offset_and_unify new_taints new_shape offset opt_cell =
   if taints_and_shape_are_relevant new_taints new_shape then
     let new_xtaint =
       (* THINK: Maybe Dataflow_tainting 'check_xyz' should be returning 'Xtaint.t'? *)
@@ -1032,7 +481,7 @@ let update_offset_and_unify ~lang new_taints new_shape offset opt_cell =
     in
     let cell = opt_cell ||| cell_none_bot in
     let add_new_taints xtaint shape =
-      let shape = unify_shape ~lang new_shape shape in
+      let shape = unify_shape new_shape shape in
       match xtaint with
       | `None
       | `Clean ->
@@ -1044,15 +493,11 @@ let update_offset_and_unify ~lang new_taints new_shape offset opt_cell =
             || Taints.cardinal taints < !Flag_semgrep.max_taint_set_size
           then (Xtaint.union new_xtaint xtaint, shape)
           else (
-            (* nosemgrep: no-logs-in-library *)
             Log.warn (fun m ->
                 m
-                  "TAINT_SET_SATURATED: offset=%s cardinal=%d dropping=%d"
-                  (offset |> List_.map T.show_offset |> String.concat "")
-                  (Taints.cardinal taints)
-                  (match new_xtaint with
-                   | `Tainted new_ts -> Taints.cardinal new_ts
-                   | _ -> 0));
+                  "Already tracking too many taint sources for %s, will not \
+                   track more"
+                  (offset |> List_.map T.show_offset |> String.concat ""));
             (xtaint, shape))
     in
     update_offset_in_cell ~f:add_new_taints offset cell
@@ -1136,8 +581,7 @@ and enum_in_shape = function
   | Fun _ -> Seq.empty
 
 and enum_in_obj obj =
-  obj
-  |> Fields.to_seq
+  obj |> Fields.to_seq
   |> Seq.map (fun (o, cell) ->
          enum_in_cell cell
          |> Seq.map (fun (offset, taints) -> (o :: offset, taints)))

@@ -2,8 +2,6 @@ type rules_and_origin = {
   rules : Rule.rule list;
   invalid_rules : Rule_error.invalid_rule list;
   origin : origin;
-  (* the time spent parsing the rules (not fetching them), for --time *)
-  parse_time : float;
 }
 
 and origin =
@@ -30,42 +28,22 @@ and origin =
    * alt: of Uri.t or registry_config_kind?
    *)
   | Registry
+  (* For rules which are fetched from the app. These are specific to a cloud
+   * platform configuration, so additional information need not be tracked here
+   * TODO: maybe it does? since policy/supply_chain/code/secrets?
+   *)
+  | App
   (* For rules which come from other remote URIs. Rules from other sources may
    * not be able to use all features (e.g., secrets validators) without
    * additional flags to opt-in, due to security considerations.
    *)
   | Untrusted_remote of Uri.t
-  | Git_repo of Uri.t
 [@@deriving show]
-
-(* what a run whose configs give no rule at all reports *)
-val no_config_given_message : string
 
 val partition_rules_and_invalid :
   rules_and_origin list -> Rule_error.rules_and_invalid
 
-(* The languages the pattern parses in: the given one, or all the languages
-   it parses in when none is given. With a language, the pattern parse
-   error is returned. *)
-val langs_of_pattern :
-  string * Xlang.t option -> (Xlang.t list, Rule_error.t) result
-
-(* The --config arguments classified, once, for the message about them and
-   for the fetching; a config that cannot be found is an error reported like
-   a rule file that cannot be loaded. *)
-type source =
-  | Configs of Rules_config.t list * Rule_error.t list
-  | Pattern of string * Xlang.t option * string option
-
-val classify : Rules_source.t -> source
-
-val rules_from_source_async :
-  ?skip_invalid_configs:bool ->
-  rewrite_rule_ids:bool ->
-  strict:bool ->
-  < Cap.network ; Cap.tmp > ->
-  source ->
-  (rules_and_origin list * Rule_error.t list) Lwt.t
+val langs_of_pattern : string * Xlang.t option -> Xlang.t list
 
 (* [rules_from_rules_source] returns rules from --config or -e.
  * If [rewrite_rule_ids] is true, it will add the path of the config
@@ -81,7 +59,6 @@ val rules_from_source_async :
  * Note that this also handles the experiment rules in jsonnet!
  *)
 val rules_from_rules_source :
-  ?skip_invalid_configs:bool ->
   rewrite_rule_ids:bool ->
   strict:bool ->
   < Cap.network ; Cap.tmp > ->
@@ -90,7 +67,6 @@ val rules_from_rules_source :
 
 (* TODO: make cap network an option (with token) *)
 val rules_from_rules_source_async :
-  ?skip_invalid_configs:bool ->
   rewrite_rule_ids:bool ->
   strict:bool ->
   < Cap.network ; Cap.tmp > ->
@@ -100,7 +76,6 @@ val rules_from_rules_source_async :
 (* internals *)
 
 val rules_from_dashdash_config_async :
-  ?skip_invalid_configs:bool ->
   rewrite_rule_ids:bool ->
   < Cap.network ; Cap.tmp ; .. > ->
   Rules_config.t ->
@@ -111,7 +86,6 @@ val rules_from_dashdash_config_async :
  * rules_and_origin per files in this folder.
  *)
 val rules_from_dashdash_config :
-  ?skip_invalid_configs:bool ->
   rewrite_rule_ids:bool ->
   < Cap.network ; Cap.tmp ; .. > ->
   Rules_config.t ->

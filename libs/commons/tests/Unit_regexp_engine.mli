@@ -1,5 +1,5 @@
 (*
-   Unit tests for Pcre2_
+   Unit tests for SPcre
 *)
 
 val tests : Testo.t list

@@ -18,37 +18,14 @@ module H = AST_generic_helpers
 
 (* Helper to extract Python-style lambda assignments: g = lambda x: ...
    Returns the synthetic entity and function definition if this is a lambda assignment. *)
-let extract_lambda_assignment ?(lang : Lang.t option) (e : G.expr)
-    : (G.entity * G.function_definition) option =
+let extract_lambda_assignment (e : G.expr) : (G.entity * G.function_definition) option =
   match e.G.e with
-  | G.Assign ((target : G.expr), _, { e = G.Lambda fdef; _ })
-    when Option.is_some (H.name_of_entity_name (G.EDynamic target)) ->
-      let ent = { G.name = G.EDynamic target; G.attrs = []; G.tparams = None } in
-      Some (ent, fdef)
   | G.Assign ({ e = G.N (G.Id (id, id_info)); _ }, _, { e = G.Lambda fdef; _ }) ->
       let ent = { G.name = G.EN (G.Id (id, id_info)); G.attrs = []; G.tparams = None } in
       Some (ent, fdef)
   (* This one was added for Clojure, but may apply to more translations. *)
   | G.LetPattern (pat, { e = G.Lambda fdef; _ }) ->
       let ent = H.entity_of_pattern pat in
-      Some (ent, fdef)
-  (* Ruby/Crystal: [cb = Proc.new { |x| ... }] — mirror the AST_to_IL Proc.new
-     unwrapping (see [AST_to_IL.expr_aux]) so the call graph also treats
-     the binding as a named lambda. Without this the proc lambda is anonymous
-     in the call graph and reachability pruning drops it from the relevant
-     subgraph. *)
-  | G.Assign
-      ( { e = G.N (G.Id (id, id_info)); _ }, _,
-        { e = G.Call
-                ( { e = G.Call
-                        ( { e = G.DotAccess
-                                ( { e = G.N (G.Id (("Proc", _), _)); _ },
-                                  _,
-                                  G.FN (G.Id (("new", _), _)) ); _ },
-                          (_, [], _) ); _ },
-                  (_, [ G.Arg { e = G.Lambda fdef; _ } ], _) ); _ } )
-    when (match lang with Some l -> Lang.equal l Lang.Ruby || Lang.equal l Lang.Crystal | None -> false) ->
-      let ent = { G.name = G.EN (G.Id (id, id_info)); G.attrs = []; G.tparams = None } in
       Some (ent, fdef)
   | _ -> None
 
@@ -193,47 +170,19 @@ let fold_with_class_context
 
 (* Convert G.name to IL.name for fn_id path construction.
    Uses unsafe_default sid and clears id_resolved to ensure consistent
-   comparison in FunctionMap (which compares by string name + position).
-   For [G.IdQualified] (e.g. Ruby [Module::Klass], Python [pkg.Cls]) we
-   take the [name_last] segment so that qualified class definitions
-   still produce a meaningful class id and downstream method lookups
-   match against the simple class name. *)
+   comparison in FunctionMap (which compares by string name + position). *)
 let g_name_to_il_name (g_name : G.name) : IL.name option =
   match g_name with
   | G.Id ((str, tok), id_info) ->
       let id_info = { id_info with G.id_resolved = ref None } in
       Some IL.{ ident = (str, tok); sid = G.SId.unsafe_default; id_info }
-  | G.IdQualified { G.name_last = ((str, tok), _); name_info; _ } ->
-      let id_info = { name_info with G.id_resolved = ref None } in
-      Some IL.{ ident = (str, tok); sid = G.SId.unsafe_default; id_info }
+  | _ -> None
 
 (* Convert G.entity to IL.name for fn_id path construction. *)
 let entity_to_il_name (ent : G.entity) : IL.name option =
-  Option.bind (H.name_of_entity_name ent.G.name) g_name_to_il_name
-
-(* Position-based IL.name for a lambda. All lambdas (named [cb = lambda x: ...]
-   or anonymous) share this identity scheme — the binding variable is an alias,
-   not a distinct callable. The fake token wraps the source position so the
-   resulting [Function_id] is position-distinct via [Function_id.key]. *)
-let synth_lambda_il_name_of_tok (tok : Tok.t) : IL.name =
-  let fake_tok = Tok.fake_tok tok "_tmp_lambda" in
-  IL.{
-    ident = ("_tmp_lambda", fake_tok);
-    sid = G.SId.unsafe_default;
-    id_info = G.empty_id_info ();
-  }
-
-let synth_lambda_il_name (fdef : G.function_definition) : IL.name =
-  synth_lambda_il_name_of_tok (snd fdef.fkind)
-
-(* Use the synthetic lambda IL.name when [fdef] is a lambda; otherwise use the
-   entity's name. Keeps the parent_path consistent with what
-   [Graph_from_AST.fn_id_of_entity] produces. *)
-let func_il_for_entity (ent : G.entity) (fdef : G.function_definition)
-    : IL.name option =
-  match fst fdef.fkind with
-  | G.LambdaKind | G.Arrow -> Some (synth_lambda_il_name fdef)
-  | _ -> entity_to_il_name ent
+  match ent.G.name with
+  | G.EN name -> g_name_to_il_name name
+  | _ -> None
 
 let append_to_parrent_path parent_path class_il func_il =
   let visitor_parent_path =
@@ -242,57 +191,15 @@ let append_to_parrent_path parent_path class_il func_il =
   let current_fn_id = visitor_parent_path @ [ func_il ] in
   (visitor_parent_path, current_fn_id)
 
-let class_scope_of_definition (ent : G.entity) (def_kind : G.definition_kind)
-  : (G.entity * G.definition_kind) option =
-  match def_kind with
-  | G.OtherDef ((kind, _), anys) when String.equal kind "Impl" ->
-    let types =
-      List.filter_map (function G.T ty -> Some ty | _ -> None) anys
-    in
-    let stmts =
-      List.concat_map (function G.Ss body -> body | _ -> []) anys
-    in
-    let self_ty, trait_tys =
-      match types with
-      | [] -> (None, [])
-      | self_ty :: traits -> (Some self_ty, traits)
-    in
-    (match self_ty with
-     | Some { G.t = G.TyN (G.Id _ as name); _ }
-     | Some { G.t = G.TyExpr { G.e = G.N (G.Id _ as name); _ }; _ } ->
-       let new_ent = { ent with G.name = G.EN name } in
-       let fk = Tok.unsafe_fake_tok "impl" in
-       let cdef = G.ClassDef {
-         G.ckind = (G.Class, fk);
-         cextends = List.map (fun (ty : G.type_) -> (ty, None)) trait_tys;
-         cimplements = []; cmixins = [];
-         cparams = (fk, [], fk);
-         cbody = (fk, List.map (fun stmt -> G.F stmt) stmts, fk);
-       } in
-       Some (new_ent, cdef)
-     | _ -> None)
-  | _ -> None
-
-class ['self] visitor_with_parent_path ~(lang : Lang.t) =
+class ['self] visitor_with_parent_path =
   object (self : 'self)
     inherit [_] G.iter_no_id_info as super
-    val lang : Lang.t = lang
     val current_class : G.name option ref = ref None
     val parent_path : IL.name option list ref = ref []
 
     method! visit_definition f ((ent, def_kind) as def) =
-      match class_scope_of_definition ent def_kind with
-      | Some (class_def : G.entity * G.definition_kind) ->
-          self#visit_definition f class_def
-      | None ->
       match def_kind with
-      | G.ClassDef _
-      (* Ruby's [module Foo; ... end] parses as [ModuleDef] with
-         [mbody = ModuleStruct].  Treat it as a class scope so methods
-         defined inside ([def foo]) get attributed to the module — same
-         semantics as Ruby's mixin model where module methods become
-         instance/class methods on including classes. *)
-      | G.ModuleDef { G.mbody = G.ModuleStruct _; _ } ->
+      | G.ClassDef _cdef ->
           let newv =
             match ent.name with
             | EN name -> Some name
@@ -300,18 +207,6 @@ class ['self] visitor_with_parent_path ~(lang : Lang.t) =
           in
           Common.save_excursion_unsafe current_class newv (fun () ->
               super#visit_definition f def)
-      (* Go [type T interface {...}] is a TypeDef, not a ClassDef; walk its
-         fields as a class scope so method decls reach the class-methods index
-         (else they get fn_id [None; Some m] and find_methods misses them). *)
-      | G.TypeDef { G.tbody = G.NewType
-          { G.t = G.TyRecordAnon ((G.Interface, _), (_, fields, _)); _ } } ->
-          let newv =
-            match ent.name with
-            | EN name -> Some name
-            | _ -> None
-          in
-          Common.save_excursion_unsafe current_class newv (fun () ->
-              List.iter (self#visit_field f) fields)
       | G.FuncDef fdef ->
           (* Build fn_id path: [class_option; ...parent_path...; current_func] *)
           let class_il = Option.bind !current_class g_name_to_il_name in
@@ -330,7 +225,7 @@ class ['self] visitor_with_parent_path ~(lang : Lang.t) =
       | G.VarDef { vinit = Some { e = G.Lambda fdef; _ }; _ } ->
           (* Handle lambda assignments like: const f = () => {...} *)
           let class_il = Option.bind !current_class g_name_to_il_name in
-          let func_il = func_il_for_entity ent fdef in
+          let func_il = entity_to_il_name ent in
           let visitor_parent_path, current_fn_id =
             append_to_parrent_path !parent_path class_il func_il
           in
@@ -356,9 +251,8 @@ class ['self] visitor_with_parent_path ~(lang : Lang.t) =
                   self#visit_stmt f body)
           | G.DefStmt
               (ent, G.VarDef { vinit = Some { e = G.Lambda fdef; _ }; _ }) ->
-              (* Handle lambda assignments in class fields *)
               let class_il = Option.bind !current_class g_name_to_il_name in
-              let func_il = func_il_for_entity ent fdef in
+              let func_il = entity_to_il_name ent in
               let visitor_parent_path, current_fn_id =
                 append_to_parrent_path !parent_path class_il func_il
               in
@@ -380,10 +274,10 @@ class ['self] visitor_with_parent_path ~(lang : Lang.t) =
       super#visit_function_definition f fdef
 
     method! visit_expr f e =
-      match extract_lambda_assignment ~lang e with
+      match extract_lambda_assignment e with
       | Some (ent, fdef) ->
           let class_il = Option.bind !current_class g_name_to_il_name in
-          let func_il = func_il_for_entity ent fdef in
+          let func_il = entity_to_il_name ent in
           let visitor_parent_path, current_fn_id =
             append_to_parrent_path !parent_path class_il func_il
           in
@@ -395,15 +289,15 @@ class ['self] visitor_with_parent_path ~(lang : Lang.t) =
   end
 
 (* Visit all function definitions with parent path context. *)
-let visit_with_parent_path ~(lang : Lang.t)
+let visit_with_parent_path
     (f :
       G.entity option -> IL.name option list -> G.function_definition -> unit)
     (ast : G.program) : unit =
-  let v = new visitor_with_parent_path ~lang in
+  let v = new visitor_with_parent_path in
   v#visit_program f ast
 
 (* Fold over all function definitions with parent path context. *)
-let fold_with_parent_path ~(lang : Lang.t)
+let fold_with_parent_path
     (f :
       'acc ->
       G.entity option ->
@@ -411,7 +305,7 @@ let fold_with_parent_path ~(lang : Lang.t)
       G.function_definition ->
       'acc) (init_acc : 'acc) (ast : G.program) : 'acc =
   let acc_ref = ref init_acc in
-  let v = new visitor_with_parent_path ~lang in
+  let v = new visitor_with_parent_path in
   v#visit_program
     (fun opt_ent parent_path fdef ->
       acc_ref := f !acc_ref opt_ent parent_path fdef)

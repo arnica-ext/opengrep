@@ -8,26 +8,27 @@ type java_props_cache
 
 val mk_empty_java_props_cache : unit -> java_props_cache
 
-val pattern_leaves_with_offsets :
-  lang:Lang.t ->
-  AST_generic.pattern ->
-  (IL.name * Taint.offset list) list
-(** Walk a [ParamPattern]'s inner pattern and enumerate each leaf with
-    its offset path from the enclosing implicit binder. Used by taint
-    env setup paths (in [mk_lambda_in_env], the lambda signature
-    builder, and [Taint_signature_extractor.mk_param_assumptions]) to
-    seed each leaf with a [Shape.Arg (taint_arg, offset_path)] shape
-    without emitting IL Assigns. Pattern shapes without a clean
-    structural projection path contribute no leaves. *)
+val hook_find_attribute_in_class :
+  (AST_generic.name -> string -> AST_generic.name option) option ref
+(** Pro inter-file (aka deep) *)
+
+val hook_check_tainted_at_exit_sinks :
+  (Taint_rule_inst.t ->
+  Taint_lval_env.t ->
+  IL.node ->
+  (Taint.taints * Shape_and_sig.Effect.sink list) option)
+  option
+  ref
+(** Pro: support for `at-exit: true` sinks *)
 
 val fixpoint :
   Taint_rule_inst.t ->
   ?in_env:Taint_lval_env.t ->
-  ?name:IL.name ->
+  ?name:Shape_and_sig.fn_id ->
   ?class_name:string ->
   ?signature_db:Shape_and_sig.signature_database ->
   ?builtin_signature_db:Shape_and_sig.builtin_signature_database ->
-  ?call_graph:Call_graph.G.t ->
+  ?call_graph:Function_call_graph.FuncGraph.t ->
   IL.fun_cfg ->
   Shape_and_sig.Effects.t * mapping
 (** Main entry point, [fixpoint config cfg] returns a mapping (effectively a set)

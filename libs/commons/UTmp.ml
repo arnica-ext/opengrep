@@ -27,8 +27,8 @@ module Log = Log_commons.Log
 (* Globals *)
 (*****************************************************************************)
 
-let temp_files_created : (Fpath.t, unit) Saturn.Htbl.t =
-  Saturn.Htbl.create ~hashed_type:(module Fpath_.Hashed) ()
+let temp_files_created : (Fpath.t, unit) Kcas_data.Hashtbl.t =
+  Kcas_data.Hashtbl.create () (* 101 *)
 
 (* old: was in Common2.cmdline_flags_devel()
     ( "-keep_tmp_files",
@@ -40,18 +40,16 @@ let save_temp_files = ref false
 
 (* XXX: This is called outside of the domainslib loop, so it should be ok. *)
 let erase_temp_files () =
-  if not !save_temp_files then
-    Saturn.Htbl.remove_all temp_files_created
-    |> Seq.iter (fun (path, ()) ->
+  if not !save_temp_files then (
+    temp_files_created
+    |> Kcas_data.Hashtbl.iter (fun path () ->
            Log.info (fun m -> m "deleting: %s" !!path);
-           (* The file may already have been deleted; do not let one
-            * failure leak the remaining files. *)
-           try USys.remove !!path with
-           | Sys_error _ -> ())
+           USys.remove !!path);
+    Kcas_data.Hashtbl.clear temp_files_created)
 
 (* hooks for with_temp_file() *)
 (* TODO[Issue #128] This does not look like it's used in a single thread.
- * Use a [Saturn.Stack]? But it seems the hooks are only added at the
+ * Use a [Kcas_data] stack? But it seems the hooks are only added at the
  * top level only, in a couple of modules: core/Range.ml and engine/Xpattern_matcher. *)
 let temp_file_cleanup_hooks = ref []
 
@@ -86,7 +84,7 @@ let tmp_file_counter = Atomic.make 0 (* Ensure that we never create the same fil
 let new_temp_file ?(prefix = default_temp_file_prefix) ?(suffix = "") ?temp_dir
     () =
   let cnt = Atomic.fetch_and_add tmp_file_counter 1 in
-  let pid = Thread.id (Thread.self ()) (* UUnix.getpid () *) in
+  let pid = if !Common.jsoo then 42 else (Thread.id (Thread.self ())) (* UUnix.getpid () *) in
   let temp_file =
     UFilename.temp_file
       ?temp_dir:(Option.map Fpath.to_string temp_dir)
@@ -94,47 +92,18 @@ let new_temp_file ?(prefix = default_temp_file_prefix) ?(suffix = "") ?temp_dir
     |> Fpath.v
   in
   (* NOTE: Scan works with the statement below uncommented...! So this is not used?
-   * At least for the opengrep CLI (osemgrep). But it's used in other places like Autofix. *)
+   * At least for opengrep-cli (osemgrep). But it's used in other places like Autofix. *)
   (* ignore ( assert false ); *)
   Log.debug (fun m -> m "creating temp file %s" (Fpath.to_string temp_file));
-  if not (Saturn.Htbl.try_add temp_files_created temp_file ()) then
-    failwith (spf "temp file %s already registered" !!temp_file);
+  Kcas_data.Hashtbl.replace (* because we don't need > 1 bindings per key *)
+    temp_files_created temp_file ();
   temp_file
 
 let erase_this_temp_file f =
   if not !save_temp_files then (
-    ignore (Saturn.Htbl.try_remove temp_files_created f : bool);
+    Kcas_data.Hashtbl.remove temp_files_created f;
     Log.info (fun m -> m "deleting: %s" !!f);
     USys.remove !!f)
-
-(* ex: new_temp_dir ~prefix:"opengrep-git-" ()
-   will create a fresh empty directory and return its path. *)
-let new_temp_dir ?(prefix = default_temp_file_prefix) ?(suffix = "") ?temp_dir ()
-    =
-  let dir =
-    UFilename.temp_dir
-      ?temp_dir:(Option.map Fpath.to_string temp_dir)
-      prefix suffix
-    |> Fpath.v
-  in
-  Log.debug (fun m -> m "creating temp dir %s" !!dir);
-  dir
-
-(* Symlink-aware recursive removal: we [lstat] each entry so that a symlink is
- * unlinked rather than followed (we must never delete outside [path]). *)
-let rec remove_dir_recursive (path : Fpath.t) : unit =
-  match (UUnix.lstat !!path).st_kind with
-  | UUnix.S_DIR ->
-      USys.readdir !!path
-      |> Array.iter (fun entry -> remove_dir_recursive Fpath.(path / entry));
-      UUnix.rmdir !!path
-  | _ -> USys.remove !!path
-  | exception UUnix.Unix_error (UUnix.ENOENT, _, _) -> ()
-
-let erase_this_temp_dir (dir : Fpath.t) =
-  if not !save_temp_files then (
-    Log.info (fun m -> m "deleting dir: %s" !!dir);
-    remove_dir_recursive dir)
 
 let with_temp_file ?(contents = "") ?(persist = false) ?prefix ?suffix ?temp_dir
     (f : Fpath.t -> 'a) : 'a =
@@ -152,16 +121,6 @@ let with_temp_file ?(contents = "") ?(persist = false) ?prefix ?suffix ?temp_dir
         !temp_file_cleanup_hooks
         |> List.iter (fun cleanup -> cleanup temp_file_path);
         erase_this_temp_file temp_file_path))
-
-(* Directory equivalent of [with_temp_file]: create a fresh temporary
- * directory, invoke [f] on it, and remove it recursively once done (unless
- * [persist] or the global save-temp-files flag is set). *)
-let with_temp_dir ?(persist = false) ?prefix ?suffix ?temp_dir
-    (f : Fpath.t -> 'a) : 'a =
-  let temp_dir_path = new_temp_dir ?prefix ?suffix ?temp_dir () in
-  Common.finalize
-    (fun () -> f temp_dir_path)
-    (fun () -> if not persist then erase_this_temp_dir temp_dir_path)
 
 (* TODO[Issue #129] Is [Filename.open_temp_file] thread-safe? See comments
  * on [new_temp_file] above. Note that the function does not seem used,
@@ -183,12 +142,15 @@ let write_temp_file_with_autodelete ~prefix ~suffix ~data : Fpath.t =
 
 let replace_named_pipe_by_regular_file_if_needed ?(prefix = "named-pipe")
     (path : Fpath.t) : Fpath.t option =
-  match (UUnix.stat !!path).st_kind with
-  | Unix.S_FIFO ->
-      let data = UFile.read_file path in
-      let suffix = "-" ^ Fpath.basename path in
-      Some (write_temp_file_with_autodelete ~prefix ~suffix ~data)
-  | _ -> None
+  if !Common.jsoo then None
+    (* don't bother supporting exotic things like fds if running in JS *)
+  else
+    match (UUnix.stat !!path).st_kind with
+    | Unix.S_FIFO ->
+        let data = UFile.read_file path in
+        let suffix = "-" ^ Fpath.basename path in
+        Some (write_temp_file_with_autodelete ~prefix ~suffix ~data)
+    | _ -> None
 
 let replace_stdin_by_regular_file ?(prefix = "stdin") () : Fpath.t =
   let data = In_channel.input_all UStdlib.stdin in

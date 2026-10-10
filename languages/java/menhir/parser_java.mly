@@ -144,8 +144,8 @@ let expr_to_typename expr =
     | NameId id -> [id]
     | Dot (e, _, id) -> aux e @ [id]
     | _ ->
-        Log_parser_java.Log.debug (fun m ->
-            m "cast_expression pb: %s" (Dumper.dump expr));
+        UCommon.pr2 "cast_expression pb";
+        UCommon.pr2_gen expr;
         raise Todo
    in
    let xs = aux expr in
@@ -736,10 +736,7 @@ relational_expression:
  | relational_expression GT shift_expression  { Infix ($1, (Gt,$2), $3) }
  | relational_expression LE shift_expression  { Infix ($1, (LtE,$2), $3) }
  | relational_expression GE shift_expression  { Infix ($1, (GtE,$2), $3) }
- | relational_expression INSTANCEOF reference_type  { InstanceOf ($1, $3, None) }
- (* javaext: 16, pattern matching for instanceof: 'o instanceof String s' *)
- | relational_expression INSTANCEOF reference_type identifier
-     { InstanceOf ($1, $3, Some $4) }
+ | relational_expression INSTANCEOF reference_type  { InstanceOf ($1, $3) }
 
 equality_expression:
  | relational_expression  { $1 }
@@ -1437,15 +1434,14 @@ annotation_type_element_declaration: annotation_type_element_rest { $1 }
 
 annotation_type_element_rest:
  | modifiers_opt type_ identifier annotation_method_or_constant_rest ";"
-   { let md = method_header $1 $2 (IdentDecl $3, []) [] in
-     AnnotationTypeElement (md, $4) }
+   { AnnotationTypeElementTodo (snd $3) }
  | class_and_co_declaration    { $1 }
  (* sgrep-ext: allows ... inside @interface body *)
  | "..." { DeclEllipsis $1 }
 
 annotation_method_or_constant_rest:
  | "(" ")"                       { None }
- | "(" ")" DEFAULT element_value { Some ($3, $4) }
+ | "(" ")" DEFAULT element_value { Some ($3) }
 
 (*************************************************************************)
 (* xxx_list, xxx_opt *)

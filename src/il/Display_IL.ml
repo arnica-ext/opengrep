@@ -24,7 +24,6 @@ let string_of_offset offset =
   | Index { e = Literal (G.String (_, (str, _), _)); _ } ->
       Common.spf "[\"%s\"]" str
   | Index _ -> "[...]"
-  | Slice lo -> Common.spf "[%d..]" lo
 
 let string_of_offset_list offset =
   if offset <> [] then

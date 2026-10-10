@@ -1,4 +1,0 @@
-run(<<~SQL)
-  SELECT *
-    FROM #{$X}
-SQL

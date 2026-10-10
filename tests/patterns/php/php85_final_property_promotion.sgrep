@@ -1,1 +1,0 @@
-function __construct(final public $X, ...) { ... }

@@ -197,25 +197,6 @@ let parse_rule_xpattern env (str, tok) =
  * Parse_info.adjust_info_wrt_base t
  *)
 
-(* A 'pattern' has no semantic meaning for a regex-only rule, which would
- * silently read it as a regex (python: Rule._validate_none_language_rule).
- * Only the rule's own 'languages' makes a rule regex-only, so a 'pattern'
- * under a 'metavariable-pattern: {language: regex}' of a rule declaring a
- * real language is accepted; conversely, in a regex-only rule a sub-language
- * given by a 'metavariable-pattern' makes a 'pattern' meaningful again.
- *)
-let check_pattern_clause_allowed (env : env) (key : key) :
-    (unit, Rule_error.t) result =
-  match (env.rule_analyzer, env.target_analyzer) with
-  | Xlang.LRegex, Xlang.LRegex ->
-      error_at_key env.id key
-        (spf
-           "invalid pattern clause 'pattern' with regex-only rules in rule: \
-            %s; use only patterns, pattern-either, pattern-regex, or \
-            pattern-not-regex with regex-only rules"
-           (Rule_ID.to_string env.id))
-  | _ -> Ok ()
-
 let parse_xpattern_expr env e =
   let/ s, t =
     match read_string_wrap e.G.e with
@@ -330,23 +311,6 @@ let parse_options (env : env) (dict : dict) :
         take_opt mv_analysis_dict env parse_metavariable_analysis_options "options" in
 *)
 
-(* The engine evaluates a negation by subtracting its matches from the
- * positive conjuncts of the enclosing And; anywhere else it fails at match
- * time (see the Not case of Match_search_mode.evaluate_formula).
- *)
-let check_no_negated_member (env : env) (members : R.formula list) :
-    (unit, Rule_error.t) result =
-  List.fold_left
-    (fun acc (member : R.formula) ->
-      let/ () = acc in
-      match member.f with
-      | R.Not (tok, _) ->
-          Error
-            (Rule_error.mk_error ~rule_id:env.id
-               (InvalidRule (MisplacedNegation, env.id, tok)))
-      | _ -> Ok ())
-    (Ok ()) members
-
 let rec parse_formula_old_from_dict (env : env) (rule_dict : dict) :
     (R.formula, Rule_error.t) result =
   (* bTODO: filter out unconstrained nots *)
@@ -391,7 +355,7 @@ and parse_pair_old env ((key, value) : key * G.expr) :
         | __else__ ->
             error_at_expr env.id x
               "Expected object with only one entry -- did you forget a hyphen?")
-    | _ -> error_at_expr env.id x "Received invalid Opengrep pattern"
+    | _ -> error_at_expr env.id x "Received invalid Semgrep pattern"
   in
   let get_nested_formula_in_list env i x =
     let env = { env with path = string_of_int i :: env.path } in
@@ -400,21 +364,17 @@ and parse_pair_old env ((key, value) : key * G.expr) :
   let s, t = key in
   match s with
   | "pattern" ->
-      let/ () = check_pattern_clause_allowed env key in
       let+ pat = get_pattern value in
       R.P pat |> R.f
   | "pattern-not" ->
-      let/ formula = get_formula ~allow_string:true env value in
-      let/ () = check_no_negated_member env [ formula ] in
-      Ok (R.Not (t, formula) |> R.f)
+      let+ formula = get_formula ~allow_string:true env value in
+      R.Not (t, formula) |> R.f
   | "pattern-inside" ->
-      let/ formula = get_formula ~allow_string:true env value in
-      let/ () = check_no_negated_member env [ formula ] in
-      Ok (R.Inside (t, formula) |> R.f)
+      let+ formula = get_formula ~allow_string:true env value in
+      R.Inside (t, formula) |> R.f
   | "pattern-not-inside" ->
-      let/ formula = get_formula ~allow_string:true env value in
-      let/ () = check_no_negated_member env [ formula ] in
-      Ok (R.Not (t, R.Inside (t, formula) |> R.f) |> R.f)
+      let+ formula = get_formula ~allow_string:true env value in
+      R.Not (t, R.Inside (t, formula) |> R.f) |> R.f
   | "semgrep-internal-pattern-anywhere" ->
       let/ pattern = parse_str_or_dict env value in
       let+ formula =
@@ -428,11 +388,10 @@ and parse_pair_old env ((key, value) : key * G.expr) :
       in
       R.f formula
   | "pattern-either" ->
-      let/ formulae =
+      let+ formulae =
         parse_listi env key (get_nested_formula_in_list env) value
       in
-      let/ () = check_no_negated_member env formulae in
-      Ok (R.Or (t, formulae) |> R.f)
+      R.Or (t, formulae) |> R.f
   | "patterns" ->
       let parse_pattern i expr =
         let/ pattern = parse_str_or_dict env expr in
@@ -959,21 +918,17 @@ and parse_pair env ((key, value) : key * G.expr) :
   let s, t = key in
   match s with
   | "pattern" ->
-      let/ () = check_pattern_clause_allowed env key in
       let+ pattern = get_string_pattern value in
       R.P pattern |> R.f
   | "not" ->
-      let/ formula = parse_formula env value in
-      let/ () = check_no_negated_member env [ formula ] in
-      Ok (R.Not (t, formula) |> R.f)
+      let+ formula = parse_formula env value in
+      R.Not (t, formula) |> R.f
   | "inside" ->
-      let/ formula = parse_formula env value in
-      let/ () = check_no_negated_member env [ formula ] in
-      Ok (R.Inside (t, formula) |> R.f)
+      let+ formula = parse_formula env value in
+      R.Inside (t, formula) |> R.f
   | "anywhere" ->
-      let/ formula = parse_formula env value in
-      let/ () = check_no_negated_member env [ formula ] in
-      Ok (R.Anywhere (t, formula) |> R.f)
+      let+ formula = parse_formula env value in
+      R.Anywhere (t, formula) |> R.f
   | "all" ->
       let/ conjuncts = parse_listi env key parse_formula value in
       let pos, _ = R.split_and conjuncts in
@@ -983,9 +938,8 @@ and parse_pair env ((key, value) : key * G.expr) :
              (InvalidRule (MissingPositiveTermInAnd, env.id, t)))
       else Ok (R.And (t, conjuncts) |> R.f)
   | "any" ->
-      let/ formulae = parse_listi env key parse_formula value in
-      let/ () = check_no_negated_member env formulae in
-      Ok (R.Or (t, formulae) |> R.f)
+      let+ formulae = parse_listi env key parse_formula value in
+      R.Or (t, formulae) |> R.f
   | "regex" ->
       let/ x = parse_string_wrap env key value in
       let/ regex = parse_regexp env x in

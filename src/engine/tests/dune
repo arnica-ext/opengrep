@@ -3,15 +3,12 @@
  (name semgrep_engine_tests)
  (wrapped false)
  (libraries
-   pcre2
    commons
+   kcas_data
 
    semgrep.core
-   semgrep.core_scan
    semgrep.il
    semgrep.engine
-   semgrep.targeting
-   git_wrapper
  )
  (preprocess
     (pps

@@ -26,16 +26,9 @@ type conf = {
    * Should we change this rules_source to just Dir or File like in Test_CLI.ml?
    *)
   rules_source : Rules_source.t;
+  pro : bool;
   (* TODO? really needed? *)
   core_runner_conf : Core_runner.conf;
-  (* --json: the errors of the validation are then reported as the cli
-   * output document, as they are for a scan *)
-  json : bool;
-  (* the output configuration of the scan that asked for the validation, so
-   * that the document goes where -o/--output names *)
-  output_conf : Output.conf;
-  (* --force-color, which wins over $NO_COLOR like it does for a scan *)
-  force_color : bool;
   common : CLI_common.conf;
 }
 [@@deriving show]
@@ -43,6 +36,21 @@ type conf = {
 (*************************************************************************)
 (* Command-line flags *)
 (*************************************************************************)
+
+(* ------------------------------------------------------------------ *)
+(* Flags *)
+(* ------------------------------------------------------------------ *)
+(* coupling: similar to Scan_CLI.o_pro but currently has a different meaning
+ * alt: move those options to CLI_common.ml at some point
+ *)
+let o_pro : bool Term.t =
+  let info =
+    Arg.info [ "pro" ]
+      ~doc:
+        (" support pro languages (currently Apex and Elixir)"
+       ^ CLI_common.blurb_pro)
+  in
+  Arg.value (Arg.flag info)
 
 (* ------------------------------------------------------------------ *)
 (* Positional arguments *)
@@ -62,28 +70,16 @@ let o_args : string list Term.t =
 let cmdline_term : conf Term.t =
   (* !The parameters must be in alphabetic orders to match the order
    * of the corresponding '$ o_xx $' further below! *)
-  let combine args common force_color skin =
+  let combine args common pro =
     let rules_source =
       match args with
       | [] -> Error.abort "Nothing to validate, pass a directory or rule file"
       | xs -> Rules_source.Configs xs
     in
     let core_runner_conf = Core_runner.default_conf in
-    (* the 'validate' subcommand has no output flag of its own; only
-       'scan --validate --json' asks for the document *)
-    {
-      rules_source;
-      core_runner_conf;
-      json = false;
-      output_conf = { Output.default with skin };
-      force_color;
-      common;
-    }
+    { rules_source; pro; core_runner_conf; common }
   in
-  Term.(
-    const combine $ o_args $ CLI_common.o_common
-    $ CLI_common.o_force_color ~default:Output.default.force_color
-    $ Skin_CLI.o_skin)
+  Term.(const combine $ o_args $ CLI_common.o_common $ o_pro)
 
 let doc = "validating the rules"
 
@@ -96,7 +92,7 @@ let man : Cmdliner.Manpage.block list =
   ]
   @ CLI_common.help_page_bottom
 
-let cmdline_info : Cmd.info = Cmd.info "opengrep validate" ~doc ~man ~exits:CLI_common.exits_validate
+let cmdline_info : Cmd.info = Cmd.info "opengrep validate" ~doc ~man
 
 (*****************************************************************************)
 (* Entry point *)

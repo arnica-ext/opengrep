@@ -1,3 +1,0 @@
-name: constructor_taint
-environment:
-  sdk: ^3.0.0

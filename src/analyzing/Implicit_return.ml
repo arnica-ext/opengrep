@@ -13,7 +13,6 @@
  * LICENSE for more details.
  *)
 open AST_generic
-module Log = Log_analyzing.Log
 
 (*****************************************************************************)
 (* Prelude *)
@@ -52,26 +51,9 @@ let rec mark_first_instr_ancestor (cfg : IL.cfg) i =
   | NInstr instr -> (
       match instr with
       | { i = Assign (_, { eorig = SameAs e; _ }); _ }
-      | { i = Call _; iorig = SameAs e }
-      (* an interpolated string, a 'yield' that has a value, a lambda *)
-      | { i = CallSpecial (_, (Concat, _), _); iorig = SameAs e }
-      | { i = CallSpecial (Some _, (Yield, _), _); iorig = SameAs e }
-      | { i = AssignAnon _; iorig = SameAs e } ->
-          Log.debug (fun m ->
-            m "IMPL_RET_MARK: flag set on %s"
-              (match AST_generic_helpers.range_of_any_opt (E e) with
-               | Some (s, ee) ->
-                 Printf.sprintf "range=%d-%d"
-                   s.Tok.pos.bytepos ee.Tok.pos.bytepos
-               | None -> "?"));
+      | { i = Call _; iorig = SameAs e } ->
           e.is_implicit_return <- true
-      | _else_ ->
-          (* Not a mark-eligible instruction (e.g. an aux_var temp-chain
-             Assign with [eorig = NoOrig]). Walk past it to reach the
-             upstream instruction that carries a [SameAs] origin. *)
-          CFG.predecessors cfg i
-          |> List.iter (fun (pred_i, _) ->
-                 mark_first_instr_ancestor cfg pred_i))
+      | _else_ -> ())
   | _else_ -> ()
 
 (*****************************************************************************)
@@ -80,8 +62,6 @@ let rec mark_first_instr_ancestor (cfg : IL.cfg) i =
 
 let lang_supports_implicit_return (lang : Lang.t) =
   match lang with
-  | Clojure
-  | Crystal
   | Elixir
   | Ruby
   | Rust
@@ -112,9 +92,6 @@ let mark_implicit_return lang ast =
              mark_implicit_return_fdef lang ~tok fdef
          | LambdaKind ->
              (* Lambdas expressions tend to always support implicit returns,
-              * even in languages that require explicit returns like Java.
-              * An [Arrow] is not marked: a block body returns only what it
-              * says, and an expression body comes from the parser as a
-              * [Return] (JS, PHP). *)
+              * even in languages that require explicit returns like Java. *)
              mark_implicit_return_fdef lang ~tok fdef
          | __else__ -> ())

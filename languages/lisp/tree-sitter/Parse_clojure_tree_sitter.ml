@@ -159,17 +159,10 @@ let encode_short_lambda (env : env) (tok (* # *) : Tok.t) (body_expr : G.expr) :
         let param_id = (param_name, tok) in
         match i + 1, has_shorthand with
         | 1, true ->
-          (* implicit param % == %1: alias binding that declares both
-           * names. Use separate id_info records so Naming_AST assigns
-           * each its own sid; the AST_to_IL destructure prelude then
-           * emits independent assigns from tmp[0] to each lval. Sharing
-           * the id_info would cause the second declaration to overwrite
-           * the first's sid, leaving the body's reference resolved to a
-           * scope entry whose id_info points to a different sid than
-           * the prelude's assign. *)
-          G.PatAs
-            (G.PatId (param_id, G.empty_id_info ()),
-             (("%", tok), G.empty_id_info ()))
+          (* implicit param % == %1 *)
+          let id_info = G.empty_id_info () in
+          G.PatAs (* the alias ensures both % and %1 are resolved. *)
+            (G.PatId (param_id, id_info), (("%", tok), id_info))
         | _ ->
           G.PatId (param_id, G.empty_id_info ()))
   in
@@ -192,8 +185,7 @@ let encode_short_lambda (env : env) (tok (* # *) : Tok.t) (body_expr : G.expr) :
       params
   in
   let final_param =
-    let pat = G.PatList (Tok.unsafe_fake_bracket params_with_rest) in
-    G.ParamPattern (pat, G.implicit_param_classic tok)
+    G.ParamPattern (G.PatList (Tok.unsafe_fake_bracket params_with_rest))
   in
   (* Structure that Naming_AST can recognize for scope handling *)
   G.OtherExpr (("ShortLambda", tok),
@@ -260,40 +252,6 @@ let qualified_name_regex_str = "^\\(.+\\)/\\(.+\\)$"
 
 let fake_variable_ident = "G__1111"
 let implicit_param_ident = G.implicit_param
-
-(* Extract the source Loc.t of a CST form's leading token. Used so
- * synthetic symbols inserted into a user form (e.g. [G__1111] threaded
- * into cond-> clause bodies) inherit that body's position instead of
- * the outer macro token, which would inflate the G.expr range. Falls
- * back to [default] for rarely-used form variants. *)
-let form_loc ~default (f : CST.form) : Tree_sitter_run.Loc.t =
-  match f with
-  | `Sym_lit (_, (l, _))
-  | `Num_lit (l, _)
-  | `Kwd_lit (l, _)
-  | `Str_lit (l, _)
-  | `Char_lit (l, _)
-  | `Nil_lit (l, _)
-  | `Bool_lit (l, _) -> l
-  | `List_lit (_, ((l, _), _, _))
-  | `Map_lit (_, ((l, _), _, _)) -> l
-  | `Vec_lit (_, ((l, _), _, _)) -> l
-  | `Set_lit (_, ((l, _), _, _, _)) -> l
-  | `Anon_fn_lit (_, (l, _), _) -> l
-  | `Regex_lit ((l, _), _) -> l
-  | `Semg_deep_exp ((l, _), _, _, _, _) -> l
-  | `Sym_val_lit ((l, _), _, _) -> l
-  | `Var_quot_lit (_, (l, _), _, _) -> l
-  | `Tagged_or_ctor_lit (_, (l, _), _, _, _, _)
-  | `Dere_lit (_, (l, _), _, _)
-  | `Quot_lit (_, (l, _), _, _)
-  | `Syn_quot_lit (_, (l, _), _, _)
-  | `Unqu_spli_lit (_, (l, _), _, _)
-  | `Unqu_lit (_, (l, _), _, _)
-  | `Spli_read_cond_lit (_, (l, _), _, _) -> l
-  | `Read_cond_lit _
-  | `Ns_map_lit _
-  | `Eval_lit _ -> default
 
 let todo (_env : env) _ = raise_parse_error "Not implemented."
 
@@ -811,6 +769,16 @@ and map_form (env : env) (x : CST.form) : G.expr =
           R.Tuple [ v2; raw_of_expr v4 ] )
     |> expr_of_raw
 
+(* TODO: Instead of Call, make list container, works for rest forms
+ * inductively because env should say it's a quoted context.
+ * TODO: For symbols not in unquoted context, we should wrap them
+ * in something that does not resolve them in Naming. That is, we
+ * will need to intentionally skip visiting the node in Naming in
+ * order for such symbols to remain unresolved.
+ *)
+and _UNUSED_map_quoted_list_form (env : env) (forms : CST.form list) =
+  todo env ()
+
 (* TODO: Like defn but the definition is MacroDef with idents.
  * The parameters are not evaluated. For now we ignore macros,
  * we don't want to fail parsing a target because of this. *)
@@ -1119,18 +1087,14 @@ and map_binding_form_map_lit (env : env) ((_meta, (lb, srcs, rb)) : CST.map_lit)
     let pats = List_.map
         (function
           | `Sym_lit ((_meta, (loc, s)) as x) ->
-            let bound = map_sym_lit_pat_qualified env x in
+            let key = map_sym_lit_pat_qualified env x in
             let atom_kind, tok_colon, atom_name =
-              map_kwd_expr_aux env (loc, ":" ^ s)
+              map_kwd_expr_aux env (loc, ":" ^ s) 
             in
-            let lookup_key =
+            let value =
               G.OtherPat ((atom_kind, tok_colon), [G.Name atom_name])
             in
-            (* Canonical [PatKeyVal(lookup_key, binding)]: first argument
-             * is the map lookup key (the atom/string that selects the
-             * field on the incoming value), second is the pattern that
-             * receives what was fetched. *)
-            G.PatKeyVal (lookup_key, bound)
+            G.PatKeyVal (key, value)
           | `Kwd_lit ((_loc, s) as kwd)
             when String.starts_with ~prefix:"::" s ->
              let s, t = H.str env kwd in
@@ -1140,16 +1104,16 @@ and map_binding_form_map_lit (env : env) ((_meta, (lb, srcs, rb)) : CST.map_lit)
              let _tok_colon, tok_name =
                Tok.split_tok_at_bytepos 2 t
              in
-             let bound =
+             let key =
                G.PatId ((s_no_colon, tok_name), G.empty_id_info ())
              in
             let atom_kind, tok_colon, atom_name =
-              map_kwd_expr_aux env kwd
+              map_kwd_expr_aux env kwd 
             in
-            let lookup_key =
+            let value =
               G.OtherPat ((atom_kind, tok_colon), [G.Name atom_name])
             in
-            G.PatKeyVal (lookup_key, bound)
+            G.PatKeyVal (key, value)
           | _ -> raise_parse_error ~related_ast:(G.Tk (token env tk))
                    "Invalid associative binding form"
         )
@@ -1157,29 +1121,21 @@ and map_binding_form_map_lit (env : env) ((_meta, (lb, srcs, rb)) : CST.map_lit)
     in
     with_or_as s (token env tk) pats rest
 
-  (* Standard map binding, eg, {x :a, [y z] :b, z "str-key"}. *)
-  | _bind_form :: (`Kwd_lit _ | `Str_lit _) :: _ ->
-    let map_value_key_pattern = function
-      | `Kwd_lit kwd_lit ->
+  (* Standard map binding, eg, {x :a, [y z] :b}. *)
+  | _bind_form :: `Kwd_lit _  :: _ ->
+    let rec keyval_and_rest acc = function
+      | bind_form :: `Kwd_lit kwd_lit  :: rest_forms  ->
+        let key = map_binding_form env bind_form in
+        (* TODO: PatRecord of (dotted_ident * pattern) list bracket *)
         let atom_kind, tok_colon, atom_name =
           map_kwd_expr_aux env kwd_lit
         in
-        G.OtherPat ((atom_kind, tok_colon), [G.Name atom_name])
-      | `Str_lit str_tok ->
-        let s, t = H.str env str_tok in
-        let s_no_quotes = String.sub s 1 (String.length s - 2) in
-        G.PatLiteral (G.String (Tok.unsafe_fake_bracket (s_no_quotes, t)))
-    in
-    let rec keyval_and_rest acc = function
-      | bind_form :: (`Kwd_lit _ | `Str_lit _ as kv) :: rest_forms ->
-        let bound = map_binding_form env bind_form in
-        (* TODO: PatRecord of (dotted_ident * pattern) list bracket *)
-        let lookup_key = map_value_key_pattern kv in
+        let value = G.OtherPat ((atom_kind, tok_colon), [G.Name atom_name]) in
+        (* let value = G.PatLiteral (map_kwd_lit env kwd_lit) in *)
         keyval_and_rest
-          (G.PatKeyVal (lookup_key, bound) :: acc)
+          (G.PatKeyVal (key, value) :: acc)
           rest_forms
       | (`Kwd_lit _or_as  :: _  as rest_forms)-> List.rev acc, rest_forms
-      | [] -> List.rev acc, []
       | _ -> raise_parse_error "Invalid map binding form."
     in
     let pats, rest = keyval_and_rest [] forms in
@@ -1531,13 +1487,6 @@ and map_ellipsis_list_form (env : env) (forms : CST.form list) : G.expr =
     (* We only call this function when the forms start with ... . *)
     assert false
 
-(* TODO: Instead of Call, make list container, works for rest forms
- * inductively because env should say it's a quoted context.
- * TODO: For symbols not in unquoted context, we should wrap them
- * in something that does not resolve them in Naming. That is, we
- * will need to intentionally skip visiting the node in Naming in
- * order for such symbols to remain unresolved.
- *)
 and map_quote_form (env : env) (forms : CST.form list) : G.expr =
   match forms with
   | `Sym_lit (_meta, (_loc, "quote")) :: quote_form :: [] ->
@@ -1586,16 +1535,12 @@ and map_call_form (env : env) (forms : CST.form list) : G.expr =
       | "<=" -> Some G.LtE, rest
       | ">" -> Some G.Gt, rest
       | ">=" -> Some G.GtE, rest
-      (* These are commented out because for some reason
-       * we can't properly focus on metavariables in a sink when e.g.
-       * `str` is `G.Concat`.
-       * TODO: Investigate why this happens. *)
-      (* | "compare" -> Some G.Cmp, rest
-         | "str" -> Some G.Concat, rest
-         | "conj" -> Some G.Append, rest
-         | "re-find" -> Some G.RegexpMatch, rest
-         | "range" -> Some G.Range, rest
-         | "count" -> Some G.Length, rest *)
+      | "compare" -> Some G.Cmp, rest
+      | "str" -> Some G.Concat, rest
+      | "conj" -> Some G.Append, rest
+      | "re-find" -> Some G.RegexpMatch, rest
+      | "range" -> Some G.Range, rest
+      | "count" -> Some G.Length, rest
       | "contains?" -> Some G.In, rest
       | "instance?" -> Some G.Is, rest
       | "not" -> begin
@@ -1959,11 +1904,11 @@ and map_cond_thread_first_last_form (env : env) (forms: CST.form list) : G.expr 
     | `Sym_lit (_meta_thread,
                 ((loc, (("cond->" | "cond->>") as first_or_last)) as thread_tk))
       :: (v_expr :: clauses as rest_forms) ->
+
+      (* Note that we piggyback on the location of "cond->" for the new
+       * variable we are introducing. *)
       let fake_let_var_sym_lit = ([], ((loc, fake_variable_ident))) in
-      let sym_at body_form =
-        let l = form_loc ~default:loc body_form in
-        `Sym_lit ([], ((l, fake_variable_ident)))
-      in
+      let fake_let_var_sym = `Sym_lit fake_let_var_sym_lit in
       let pos =
         match first_or_last with
         | "cond->" -> Insert_first
@@ -1997,7 +1942,7 @@ and map_cond_thread_first_last_form (env : env) (forms: CST.form list) : G.expr 
                 (test_expr_form, body_expr_form)
               | _ ->
                 (test_expr_form,
-                 insert_threaded env pos (sym_at body_expr_form) body_expr_form))
+                 insert_threaded env pos fake_let_var_sym body_expr_form))
            test_expr_pairs
        in
        (* Now we have clauses (test, body') where body' is (-> g body),

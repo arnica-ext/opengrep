@@ -23,6 +23,12 @@ let pr s =
   UStdlib.print_string "\n";
   flush UStdlib.stdout
 
+let pr_time name f =
+  let t1 = UUnix.gettimeofday () in
+  Common.protect f ~finally:(fun () ->
+      let t2 = UUnix.gettimeofday () in
+      pr (spf "%s: %.6f s" name (t2 -. t1)))
+
 (*****************************************************************************)
 (* Stderr *)
 (*****************************************************************************)
@@ -31,17 +37,27 @@ let pr2 s =
   UStdlib.prerr_string "\n";
   flush UStdlib.stderr
 
-let _already_printed : (string, bool) Saturn.Htbl.t =
-  Saturn.Htbl.create ~hashed_type:(module String) ()
+(* TODO[Issue #130]: Get rid of that, not thread-safe. *)
+let _already_printed = Kcas_data.Hashtbl.create () (* 101 *)
 (* TODO: Is this set anywhere? It may seem so but in fact it's not! *)
 let disable_pr2_once = ref false
 
 let xxx_once f s =
   if !disable_pr2_once then pr2 s
-  else if Saturn.Htbl.try_add _already_printed s true then f ("(ONCE) " ^ s)
+  else if not (Kcas_data.Hashtbl.mem _already_printed s) then (
+    Kcas_data.Hashtbl.replace _already_printed s true;
+    f ("(ONCE) " ^ s))
 
+(* TODO[Issue #130]: This is used in a couple of places and it's not
+ * thread-safe, which is an issue when [Flag_parsing.verbose_lexing] is set. *)
 let pr2_once s = xxx_once pr2 s
 let pr2_gen x = pr2 (Dumper.dump x)
+
+let pr2_time name f =
+  let t1 = UUnix.gettimeofday () in
+  protect f ~finally:(fun () ->
+      let t2 = UUnix.gettimeofday () in
+      pr2 (spf "%s: %.6f s" name (t2 -. t1)))
 
 (*****************************************************************************)
 (* Misc *)
@@ -117,9 +133,9 @@ let main_boilerplate f =
                 try f () with
                 (* <---- here it is *)
                 | UUnix.Unix_error (e, fm, argm) ->
-                    Log_commons.Log.debug (fun m ->
-                        m "exn Unix_error: %s %s %s" (Unix.error_message e) fm
-                          argm);
+                    pr2
+                      (spf "exn Unix_error: %s %s %s\n" (Unix.error_message e)
+                         fm argm);
                     raise (UUnix.Unix_error (e, fm, argm))))
           (fun () ->
             !before_exit |> List.iter (fun f -> f ());

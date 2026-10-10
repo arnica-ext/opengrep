@@ -216,10 +216,6 @@ let eval_binop_int tok op opt_i1 opt_i2 =
         | Division_by_zero ->
             warning tok "Found division by zero";
             G.Cst G.Cint)
-  | G.Lt, Some i1, Some i2 -> G.Lit (literal_of_bool (i1 < i2))
-  | G.LtE, Some i1, Some i2 -> G.Lit (literal_of_bool (i1 <= i2))
-  | G.Gt, Some i1, Some i2 -> G.Lit (literal_of_bool (i1 > i2))
-  | G.GtE, Some i1, Some i2 -> G.Lit (literal_of_bool (i1 >= i2))
   | ___else____ -> G.Cst G.Cint
 
 let eval_binop_string ?tok op s1 s2 =
@@ -227,30 +223,13 @@ let eval_binop_string ?tok op s1 s2 =
   | G.Plus
   | G.Concat ->
       G.Lit (literal_of_string ?tok (s1 ^ s2))
-  | G.Lt -> G.Lit (literal_of_bool (String.compare s1 s2 < 0))
-  | G.LtE -> G.Lit (literal_of_bool (String.compare s1 s2 <= 0))
-  | G.Gt -> G.Lit (literal_of_bool (String.compare s1 s2 > 0))
-  | G.GtE -> G.Lit (literal_of_bool (String.compare s1 s2 >= 0))
   | __else__ -> G.Cst G.Cstr
 
 (*****************************************************************************)
 (* Entry point *)
 (*****************************************************************************)
 
-(* [memo] keys on the physical identity of an [exp]. Guard conds built by
- * cross-call substitution ([Sig_inst]) are shared DAGs whose tree expansion
- * is exponential in the call depth; folding each distinct node once keeps
- * evaluation linear in the DAG. The table is created per top-level [eval]
- * (one domain) where [env] is fixed, so cached values stay valid. *)
-let rec eval_memo memo (env : env) (exp : IL.exp) : G.svalue =
-  match IL_helpers.PhysExpTbl.find_opt memo exp with
-  | Some v -> v
-  | None ->
-      let v = eval_node memo env exp in
-      IL_helpers.PhysExpTbl.add memo exp v;
-      v
-
-and eval_node memo (env : env) (exp : IL.exp) : G.svalue =
+let rec eval (env : env) (exp : IL.exp) : G.svalue =
   match exp.e with
   | Fetch lval -> eval_lval env lval
   | Literal li -> G.Lit li
@@ -261,14 +240,14 @@ and eval_node memo (env : env) (exp : IL.exp) : G.svalue =
            Unnamed { e = Operator ((And, _), [ _cond; Unnamed a_then ]); _ };
            Unnamed a_else;
          ] as args) ) -> (
-      let c_then = eval_memo memo env a_then in
-      let c_else = eval_memo memo env a_else in
+      let c_then = eval env a_then in
+      let c_else = eval env a_else in
       match (c_then, c_else) with
       | G.Lit (G.String _), G.Lit (G.String _) -> G.Cst G.Cstr
       | G.Lit (G.Int _), G.Lit (G.Int _) -> G.Cst G.Cstr
       (* Fall-back to default evaluation strategy. *)
-      | __else__ -> eval_op memo env op args)
-  | Operator (op, args) -> eval_op memo env op args
+      | __else__ -> eval_op env op args)
+  | Operator (op, args) -> eval_op env op args
   | Composite _
   | RecordOrDict _
   | Cast _
@@ -289,17 +268,9 @@ and eval_lval env lval =
       | Some c1, Some c2 -> refine c1 c2)
   | ___else___ -> G.NotCst
 
-and eval_op memo (env : env) wop args =
+and eval_op env wop args =
   let op, tok = wop in
-  (* Length is handled separately so we can fold it on a Composite argument.
-   * Eval.eval on Composite returns NotCst, so routing through [cs] first
-   * would discard the shape we need. *)
-  match (op, args) with
-  | G.Length, [ Unnamed arg ] -> eval_length memo env arg
-  | _ ->
-  let cs =
-    args |> List_.map IL_helpers.exp_of_arg |> List_.map (eval_memo memo env)
-  in
+  let cs = args |> List_.map IL_helpers.exp_of_arg |> List_.map (eval env) in
   match (op, cs) with
   | G.Plus, [ c1 ] -> c1
   | op, [ G.Lit (G.Bool (b, _)) ] -> eval_unop_bool op b
@@ -310,38 +281,6 @@ and eval_op memo (env : env) wop args =
   | G.Or, [ G.Lit (G.Bool (false, _)); c ] when Lang.equal env.lang Lang.Python
     ->
       c (* Python: False or 42 -> 42 *)
-  (* Equality / inequality fold uniformly via [eq] on [G.svalue], so any
-   * two [Lit] operands — Bool, Int, String, etc. — produce a [Lit Bool].
-   * [PhysEq]/[NotPhysEq] are JS [===]/[!==] and OCaml [==]/[!=]; folding
-   * them on literals gives the same result as value equality since
-   * literals have no object identity distinct from their value.
-   *
-   * String contents are compared as lexed, which under-determines the
-   * runtime value when escapes are involved ('\n' vs a literal newline
-   * can denote the same string), so inequality of backslash-bearing
-   * strings is not a runtime verdict and stays undecided — folding it
-   * to false would prune a live branch or drop a live guard (missed
-   * findings). Equality of identical contents is always sound: one
-   * language, one lexing. *)
-  | ( (G.Eq | G.NotEq | G.PhysEq | G.NotPhysEq),
-      [ (G.Lit l1 as c1); (G.Lit l2 as c2) ] ) ->
-      let equal = eq c1 c2 in
-      let lexed_inequality_unsound =
-        (not equal)
-        &&
-        match (l1, l2) with
-        | G.String (_, (s1, _), _), G.String (_, (s2, _), _) ->
-            String.contains s1 '\\' || String.contains s2 '\\'
-        | _ -> false
-      in
-      if lexed_inequality_unsound then G.Cst G.Cbool
-      else
-        let r =
-          match op with
-          | G.Eq | G.PhysEq -> equal
-          | _ -> not equal
-        in
-        G.Lit (literal_of_bool r)
   | op, [ G.Lit (G.Bool (b1, _)); G.Lit (G.Bool (b2, _)) ] ->
       eval_binop_bool op b1 b2
   | op, [ G.Lit (G.Int _ as li1); G.Lit (G.Int _ as li2) ] ->
@@ -361,41 +300,6 @@ and eval_op memo (env : env) wop args =
       let t1 = H.ctype_of_literal l1 in
       G.Cst (union_ctype t1 t2)
   | ___else___ -> G.NotCst
-
-(* Fold [length(arg)] when [arg] denotes a sequence whose size we can recover:
- *   - a Composite (CList | CTuple | CArray | CSet) literal in the IL;
- *   - a variable whose svalue is a G.Sym of a Generic Container (same kinds);
- *   - a string literal.
- * Otherwise NotCst. *)
-and eval_length memo (env : env) arg =
-  match arg.e with
-  | Composite ((CList | CTuple | CArray | CSet), (_, xs, _)) ->
-      G.Lit (literal_of_int (Int64.of_int (List.length xs)))
-  | RecordOrDict fields
-    when not
-           (List.exists
-              (function IL.Spread _ -> true | _ -> false)
-              fields) ->
-      (* IL-side dict literal. Each [Field] or [Entry] is one entry; a
-       * [Spread] makes the count unknown, so we bail. *)
-      G.Lit (literal_of_int (Int64.of_int (List.length fields)))
-  | _ -> (
-      match eval_memo memo env arg with
-      | G.Sym { G.e = G.Container ((G.List | G.Tuple | G.Array | G.Set), (_, xs, _)); _ } ->
-          G.Lit (literal_of_int (Int64.of_int (List.length xs)))
-      | G.Sym { G.e = G.Container (G.Dict, (_, xs, _)); _ } ->
-          (* Sym-propagated dict literal. Each [xs] element is the AST
-           * for one [k: v] pair; the parser produces one element per
-           * entry (no Spread normalisation here). *)
-          G.Lit (literal_of_int (Int64.of_int (List.length xs)))
-      | G.Lit (G.String (_, (s, _), _)) ->
-          G.Lit (literal_of_int (Int64.of_int (String.length s)))
-      | _ -> G.NotCst)
-
-let eval (env : env) (exp : IL.exp) : G.svalue =
-  (* [eval] is hot and most inputs are a handful of nodes; the table grows
-   * itself on the rare shared-DAG cond. *)
-  eval_memo (IL_helpers.PhysExpTbl.create 8) env exp
 
 let eval_concat (env : env) args =
   match List_.map (eval env) args with

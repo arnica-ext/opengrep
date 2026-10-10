@@ -9,7 +9,6 @@
  (wrapped false)
  (libraries
    commons
-   digestif.ocaml
 
    fpath
    glob

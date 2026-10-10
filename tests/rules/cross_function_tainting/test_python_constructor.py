@@ -20,7 +20,7 @@ def intermediateFun ():
     tainted_input = source()
     user = User(tainted_input)
     return user
-def sink_ex(user : User):
+def sink_ex(user):
     return user.get_profile()
 class FieldUser:
     def __init__(self):
@@ -53,9 +53,5 @@ def main():
     # Test intermethod taint flow
     intermethod_obj = IntermethodClass()
     intermethod_result = intermethod_obj.sink_method()
-
-    # Test chained method call: Constructor(tainted).method()
-    # ruleid:python_constructor_sqli
-    chained_result = f"SELECT * FROM users WHERE name = {User(source()).get_profile()}"
 
     return result

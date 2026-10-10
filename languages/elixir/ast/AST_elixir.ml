@@ -68,11 +68,9 @@ type ident =
   | IdMetavar of string wrap
 [@@deriving show { with_path = false }]
 
-(* uppercase ident; constructs that expand to atoms at compile-time.
- * Foo.Bar is parsed as a single alias whose string holds the dots.
- * The alias and import directives split it through
- * Elixir_to_generic.dotted_ident_of_alias; the name sites keep it as one
- * ident.
+(* uppercase ident; constructs that expand to atoms at compile-time
+ * TODO: seems like it contain contains string with dots! Foo.Bar is
+ * parsed as a single alias, so maybe we need to inspect it and split it.
  *)
 type alias = string wrap [@@deriving show]
 
@@ -211,10 +209,6 @@ and expr =
   | DotAnon of expr * tok
   (* only inside Call *)
   | DotRemote of remote_dot
-  (* Elixir map/struct field access: `foo.bar` with no parens, no args,
-   * no do-block. Distinct from `foo.bar(...)` which is a remote call
-   * (encoded as `Call (DotRemote _, _, _)`). *)
-  | FieldAccess of remote_dot
   | ModuleVarAccess of tok (* @ *) * expr
   | ArrayAccess of expr * expr bracket
   (* a Call can be a thousand things, including function and module definitions
@@ -312,27 +306,13 @@ and stmt =
       * stmts
       * (tok * stmts) option
       * tok (* 'end' *)
-  | Try of tok (* 'try' *) * do_block
-  | Throw of tok (* 'throw' *) * expr
-  (* https://hexdocs.pm/elixir/Kernel.SpecialForms.html#case/2 *)
-  | Case of tok (* 'case' *) * expr * clauses bracket (* do/end *)
-  (* https://hexdocs.pm/elixir/Kernel.SpecialForms.html#for/1 *)
-  | For of tok (* 'for' *) * for_clause list * stmts bracket (* do body *)
   | D of definition
-  | Dir of directive
-
-(* ref: https://hexdocs.pm/elixir/Kernel.SpecialForms.html#for/1
- * A for_clause is either a generator (pattern <- collection) or a filter.
- *)
-and for_clause =
-  | ForGenerator of expr (* pattern *) * tok (* '<-' *) * expr (* collection *)
-  | ForFilter of expr
 
 (* ------------------------------------------------------------------------- *)
 (* Definitions *)
 (* ------------------------------------------------------------------------- *)
 and definition =
-  | FuncDef of function_definition list
+  | FuncDef of function_definition
   | ModuleDef of module_definition
 
 and function_definition = {
@@ -343,12 +323,8 @@ and function_definition = {
    *)
   f_name : ident;
   f_params : parameters;
-  f_guard : expr option;
   (* bracket is do/end *)
   f_body : stmts bracket;
-  (* rescue/catch/after/else clauses from the implicit-try form:
-   *   def foo(x) do body rescue E -> handler end *)
-  f_rescue : (exn_clause_kind wrap * body_or_clauses) list;
   f_is_private : bool;
 }
 
@@ -369,36 +345,6 @@ and module_definition = {
   m_name : alias;
   (* less: we could restrict it maybet to definition list *)
   m_body : stmts bracket;
-}
-
-and directive =
-  | AliasDirective of alias_directive
-  | ImportDirective of import_directive
-
-and alias_directive = {
-  ad_alias : tok;
-  ad_module : alias;
-  ad_binding : alias_binding;
-}
-
-and alias_binding =
-  | BindLastSegment
-  | BindAs of alias
-  | BindGroup of alias list
-
-and import_directive = {
-  imd_import : tok;
-  imd_module : alias;
-  imd_selection : import_selection;
-}
-
-and import_selection =
-  | ImportEveryFunction
-  | ImportOnly of imported_function list
-
-and imported_function = {
-  imf_name : ident;
-  imf_arity : (Parsed_int.t[@name "parsed_int"]);
 }
 
 (*****************************************************************************)

@@ -6,11 +6,10 @@ let tests =
     [
       Unit_Hashtbl_.tests;
       Unit_immutable_buffer.tests;
+      Unit_Pcre_.tests;
       Unit_Pcre2_.tests;
       Unit_regexp_engine.tests;
       Unit_String_.tests;
-      Unit_Utf8.tests;
       Unit_List_.tests;
       Unit_File.tests;
-      Unit_Logs_.tests;
     ]

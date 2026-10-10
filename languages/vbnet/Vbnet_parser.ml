@@ -10,6 +10,8 @@ type token = T.t
 
 let token_match = T.token_match
 
+let token_ghost = T.token_ghost
+
 type 'a parsing_result = {
   next : token list;
   value : 'a
@@ -104,32 +106,11 @@ let pure (value : 'a) : 'a parser =
 let fail : 'a parser =
   fun _next -> empty
 
-let rec skip_directives (tokens : token list) : token list =
-  match tokens with
-  | [] -> []
-  | w :: ws when T.is_line_terminator w  -> skip_directives ws
-  | w :: ws when T.is_if_directive w     -> skip_directives ws
-  | w :: ws when T.is_end_if_directive w -> skip_directives ws
-  | w :: ws when T.is_else_directive w
-              || T.is_elseif_directive w  -> skip_to_end_if ws 1
-  | _ -> tokens
-
-and skip_to_end_if (tokens : token list) (depth : int) : token list =
-  match tokens with
-  | [] -> []
-  | w :: ws when T.is_if_directive w     -> skip_to_end_if ws (depth + 1)
-  | w :: ws when T.is_end_if_directive w ->
-      if depth = 1 then skip_directives ws
-      else skip_to_end_if ws (depth - 1)
-  | _ :: ws -> skip_to_end_if ws depth
-
-let rec skip_line_terminators : token list -> token list = function
-  | w :: ws when T.is_line_terminator w -> skip_line_terminators ws
-  | tokens -> tokens
-
-let token (t : token_name) : token parser =
+let rec token (t : token_name) : token parser =
   fun next ->
-    match skip_directives next with
+    match next with
+    | w :: ws when token_ghost w ->
+        token t ws
     | w :: ws when token_match t w ->
         let loc = Tok.unsafe_loc_of_tok w.tok in
         if loc.pos.bytepos > DLS.get last_pos then
@@ -144,80 +125,14 @@ let pure_token (t : token_name) : unit parser =
   let* _ = token t in
   pure ()
 
-let token_pred (pred : T.t -> bool) : token parser =
+let rec token_type (t : T.token_kind) : token parser =
   fun next ->
-    match skip_directives next with
-    | w :: ws when pred w ->
-        let loc = Tok.unsafe_loc_of_tok w.tok in
-        if loc.pos.bytepos > DLS.get last_pos then
-          begin
-            DLS.set last_pos loc.pos.bytepos;
-            DLS.set last_token (Some w)
-          end;
+    match next with
+    | w :: ws when token_ghost w ->
+        token_type t ws
+    | w :: ws when w.kind = t ->
         single { next = ws; value = w }
     | _ -> empty
-
-let look_ahead_pred (pred : T.t -> bool) : unit parser =
-  fun next ->
-    match next with
-    | w :: _ when pred w -> single { next; value = () }
-    | _ -> empty
-
-let look_ahead_not_pred (pred : T.t -> bool) : unit parser =
-  fun next ->
-    match next with
-    | w :: _ when pred w -> empty
-    | _ -> single { next; value = () }
-
-let ident_tok          = token_pred T.is_ident
-let keyword_tok        = token_pred T.is_keyword
-let operator_tok       = token_pred T.is_operator
-let punctuation_tok    = token_pred T.is_punctuation
-let int_tok            = token_pred T.is_int_literal
-let float_tok          = token_pred T.is_float_literal
-let char_tok           = token_pred T.is_char_literal
-let string_tok         = token_pred T.is_string_literal
-let string_segment_tok = token_pred T.is_string_segment
-let date_tok           = token_pred T.is_date_literal
-let cdata_tok          = token_pred T.is_cdata
-let other_tok          = token_pred T.is_other
-let eof_tok            = token_pred T.is_eof
-let line_terminator_tok = token_pred T.is_line_terminator
-
-(* Directive token combinators: use lite skip (LineTerminators only) so that
-   directive tokens are visible rather than being consumed by skip_directives *)
-let if_directive_tok : token parser =
-  fun next ->
-    match skip_line_terminators next with
-    | w :: ws when T.is_if_directive w -> single { next = ws; value = w }
-    | _ -> empty
-
-let elseif_directive_tok : token parser =
-  fun next ->
-    match skip_line_terminators next with
-    | w :: ws when T.is_elseif_directive w -> single { next = ws; value = w }
-    | _ -> empty
-
-let else_directive_tok : token parser =
-  fun next ->
-    match skip_line_terminators next with
-    | w :: ws when T.is_else_directive w -> single { next = ws; value = w }
-    | _ -> empty
-
-let end_if_directive_tok : token parser =
-  fun next ->
-    match skip_line_terminators next with
-    | w :: ws when T.is_end_if_directive w -> single { next = ws; value = w }
-    | _ -> empty
-
-(* Succeeds when there is at least one non-EOF token remaining after skipping
-   ghost tokens. Used in statement-list loops to continue parsing after an
-   if_directive_block, which consumes the trailing newline of #End If. *)
-let look_ahead_non_eof : unit parser =
-  fun next ->
-    match skip_directives next with
-    | [] | { kind = T.EOF; _ } :: _ -> empty
-    | _ -> single { next; value = () }
 
 let choice (ps : 'a parser list) : 'a parser =
   fun next ->
@@ -305,16 +220,15 @@ let ident_of_token (t : T.t) : G.ident =
 let expr_of_id (id : G.ident) =
   G.N (G.Id (id, G.empty_id_info ~case_insensitive:true ())) |> G.e
 
-let make_name ?(hidden = false) (ident : G.ident)
-    (type_args : G.type_arguments option) : G.name =
+let make_name (ident : G.ident) (type_args : G.type_arguments option) : G.name =
   match type_args with
-  | None -> G.Id (ident, G.empty_id_info ~case_insensitive:true ~hidden ())
+  | None -> G.Id (ident, G.empty_id_info ~case_insensitive:true ())
   | Some _ ->
       G.IdQualified
         { name_last = (ident, type_args);
           name_middle = None;
           name_top = None;
-          name_info = G.empty_id_info ~case_insensitive:true ~hidden () }
+          name_info = G.empty_id_info ~case_insensitive:true () }
 
 let rec split_last (xs : 'a list) : 'a list * 'a =
   match xs with
@@ -369,51 +283,6 @@ let s_range (tl : Tok.t) (tr : Tok.t) (stmt : G.stmt) : G.stmt =
   stmt.s_range <- Some (l, r);
   stmt
 
-(* Splits the token stream (after IfDirective was consumed) into branches.
-   Splits at ElseIfDirective/ElseDirective at depth 0; stops at EndIfDirective
-   at depth 0. Returns (branches, rest_after_EndIfDirective). *)
-let split_if_block (tokens : token list) : token list list * token list =
-  let rec collect tokens depth current acc =
-    match tokens with
-    | [] ->
-        (List.rev (List.rev current :: acc), [])
-    | w :: ws when T.is_if_directive w ->
-        collect ws (depth + 1) (w :: current) acc
-    | w :: ws when T.is_end_if_directive w && depth > 0 ->
-        collect ws (depth - 1) (w :: current) acc
-    | w :: ws when T.is_end_if_directive w ->
-        (List.rev (List.rev current :: acc), ws)
-    | w :: ws when (T.is_else_directive w || T.is_elseif_directive w) && depth = 0 ->
-        collect ws 0 [] (List.rev current :: acc)
-    | w :: ws ->
-        collect ws depth (w :: current) acc
-  in
-  collect tokens 0 [] []
-
-let parse_branch (p : 'a parser) (tokens : token list) : 'a option =
-  match Seq.uncons (p tokens) with
-  | Some ({ value; next }, _) when skip_directives next = [] -> Some value
-  | _ -> None
-
-let if_directive_block
-    (p : 'a parser)
-    ~(combine : 'a list -> 'a)
-    : 'a parser =
-  let* _ = if_directive_tok in
-  fun tokens ->
-    let (branches, rest) = split_if_block tokens in
-    let parsed = List.filter_map (parse_branch p) branches in
-    if List.length parsed = List.length branches
-    then
-      (* The EndIfDirective token consumed the trailing newline, so we prepend a
-         synthetic LineTerminator to 'rest' to satisfy the
-         look_ahead_pred T.is_line_terminator guard in statement-list loops. *)
-      let synthetic_lt : T.t =
-        { T.kind = T.LineTerminator; content = "\n"; tok = Tok.unsafe_fake_tok "\n" }
-      in
-      single { next = synthetic_lt :: rest; value = combine parsed }
-    else empty
-
 (* parser *)
 
 let rec compilation_unit : G.program parser = fun __n -> (
@@ -421,7 +290,7 @@ let rec compilation_unit : G.program parser = fun __n -> (
   (* ... or stop on partial *)
   let* stmts = toplevel in
   let* _ = choice [
-      (let* _ = eof_tok in pure ());
+      pure_token "<EOF>";
       stop_on_partial
     ]
   in
@@ -429,14 +298,12 @@ let rec compilation_unit : G.program parser = fun __n -> (
 ) __n |> cut
 
 and toplevel : G.stmt list parser = fun __n -> (
-  (* toplevel -> option_statement* imports_statement* (attributes_statement | toplevel_declaration)* *)
+  (* toplevel -> option_statement* imports_statement* attributes_statement* toplevel_declaration* *)
   let* options = list_of option_statement in
   let* imports = list_of imports_statement in
-  let* decls = list_of (choice [
-    attributes_statement;
-    (let* d = toplevel_declaration in pure [d]);
-  ]) in
-  pure (options @ List.concat imports @ List.concat decls)
+  let* attrs = list_of attributes_statement in
+  let* decls = list_of toplevel_declaration in
+  pure (options @ List.concat imports @ List.concat attrs @ decls)
 ) __n
 
 and option_statement_mandatory : G.ident parser = fun __n -> (
@@ -489,7 +356,7 @@ and imports_clause (imports : T.t) : G.stmt parser = fun __n -> (
       let* _lt = token "<" in
       let* name = x_name in
       let* _eq = token "=" in
-      let* ns = string_tok in
+      let* ns = token "<STRING>" in
       let* _gt = token ">" in
       let id = ident_of_token imports in
       let lit = G.L (G.String (fb (T.extract_string_content ns, ns.tok))) |> G.e in
@@ -519,14 +386,14 @@ and simple_imports_clause (imports : T.t) : G.stmt parser = fun __n -> (
 
 and import_alias_clause : G.alias parser = fun __n -> (
   (* import_alias_clause -> identifier_token '=' *)
-  let* t = ident_tok in
+  let* t = token "<IDENT>" in
   let* _eq = token "=" in
   pure (ident_of_token t, G.empty_id_info ~case_insensitive:true ())
 ) __n
 
 and attributes_statement : G.stmt list parser = fun __n -> (
-  (* attributes_statement -> toplevel_attribute_list+ *)
-  let* attrs = ne_list_of toplevel_attribute_list in
+  (* attributes_statement -> attribute_list+ *)
+  let* attrs = ne_list_of attribute_list in
   let attrs = List.concat attrs in
   let make_stmt (a : G.attribute) : G.stmt =
     let directive =
@@ -554,9 +421,9 @@ and attribute_list : G.attribute list parser = fun __n -> (
 ) __n
 
 and toplevel_attribute_list : G.attribute list parser = fun __n -> (
-  (* toplevel_attribute_list -> '<' toplevel_attribute (',' attribute)* '>' *)
+  (* toplevel_attribute_list -> '<' attribute (',' attribute)* '>' *)
   let* _lt = token "<" in
-  let* attr = toplevel_attribute in
+  let* attr = attribute in
   let* attrs = list_of
     begin
       let* _comma = token "," in
@@ -586,7 +453,7 @@ and attribute : G.attribute parser = fun __n -> (
 ) __n
 
 and toplevel_attribute : G.attribute parser = fun __n -> (
-  (* toplevel_attribute -> attribute_target type argument_list? *)
+  (* toplevel_attribute -> attribute_target? type argument_list? *)
   let* target = attribute_target in
   let* name = qualified_name in
   let name = collapse_names [target; name] in
@@ -650,7 +517,7 @@ and argument : G.argument parser = fun __n -> (
       let* id =
         choice [
           identifier_name;
-          let* t = keyword_tok in pure (ident_of_token t)
+          let* t = token "<KEYWORD>" in pure (ident_of_token t)
         ]
       in
       let* _colon_eq = token ":=" in
@@ -675,27 +542,27 @@ and escaped_identifier_content : G.ident (* =  string G.wrap *) parser = fun __n
   choice [
     begin
       (* escaped_identifier_content -> '<KEYWORD>' *)
-      let* t = keyword_tok in
+      let* t = token "<KEYWORD>" in
       pure (t.content, t.tok)
     end;
     begin
       (* escaped_identifier_content -> '<IDENT>' *)
-      let* t = ident_tok in
+      let* t = token "<IDENT>" in
       pure (t.content, t.tok)
     end;
     begin
       (* escaped_identifier_content -> '<OPERATOR>' *)
-      let* t = operator_tok in
+      let* t = token "<OPERATOR>" in
       pure (t.content, t.tok)
     end;
     begin
       (* escaped_identifier_content -> '<INT>' *)
-      let* t = int_tok in
+      let* t = token "<INT>" in
       pure (t.content, t.tok)
     end;
     begin
       (* escaped_identifier_content -> '<STRING>' *)
-      let* t = string_tok in
+      let* t = token "<STRING>" in
       pure (t.content, t.tok)
     end;
   ]
@@ -705,7 +572,7 @@ and identifier_name : G.ident (* = string G.wrap *) parser = fun __n -> (
   choice [
     begin
       (* identifier_name -> '<IDENT>' *)
-      let* t = ident_tok in
+      let* t = token "<IDENT>" in
       pure (Tok.content_of_tok t.tok , t.tok)
     end;
     begin
@@ -867,30 +734,8 @@ and multi_line_statement : G.stmt parser = fun __n -> (
   ]
 ) __n
 
-and statements_list : G.stmt list parser = fun __n -> (
-  choice [
-    begin
-      let* stmt = statements_block_item in
-      let* stmts = list_of
-        begin
-          let* _ = look_ahead_pred T.is_line_terminator in
-          statements_block_item
-        end
-      in
-      pure (stmt @ List.concat stmts)
-    end;
-    begin
-      pure []
-    end;
-  ]
-) __n
-
 and statements_block_item : G.stmt list parser = fun __n -> (
   choice [
-    begin
-      (* statements_block_item -> #If [#ElseIf]* [#Else] #End If *)
-      if_directive_block statements_list ~combine:List.concat
-    end;
     begin
       (* statements_block_item -> multi_line_statement *)
       let* s = multi_line_statement in
@@ -923,7 +768,7 @@ and statements_block : G.stmt parser = fun __n -> (
       let* stmt = statements_block_item in
       let* stmts = list_of
         begin
-          let* _ = look_ahead_pred T.is_line_terminator in
+          let* _ = look_ahead "<LINE_TERMINATOR>" in
           statements_block_item
         end
       in
@@ -943,7 +788,7 @@ and statements_block_always_block : G.stmt parser = fun __n -> (
       let* stmt = statements_block_item in
       let* stmts = list_of
         begin
-          let* _ = look_ahead_pred T.is_line_terminator in
+          let* _ = look_ahead "<LINE_TERMINATOR>" in
           statements_block_item
         end
       in
@@ -960,7 +805,7 @@ and select_case_block : G.stmt parser = fun __n -> (
   let* select = token "SELECT" in
   let* _case = optional (token "CASE") in
   let* expr = expression in
-  let* _ = look_ahead_pred T.is_line_terminator in
+  let* _ = look_ahead "<LINE_TERMINATOR>" in
   let* case_blocks = list_of case_block in
   let* end_select = end_select_statement in
   pure (G.Switch (select.tok, Some (G.Cond expr), case_blocks)
@@ -988,7 +833,7 @@ and case_statement_terminator : unit parser = fun __n -> (
   choice [
     begin
       (* case_statement_terminator -> @lookahead('<LINE_TERMINATOR>') *)
-      let* _ = look_ahead_pred T.is_line_terminator in
+      let* _ = look_ahead "<LINE_TERMINATOR>" in
       pure ()
     end;
     begin
@@ -1100,11 +945,11 @@ and single_line_if_statement : G.stmt parser = fun __n -> (
   let* if_ = token "IF" in
   let* expr = expression in
   let* _ = token "THEN" in
-  let* _ = look_ahead_not_pred T.is_line_terminator in
+  let* _ = look_ahead_not "<LINE_TERMINATOR>" in
   let* then_stmts = single_line_statements in
   let* else_stmts = optional
     begin
-      let* _ = look_ahead_not_pred T.is_line_terminator in
+      let* _ = look_ahead_not "<LINE_TERMINATOR>" in
       let* _ = token "ELSE" in
       single_line_statements
     end
@@ -1151,7 +996,7 @@ and else_if_or_elseif : Tok.t parser = fun __n -> (
     begin
       (* else_if_or_elseif -> 'Else' @lookahead_not('<LINE_TERMINATOR>') 'If' *)
       let* else_ = token "ELSE" in
-      let* _ = look_ahead_not_pred T.is_line_terminator in
+      let* _ = look_ahead_not "<LINE_TERMINATOR>" in
       let* if_ = token "IF" in
       pure (Tok.combine_toks else_.tok [if_.tok])
     end;
@@ -1181,7 +1026,7 @@ and after_next : unit parser = fun __n -> (
   choice [
     begin
       (* after_next -> @lookahead('<LINE_TERMINATOR>') *)
-      let* _ = look_ahead_pred T.is_line_terminator in
+      let* _ = look_ahead "<LINE_TERMINATOR>" in
       pure ()
     end;
     begin
@@ -1202,7 +1047,7 @@ and for_block : G.stmt parser = fun __n -> (
   let* next = token "NEXT" in
   let* counter = optional
     begin
-      let* _ = look_ahead_not_pred T.is_line_terminator in
+      let* _ = look_ahead_not "<LINE_TERMINATOR>" in
       identifier_name
     end
   in
@@ -1269,7 +1114,7 @@ and do_block : G.stmt parser = fun __n -> (
   let* loop = token "LOOP" in
   let* footer_opt = optional
     begin
-      let* _ = look_ahead_not_pred T.is_line_terminator in
+      let* _ = look_ahead_not "<LINE_TERMINATOR>" in
       do_header
     end
   in
@@ -1319,7 +1164,7 @@ and soft_terminator : unit parser = fun __n -> (
   let* _ = choice [
     begin
       (* soft_terminator -> @lookahead('<LINE_TERMINATOR>') *)
-      look_ahead_pred T.is_line_terminator
+      look_ahead "<LINE_TERMINATOR>"
     end;
     begin
       (* soft_terminator -> @lookahead(':') *)
@@ -1403,7 +1248,7 @@ and with_block : G.stmt parser = fun __n -> (
   (* with_block -> 'With' expression @lookahead('<LINE_TERMINATOR>') statements_block ':'? 'End' 'With' *)
   let* with1 = token "WITH" in
   let* expr = expression in
-  let* _ = look_ahead_pred T.is_line_terminator in
+  let* _ = look_ahead "<LINE_TERMINATOR>" in
   let* stmt = statements_block_always_block in
   let* _ = optional (token ":") in
   let* _ = token "END" in
@@ -1430,7 +1275,7 @@ and sync_lock_block : G.stmt parser = fun __n -> (
   (* sync_lock_block -> 'SyncLock' expression @lookahead('<LINE_TERMINATOR>') statements_block ':'? 'End' 'SyncLock' *)
   let* sync_lock1 = token "SYNCLOCK" in
   let* expr = expression in
-  let* _ = look_ahead_pred T.is_line_terminator in
+  let* _ = look_ahead "<LINE_TERMINATOR>" in
   let* stmt = statements_block_always_block in
   let* _ = optional (token ":") in
   let* _ = token "END" in
@@ -1445,7 +1290,7 @@ and using_block : G.stmt parser = fun __n -> (
   (* using_block -> 'Using' using_header @lookahead('<LINE_TERMINATOR>') statements_block end_using_statement *)
   let* using = token "USING" in
   let* header = using_header in
-  let* _ = look_ahead_pred T.is_line_terminator in
+  let* _ = look_ahead "<LINE_TERMINATOR>" in
   let* stmt = statements_block_always_block in
   let* end_using = end_using_statement in
   pure (G.WithUsingResource (using.tok, header, stmt)
@@ -1528,7 +1373,7 @@ and on_error_statement : G.stmt parser = fun __n -> (
   choice [
     begin
       let* goto = token "GOTO" in
-      let* t = choice [ ident_tok; int_tok ] in
+      let* t = choice [ token "<IDENT>"; token "<INT>" ] in
       pure (G.RawStmt (RT.Tuple
         [raw_token on; raw_token error; raw_token goto; raw_token t]) |> G.s)
     end;
@@ -1553,7 +1398,7 @@ and raise_event_statement : G.stmt parser = fun __n -> (
 and resume_statement : G.stmt parser = fun __n -> (
   let* _ = optional (token ":") in
   let* resume = token "RESUME" in
-  let* label = optional (choice [ token "NEXT"; ident_tok; int_tok ]) in
+  let* label = optional (choice [ token "NEXT"; token "<IDENT>"; token "<INT>" ]) in
   pure (G.RawStmt (RT.Tuple [RT.Token (resume.content, resume.tok);
     RT.Option (Option.map raw_token label)]) |> G.s)
 ) __n
@@ -1562,7 +1407,7 @@ and return_terminator : unit parser = fun __n -> (
   choice [
     begin
       (* return_terminator -> @lookahead('<LINE_TERMINATOR>') *)
-      let* _ = look_ahead_pred T.is_line_terminator in
+      let* _ = look_ahead "<LINE_TERMINATOR>" in
       pure ()
     end;
     begin
@@ -1604,7 +1449,7 @@ and return_statement : G.stmt parser = fun __n -> (
     end;
     begin
       (* return_statement -> ':'? 'Return' @lookahead_not('<LINE_TERMINATOR>') expression *)
-      let* _ = look_ahead_not_pred T.is_line_terminator in
+      let* _ = look_ahead_not "<LINE_TERMINATOR>" in
       let* expr = expression in
       pure (G.Return (return.tok, Some expr, Tok.unsafe_fake_tok "") |> G.s)
     end;
@@ -1883,7 +1728,7 @@ and enum_block_item : G.or_type_element parser = fun __n -> (
     end
   in
   let* _ = optional (token ",") in
-  let* _ = look_ahead_pred T.is_line_terminator in
+  let* _ = look_ahead "<LINE_TERMINATOR>" in
   pure (G.OrEnum (id, init))
 ) __n
 
@@ -2533,30 +2378,30 @@ and literal_expression : G.expr parser = fun __n -> (
       pure (G.L (G.Bool (true, t.tok)) |> G.e)
     end;
     begin
-      (* literal_expression -> char_tok *)
-      let* t = char_tok in
+      (* literal_expression -> token "<CHAR>" *)
+      let* t = token "<CHAR>" in
       pure (G.L (G.Char (T.extract_string_content t, t.tok)) |> G.e)
     end;
     begin
       (* literal_expression -> date_literal_token *)
-      let* t = date_tok in
+      let* t = token "<DATE>" in
       (* Using G.Atom because no other literal kind fits, while we
        * will not inspect its interanal structure anyway *)
       pure (G.L (G.Atom (t.tok, (t.content, t.tok))) |> G.e)
     end;
     begin
-      (* literal_expression -> float_tok *)
-      let* t = float_tok in
+      (* literal_expression -> token "<FLOAT>" *)
+      let* t = token "<FLOAT>" in
       pure (G.L (G.Float (Float.of_string_opt t.content, t.tok)) |> G.e)
     end;
     begin
-      (* literal_expression -> int_tok *)
-      let* t = int_tok in
+      (* literal_expression -> token "<INT>" *)
+      let* t = token "<INT>" in
       pure (G.L (G.Int (Some (T.extract_int_content t), t.tok)) |> G.e)
     end;
     begin
-      (* literal_expression -> string_tok *)
-      let* t = string_tok in
+      (* literal_expression -> token "<STRING>" *)
+      let* t = token "<STRING>" in
       pure (G.L (G.String (fb (T.extract_string_content t, t.tok))) |> G.e)
     end
   ]
@@ -2924,7 +2769,7 @@ and constructor_block (attrs : G.attribute list) (class_name : G.name) : G.stmt 
   let* new_ = token "NEW" in
   let ctor_attr = G.KeywordAttr (G.Ctor, new_.tok) in
   let* params = optional parameter_list in
-  let* _ = look_ahead_pred T.is_line_terminator in
+  let* _ = look_ahead "<LINE_TERMINATOR>" in
   let* stmt = statements_block_always_block in
   let* _ = end_sub_statement in
   let entity =
@@ -2950,7 +2795,7 @@ and constructor_block (attrs : G.attribute list) (class_name : G.name) : G.stmt 
 and function_block (where_am_i : G.function_kind) (attrs : G.attribute list) : G.stmt parser = fun __n -> (
   (* function_block -> function_statement @lookahead('<LINE_TERMINATOR>') (statements_block end_function_statement)? *)
   let* (entity, kind) as fs = function_statement where_am_i attrs in
-  let* _ = look_ahead_pred T.is_line_terminator in
+  let* _ = look_ahead "<LINE_TERMINATOR>" in
   let* body_opt = optional
     begin
       let* stmt = statements_block_always_block in
@@ -2968,7 +2813,7 @@ and function_block (where_am_i : G.function_kind) (attrs : G.attribute list) : G
 and sub_block (where_am_i : G.function_kind) (attrs : G.attribute list) : G.stmt parser = fun __n -> (
   (* sub_block -> sub_statement @lookahead('<LINE_TERMINATOR>') (statements_block end_sub_statement)? *)
   let* (entity, kind) as fs = sub_statement where_am_i attrs in
-  let* _ = look_ahead_pred T.is_line_terminator in
+  let* _ = look_ahead "<LINE_TERMINATOR>" in
   let* body_opt = optional
     begin
       let* stmt = statements_block_always_block in
@@ -3084,7 +2929,7 @@ and property_accessor_block ((property_name_str, _) : G.ident)
       let* _ = token "END" in
       let* _ = token "GET" in
       let entity =
-        G.{ name = G.EN (make_name ~hidden:true ("GET_" ^ property_name_str, get.tok) None);
+        G.{ name = G.EN (make_name ("GET_" ^ property_name_str,  get.tok) None);
             attrs = modifiers @ List.concat attrs;
             tparams = None }
       in
@@ -3107,7 +2952,7 @@ and property_accessor_block ((property_name_str, _) : G.ident)
       let* _ = token "END" in
       let* _ = token "SET" in
       let entity =
-        G.{ name = G.EN (make_name ~hidden:true ("SET_" ^ property_name_str, set.tok) None);
+        G.{ name = G.EN (make_name ("SET_" ^ property_name_str, set.tok) None);
             attrs = modifiers @ List.concat attrs;
             tparams = None }
       in
@@ -3166,35 +3011,11 @@ and class_block (attrs : G.attribute list) : G.stmt parser = fun __n -> (
   pure (G.DefStmt (entity, def) |> G.s)
 ) __n
 
-and class_declarations_list (class_name : G.name) : G.field list parser = fun __n -> (
-  (* Analogous to statements_list, but for class body declarations. *)
-  choice [
-    begin
-      let* decl = class_block_declaration class_name in
-      let* decls = list_of
-        begin
-          let* _ = look_ahead_pred T.is_line_terminator in
-          class_block_declaration class_name
-        end
-      in
-      pure (decl @ List.concat decls)
-    end;
-    begin
-      pure []
-    end;
-  ]
-) __n
-
 and class_block_declaration (class_name : G.name) : G.field list parser = fun __n -> (
   let* attrs = list_of attribute_list in
   let* modifiers = list_of modifier in
   let attrs = modifiers @ List.concat attrs in
   choice [
-    begin
-      (* class_block_declaration -> #If [#ElseIf]* [#Else] #End If *)
-      let* _ = if List.is_empty attrs then pure () else fail in
-      if_directive_block (class_declarations_list class_name) ~combine:List.concat
-    end;
     begin
       (* class_block_declaration -> attribute_list* method_modifier* class_block_kw_declaration *)
       let* s = class_block_kw_declaration attrs class_name in
@@ -3468,20 +3289,20 @@ and go_to_statement : G.stmt parser = fun __n -> (
   (* go_to_statement -> 'GoTo' label *)
   let* _ = optional (token ":") in
   let* goto = token "GOTO" in
-  let* lbl = choice [ ident_tok; int_tok ]
+  let* lbl = choice [ token "<IDENT>"; token "<INT>" ]
   in
   pure (G.Goto (goto.tok, ident_of_token lbl, Tok.unsafe_sc) |> G.s)
 ) __n
 
 and identifier_label : G.label parser = fun __n -> (
   (* identifier_label -> identifier_token *)
-  let* id = ident_tok in
+  let* id = token "<IDENT>" in
   pure (ident_of_token id)
 ) __n
 
 and numeric_label : G.label parser = fun __n -> (
   (* numeric_label -> integer_literal_token *)
-  let* id = int_tok in
+  let* id = token "<INT>" in
   pure (ident_of_token id)
 ) __n
 
@@ -3535,7 +3356,7 @@ and redim_clause : G.arguments parser = fun __n -> (
   let* name = access_expression in
   let* dims_opt = optional
     begin
-      let* _ = look_ahead_not_pred T.is_line_terminator in
+      let* _ = look_ahead_not "<LINE_TERMINATOR>" in
       let* lparen = token "(" in
       let* dim = variable_declarator_identifier_dimension in
       let* dims = list_of
@@ -3593,7 +3414,7 @@ and expression_terminator : unit parser = fun __n -> (
     end;
     begin
       (* expression_terminator -> @lookahead('<LINE_TERMINATOR>') *)
-      let* _ = look_ahead_pred T.is_line_terminator in
+      let* _ = look_ahead "<LINE_TERMINATOR>" in
       pure ()
     end;
   ]
@@ -3670,7 +3491,7 @@ and relational_operator : G.operator G.wrap parser = fun __n -> (
     end;
     begin
       (* relational_operator -> @lookahead_not('<LINE_TERMINATOR>') '<' *)
-      let* _ = look_ahead_not_pred T.is_line_terminator in
+      let* _ = look_ahead_not "<LINE_TERMINATOR>" in
       let* t = token "<" in
       pure (G.Lt, t.tok)
     end;
@@ -3979,7 +3800,7 @@ and access_expression : G.expr parser = fun __n -> (
   let* expr = primary_expression in
   let* accessors = list_of
     begin
-      let* _ = look_ahead_not_pred T.is_line_terminator in
+      let* _ = look_ahead_not "<LINE_TERMINATOR>" in
       accessor
     end
   in
@@ -3996,7 +3817,7 @@ and identifier_or_keyword : G.name parser = fun __n -> (
     end;
     begin
       (* identifier_or_keyword -> '<KEYWORD>' type_argument_list? *)
-      let* id = keyword_tok in
+      let* id = token "<KEYWORD>" in
       let* type_args = optional type_argument_list in
       pure (make_name (id.content, id.tok) type_args)
     end;
@@ -4062,7 +3883,7 @@ and accessor : (G.expr -> G.expr) parser = fun __n -> (
        * in the main Visual Basic Language Specification or the standard
        * Microsoft Learn pages. *)
       let* _bang = token "!" in
-      let* rhs = choice [ident_tok; keyword_tok] in
+      let* rhs = choice [token "<IDENT>"; token "<KEYWORD>"] in
       pure (fun e -> G.Call (e, fb [G.Arg (G.L (G.String (fb (rhs.content, rhs.tok))) |> G.e)]) |> G.e)
     end;
     begin
@@ -4382,7 +4203,7 @@ and interpolated_string_content : G.argument parser = fun __n -> (
   choice [
     begin
       (* interpolated_string_content -> '<STRING_SEGMENT>' *)
-      let* seg = string_segment_tok in
+      let* seg = token "<STRING_SEGMENT>" in
       pure (G.Arg (G.L (G.String (fb (seg.content, seg.tok))) |> G.e))
     end;
     begin
@@ -4433,7 +4254,7 @@ and interpolation_format_char : T.t parser = fun __n -> (
       (* interpolation_format_char -> @lookahead_not('\\"') @lookahead_not('$\\"') '<OPERATOR>' *)
       let* _ = look_ahead_not "\"" in
       let* _ = look_ahead_not "$\"" in
-      operator_tok
+      token "<OPERATOR>"
     end;
     begin
       (*terpolation_format_char -> '.' *)
@@ -4441,19 +4262,19 @@ and interpolation_format_char : T.t parser = fun __n -> (
     end;
     begin
       (*terpolation_format_char -> '<IDENT>' *)
-      ident_tok
+      token "<IDENT>"
     end;
     begin
       (*terpolation_format_char -> '<KEYWORD>' *)
-      keyword_tok
+      token "<KEYWORD>"
     end;
     begin
       (*terpolation_format_char -> '<INT>' *)
-      int_tok
+      token "<INT>"
     end;
     begin
       (*terpolation_format_char -> '<FLOAT>' *)
-      float_tok
+      token "<FLOAT>"
     end;
   ]
 ) __n
@@ -4484,7 +4305,7 @@ and single_line_lambda_expression : G.expr parser = fun __n -> (
       (* single_line_lambda_expression -> lambda_modifier* 'Function' parameter_list expression *)
       let* fun_ = token "FUNCTION" in
       let* params = optional parameter_list in
-      let* _ = look_ahead_not_pred T.is_line_terminator in
+      let* _ = look_ahead_not "<LINE_TERMINATOR>" in
       let* expr = expression in
       let fdef =
         G.{ fkind = (G.Arrow, fun_.tok);
@@ -4501,7 +4322,7 @@ and single_line_lambda_expression : G.expr parser = fun __n -> (
       (* single_line_lambda_expression -> lambda_modifier* 'Sub' parameter_list single_line_statement *)
       let* sub = token "SUB" in
       let* params = optional parameter_list in
-      let* _ = look_ahead_not_pred T.is_line_terminator in
+      let* _ = look_ahead_not "<LINE_TERMINATOR>" in
       let* stmts = single_line_statement in
       let fdef =
         G.{ fkind = (G.Arrow, sub.tok);
@@ -4525,7 +4346,7 @@ and multi_line_lambda_expression : G.expr parser = fun __n -> (
       let* fun_ = token "FUNCTION" in
       let* params = optional parameter_list in
       let* _simple_as_clause_opt1 = optional simple_as_clause in
-      let* _ = look_ahead_pred T.is_line_terminator in
+      let* _ = look_ahead "<LINE_TERMINATOR>" in
       let* stmt = statements_block_always_block in
       let* _ = optional (token ":") in
       let* _end = token "END" in
@@ -4545,7 +4366,7 @@ and multi_line_lambda_expression : G.expr parser = fun __n -> (
       (* multi_line_lambda_expression -> lambda_modifier* 'Sub' parameter_list @lookahead('<LINE_TERMINATOR>') statements_block ':'? 'End' 'Sub' *)
       let* sub = token "SUB" in
       let* params = optional parameter_list in
-      let* _ = look_ahead_pred T.is_line_terminator in
+      let* _ = look_ahead "<LINE_TERMINATOR>" in
       let* stmt = statements_block_always_block in
       let* _ = optional (token ":") in
       let* _end = token "END" in
@@ -5211,7 +5032,7 @@ and base_name : G.name parser = fun __n -> (
 
 and xml_cdata : G.expr parser = fun __n -> (
   (* xml_cdata -> '<CDATA>' *)
-  let* t = cdata_tok in
+  let* t = token "<CDATA>" in
   pure (G.L (G.String (fb (T.extract_string_content t, t.tok))) |> G.e)
 ) __n
 
@@ -5444,47 +5265,47 @@ and x_body_element : G.xml_body parser = fun __n -> (
       let* t = choice [
         begin
           (* x_body_element -> '<IDENT>' *)
-          ident_tok
+          token "<IDENT>"
         end;
         begin
           (* x_body_element -> '<KEYWORD>' *)
-          keyword_tok
+          token "<KEYWORD>"
         end;
         begin
           (* x_body_element -> '<PUNCTUATION>' *)
-          punctuation_tok
+          token "<PUNCTUATION>"
         end;
         begin
           (* x_body_element -> '<INT>' *)
-          int_tok
+          token "<INT>"
         end;
         begin
           (* x_body_element -> '<FLOAT>' *)
-          float_tok
+          token "<FLOAT>"
         end;
         begin
           (* x_body_element -> '<CHAR>' *)
-          char_tok
+          token "<CHAR>"
         end;
         begin
           (* x_body_element -> '<STRING>' *)
-          string_tok
+          token "<STRING>"
         end;
         begin
           (* x_body_element -> '<STRING_SEGMENT>' *)
-          string_segment_tok
+          token "<STRING_SEGMENT>"
         end;
         begin
           (* x_body_element -> '<DATE>' *)
-          date_tok
+          token "<DATE>"
         end;
         begin
           (* x_body_element -> '<CDATA>' *)
-          cdata_tok
+          token "<CDATA>"
         end;
         begin
           (* x_body_element -> '<OTHER>' *)
-          other_tok
+          token "<OTHER>"
         end;
         begin
           (* x_body_element -> x_non_xml_operator *)
@@ -5549,12 +5370,12 @@ and x_tag_embed_expression : G.expr G.bracket parser = fun __n -> (
 
 and x_name : G.name parser = fun __n -> (
   (* x_name -> '<IDENT>' (':' '<IDENT>')* *)
-  let* id = choice [ ident_tok; keyword_tok ] in
+  let* id = choice [ token "<IDENT>"; token "<KEYWORD>" ] in
   let name = make_name (ident_of_token id) None in
   let* names = list_of
     begin
       let* _colon = token ":" in
-      let* id = choice [ ident_tok; keyword_tok ] in
+      let* id = choice [ token "<IDENT>"; token "<KEYWORD>" ] in
       pure (make_name (ident_of_token id) None)
     end
   in
@@ -5562,11 +5383,11 @@ and x_name : G.name parser = fun __n -> (
 ) __n |> cut
 
 and x_name_as_tokens : T.t list parser = fun __n -> (
-  let* id = choice [ ident_tok; keyword_tok ] in
+  let* id = choice [ token "<IDENT>"; token "<KEYWORD>" ] in
   let* ids = list_of
     begin
       let* colon = token ":" in
-      let* id = choice [ ident_tok; keyword_tok ] in
+      let* id = choice [ token "<IDENT>"; token "<KEYWORD>" ] in
       pure [colon; id]
     end
   in
@@ -5619,7 +5440,7 @@ and x_attr_value : G.a_xml_attr_value parser = fun __n -> (
     end;
     begin
       (* x_attr_value -> '<IDENT>' *)
-      let* t = ident_tok in
+      let* t = token "<IDENT>" in
       pure (G.N (make_name (ident_of_token t) None) |> G.e)
     end;
     begin
@@ -5758,7 +5579,7 @@ and modifier : G.attribute parser = fun __n -> (
     begin
       (* modifier -> 'Shared' *)
       let* t = token "SHARED" in
-      pure (G.KeywordAttr (G.Static, t.tok))
+      pure (G.OtherAttribute ((t.content, t.tok), []))
     end;
     begin
       (* modifier -> 'Static' *)
@@ -5800,13 +5621,13 @@ and modifier : G.attribute parser = fun __n -> (
 
 and character_literal_token : G.any parser = fun __n -> (
   (* character_literal_token -> '<CHAR>' *)
-  let* lt_CHAR_gt1 = char_tok in
+  let* lt_CHAR_gt1 = token "<CHAR>" in
   pure (xRule "character_literal_token" 0 [xToken(lt_CHAR_gt1)])
 ) __n
 
 and date_literal_token : G.any parser = fun __n -> (
   (* date_literal_token -> '<DATE>' *)
-  let* lt_DATE_gt1 = date_tok in
+  let* lt_DATE_gt1 = token "<DATE>" in
   pure (xRule "date_literal_token" 0 [xToken(lt_DATE_gt1)])
 ) __n
 
@@ -5818,25 +5639,25 @@ and decimal_literal_token : G.any parser = fun __n -> (
 
 and floating_literal_token : G.any parser = fun __n -> (
   (* floating_literal_token -> '<FLOAT>' *)
-  let* lt_FLOAT_gt1 = float_tok in
+  let* lt_FLOAT_gt1 = token "<FLOAT>" in
   pure (xRule "floating_literal_token" 0 [xToken(lt_FLOAT_gt1)])
 ) __n
 
 and identifier_token : G.any parser = fun __n -> (
   (* identifier_token -> '<IDENT>' *)
-  let* lt_IDENT_gt1 = ident_tok in
+  let* lt_IDENT_gt1 = token "<IDENT>" in
   pure (xRule "identifier_token" 0 [xToken(lt_IDENT_gt1)])
 ) __n
 
 and integer_literal_token : G.any parser = fun __n -> (
   (* integer_literal_token -> '<INT>' *)
-  let* lt_INT_gt1 = int_tok in
+  let* lt_INT_gt1 = token "<INT>" in
   pure (xRule "integer_literal_token" 0 [xToken(lt_INT_gt1)])
 ) __n
 
 and string_literal_token : G.any parser = fun __n -> (
   (* string_literal_token -> '<STRING>' *)
-  let* lt_STRING_gt1 = string_tok in
+  let* lt_STRING_gt1 = token "<STRING>" in
   pure (xRule "string_literal_token" 0 [xToken(lt_STRING_gt1)])
 ) __n
 
@@ -5849,7 +5670,7 @@ and opengrep_statements : G.any parser = fun __n -> (
       let* stmt = statements_block_item in
       let* stmts = list_of
         begin
-          let* _ = look_ahead_pred T.is_line_terminator in
+          let* _ = look_ahead "<LINE_TERMINATOR>" in
           statements_block_item
         end
       in
@@ -5917,7 +5738,7 @@ let opengrep_pattern : G.any parser =
     end;
   ]
   in
-  let* _ = eof_tok in
+  let* _ = token "<EOF>" in
   pure content
 
 (* Entry points *)

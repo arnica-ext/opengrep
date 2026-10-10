@@ -1,0 +1,4 @@
+opengrep scan: option '--max-target-bytes': Invalid representation for a
+               number of bytes: 1.3R
+Usage: opengrep scan [OPTION]… [TARGETS]…
+Try 'opengrep scan --help' for more information.

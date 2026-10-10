@@ -11,44 +11,13 @@
 
 ### Welcome to Opengrep, a fork of Semgrep, under the LGPL 2.1 license
 
-**Opengrep is the most advanced open source SAST engine.**
+_Opengrep is a fork of Semgrep, created by Semgrep Inc. Opengrep is not affiliated with or endorsed by Semgrep Inc._
 
-Let's make secure software development a shared standard. Opengrep provides every developer and organisation with open and advanced static code analysis.
+Let's make secure software development a shared standard. Opengrep provides every developer and organization with open and advanced static code analysis. 
 
-Opengrep is backed by a consortium of AppSec organisations, including: [Aikido](https://www.aikido.dev/), [Amplify](https://amplify.security/), [Endor Labs](https://www.endorlabs.com/), [Kodem](https://www.kodemsecurity.com/), and [Orca Security](https://orca.security/). To learn more, read the manifesto at [opengrep.dev](https://opengrep.dev/).
+Opengrep is initiated by a collective of AppSec organizations, including: Aikido.dev, Arnica, Amplify, Endor, Jit, Kodem, Mobb, and Orca Security. To join as a sponsor or contributor, open an [issue](https://github.com/opengrep/opengrep/issues). To learn more, read the manifesto at [opengrep.dev](https://opengrep.dev/). We aim to make SAST widely accessible, advance the engine with new impactful features, and ensure it remains open and vendor-neutral for the long-term.
 
-## Why Opengrep?
-
-Opengrep was created when Semgrep moved critical features behind a commercial licence. We believe advanced static analysis should remain open and accessible to all.
-
-**Key advantages:**
-- **Compatible with Semgrep rules** - your existing rules and rulesets work unchanged
-- **Standard outputs** - JSON and SARIF formats for easy integration
-- **Open governance** - contributions accepted on merit, not commercial interest
-- **Long-term assurance** - committed to open-source under LGPL 2.1
-
-## Key Improvements
-
-Opengrep has introduced significant improvements since the fork. Highlights include:
-
-**Superior Taint Analysis** (`--taint-intrafile`):
-- Constructor and field assignment tracking
-- Inter-method taint flow
-- Higher-order function support across 12 languages
-- Collection method tainting (map, filter, reduce, etc.)
-
-See the [Intrafile Tainting Tutorial](https://github.com/opengrep/opengrep/wiki/Intrafile-tainting-tutorial) and [Higher-Order Functions Tutorial](https://github.com/opengrep/opengrep/wiki/Higher-order-functions-tutorial) for details.
-
-**Language Support:**
-- **Visual Basic** - not available in Semgrep CE or Pro
-- **Apex, Elixir** - not in Semgrep CE
-- **Improved**: Clojure (tainting support), PHP 8.4, C# 14
-
-**Distribution:**
-- Self-contained binaries compiled from OCaml
-- Signed releases with Cosign
-
-See [OPENGREP.md](OPENGREP.md) for the full list of improvements since the fork.
+Opengrep is open to any individual or organization to leverage and contribute, [join the open roadmap sessions](https://lu.ma/opengrep).
 
 # Opengrep: Fast and Powerful Code Pattern Search
 
@@ -56,42 +25,28 @@ Opengrep is an ultra-fast static analysis tool for searching code patterns with 
 
 Opengrep supports 30+ languages, including:
 
-Apex · Bash · C · C++ · C# · Clojure · Crystal · Dart · Dockerfile · Elixir · Go · HTML · Java · JavaScript · JSON · Jsonnet · JSX · Julia · Kotlin · Lisp · Lua · OCaml · PHP · Python · R · Ruby · Rust · Scala · Scheme · Solidity · Swift · Terraform · TSX · TypeScript · Visual Basic · XML · YAML · Generic (ERB, Jinja, etc.)
+Apex · Bash · C · C++ · C# · Clojure · Dart · Dockerfile · Elixir · Go · HTML · Java · JavaScript · JSON · Jsonnet · JSX · Julia · Kotlin · Lisp · Lua · OCaml · PHP · Python · R · Ruby · Rust · Scala · Scheme · Solidity · Swift · Terraform · TSX · TypeScript · Visual Basic · XML · YAML · Generic (ERB, Jinja, etc.)
 
 ## Installation
 
-### Quick Install (Recommended)
+You can install Opengrep using our official install script.
 
-#### Linux / macOS
+### Quick Install (Recommended)
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/opengrep/opengrep/main/install.sh | bash
 ```
 
-Or if you've cloned the repo:
+If you've cloned the repo and `install.sh` is in the root directory, you can run:
 
 ```bash
 ./install.sh
 ```
 
-#### Windows (PowerShell)
+which will install the latest version of Opengrep.
 
-```powershell
-irm https://raw.githubusercontent.com/opengrep/opengrep/main/install.ps1 | iex
-```
-
-Or with a specific version:
-
-```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/opengrep/opengrep/main/install.ps1))) -Version v1.16.0
-```
-
-### Manual Install
-
-Binaries are available on the [releases page](https://github.com/opengrep/opengrep/releases).
-
-On Windows, the package holds `opengrep.exe` and the DLLs it needs; keep them
-together in the directory you install them to.
+You can also install manually:
+* Binaries available in the [release page](https://github.com/opengrep/opengrep/releases).
 
 ## Getting started
 
@@ -254,60 +209,8 @@ To obtain SARIF output:
 }
 ```
 
-## Log file
-
-Set `OPENGREP_LOG_FILE` (or `SEMGREP_LOG_FILE`) to a path to get a copy of
-what Opengrep prints on stderr, at the same level: warnings and errors by
-default, more with `--verbose` or `--debug`. The file is truncated on each
-run and its directory is created. Nothing is written when the variable is
-not set. A path that cannot be written produces a warning and the run
-continues without the copy.
-
-## Text report
-
-`--skin` selects the layout of the text report: `simple` (the default),
-`vivid`, or `legacy` (the layout of earlier releases). The `OPENGREP_SKIN`
-environment variable sets it too; `--skin` takes precedence over it.
-
-```sh
-opengrep scan --skin vivid -f rules code
-OPENGREP_SKIN=legacy opengrep scan -f rules code
-```
-
-While a scan runs on a terminal, a status line on stderr shows the phase of
-the scan and, once the targets are known, a progress count. It is not drawn
-when stderr is not a terminal, when `TERM` is unset, `dumb` or `unknown`,
-when `CI` is set to a value other than `false` or `0`, on Windows, with
-`--quiet`, `--verbose` or `--debug`, with `--incremental-output`, or with
-`--skin legacy`. `--no-progress-bar` turns it off.
-
-## Colour
-
-Colour is on when stderr is a terminal. `NO_COLOR` turns it off;
-`--force-color` turns it on.
-
-## Documentation
-
-- [Wiki](https://github.com/opengrep/opengrep/wiki) - tutorials and language guides
-- [Intrafile Tainting Tutorial](https://github.com/opengrep/opengrep/wiki/Intrafile-tainting-tutorial)
-- [Higher-Order Functions Tutorial](https://github.com/opengrep/opengrep/wiki/Higher-order-functions-tutorial)
-- [C# Support](https://github.com/opengrep/opengrep/wiki/Support-for-C%23) (C# 12/13/14)
-- [PHP Support](https://github.com/opengrep/opengrep/wiki/Support-for-Php) (PHP 7.1-8.4)
-- [Visual Basic Support](https://github.com/opengrep/opengrep/wiki/Support-for-Visual-Basic)
-
-## Community
-
-- [X / Twitter](https://x.com/opengrep)
-- [Reddit](https://www.reddit.com/r/opengrep)
-- [Manifesto](https://opengrep.dev/) - why we forked
-- [Open roadmap sessions](https://lu.ma/opengrep) - join the conversation
-
 ## More
 
 - [Contributing](CONTRIBUTING.md)
 - [Build instructions for developers](INSTALL.md)
 - [License (LGPL-2.1)](LICENSE)
-
----
-
-_Opengrep is a fork of Semgrep v1.100.0, created by Semgrep Inc. Opengrep is not affiliated with or endorsed by Semgrep Inc._

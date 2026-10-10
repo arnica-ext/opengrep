@@ -51,15 +51,11 @@ and invalid_rule_kind =
   | InvalidRegexp of string (* PCRE error message *)
   | DeprecatedFeature of string (* e.g., pattern-where-python: *)
   | MissingPositiveTermInAnd
-  | MisplacedNegation
   | IncompatibleRule of
       Semver_.t (* this version of Semgrep *)
       * (Semver_.t option (* minimum version supported by this rule *)
         * Semver_.t option (* maximum version *))
   | MissingPlugin of string (* error message *)
-  (* opengrep does not do supply-chain analysis; the string is the rule key
-   * asking for it *)
-  | UnsupportedSupplyChainRule of string
   | InvalidOther of string
 [@@deriving show]
 
@@ -69,8 +65,6 @@ type rules_and_invalid = rules * invalid_rule list
 type error_kind =
   | InvalidRule of invalid_rule
   (* we can't recover from those *)
-  (* the configuration could not be found; the message *)
-  | ConfigNotFound of string
   | InvalidYaml of string * Tok.t
   | DuplicateYamlKey of string * Tok.t
   | UnparsableYamlException of string
@@ -113,10 +107,7 @@ let augment_with_file (file : Fpath.t) (error : t) : t = { error with file }
 (*****************************************************************************)
 
 let string_of_invalid_rule_kind = function
-  | InvalidLanguage language ->
-      (* python: LanguageDefinition.resolve *)
-      spf "unsupported language: %s. supported languages are: %s" language
-        (Xlang.keys |> List.sort String.compare |> String.concat ", ")
+  | InvalidLanguage language -> spf "invalid language %s" language
   | InvalidRegexp message -> spf "invalid regex %s" message
   (* coupling: this is actually intercepted in
    * Semgrep_error_code.exn_to_error to generate a PatternParseError instead
@@ -130,8 +121,6 @@ let string_of_invalid_rule_kind = function
         (Xlang.to_string xlang) message pattern
   | MissingPositiveTermInAnd ->
       "you need at least one positive term (not just negations or conditions)"
-  | MisplacedNegation ->
-      "you can only negate directly inside `patterns:` or `all:`"
   | DeprecatedFeature s -> spf "deprecated feature: %s" s
   | IncompatibleRule (cur, (Some min_version, None)) ->
       spf "This rule requires upgrading Opengrep to a version compatible with \
@@ -155,11 +144,6 @@ let string_of_invalid_rule_kind = function
         (Semver.to_string cur)
   | IncompatibleRule (_, (None, None)) -> assert false
   | MissingPlugin msg -> msg
-  | UnsupportedSupplyChainRule key ->
-      spf
-        "Opengrep does not support supply-chain (dependency) rules: this rule \
-         matches on the project's dependencies with '%s'"
-        key
   | InvalidOther s -> s
 
 let string_of_invalid_rule ((kind, rule_id, pos) : invalid_rule) =
@@ -171,7 +155,6 @@ let string_of_invalid_rule ((kind, rule_id, pos) : invalid_rule) =
 let string_of_error (error : t) : string =
   match error.kind with
   | InvalidRule x -> string_of_invalid_rule x
-  | ConfigNotFound msg -> msg
   | InvalidYaml (msg, pos) ->
       spf "invalid YAML, %s: %s" (Tok.stringpos_of_tok pos) msg
   | DuplicateYamlKey (key, pos) ->
@@ -196,10 +179,8 @@ let is_skippable_error (kind : invalid_rule_kind) : bool =
   | InvalidRegexp _
   | DeprecatedFeature _
   | MissingPositiveTermInAnd
-  | MisplacedNegation
   | InvalidOther _ ->
       false
   | IncompatibleRule _
-  | MissingPlugin _
-  | UnsupportedSupplyChainRule _ ->
+  | MissingPlugin _ ->
       true

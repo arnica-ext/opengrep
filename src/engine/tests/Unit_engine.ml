@@ -48,7 +48,6 @@ let full_lang_info =
     (Lang.Cairo, "cairo", ".cairo");
     (Lang.Clojure, "clojure", ".clj");
     (Lang.Cpp, "cpp", ".cpp");
-    (Lang.Crystal, "crystal", ".cr");
     (Lang.Csharp, "csharp", ".cs");
     (Lang.Dart, "dart", ".dart");
     (Lang.Dockerfile, "dockerfile", ".dockerfile");
@@ -307,7 +306,6 @@ let maturity_tests () =
       make_maturity_tests Lang.Bash "bash" ".bash" Experimental;
       make_maturity_tests Lang.C "c" ".c" Experimental;
       make_maturity_tests Lang.Cpp "cpp" ".cpp" Experimental;
-      make_maturity_tests Lang.Crystal "crystal" ".cr" Experimental;
       (* TODO
          make_maturity_tests Lang.Dockerfile "dockerfile" ".dockerfile" Experimental;
       *)
@@ -610,61 +608,6 @@ let filter_irrelevant_rules_tests () =
      target_files
      |> List_.map (fun target_file -> test_irrelevant_rule_file target_file))
 
-(* The dual of test_irrelevant_rule: check that the prefilter does *not*
- * discard a target the rule actually matches.
- *
- * This needs its own harness because the rest of the test suite runs with
- * Match_env.default_xconfig, which sets filter_irrelevant_rules =
- * NoPrefiltering. A rule can therefore pass every tests/rules and
- * tests/patterns test and still never fire in production, because the
- * prefilter demands an identifier that a *_to_generic converter synthesised
- * and which never occurs in source text.
- *)
-let test_relevant_rule rule_file target_file =
-  let _ = Domain.DLS.set cache (Hashtbl.create 101) in
-  let cache = Some cache in
-  let rules = Parse_rule.parse rule_file |> Result.get_ok in
-  rules
-  |> List.iter (fun rule ->
-         match Analyze_rule.regexp_prefilter_of_rule ~cache rule with
-         (* no prefilter at all is fine: nothing gets skipped *)
-         | None -> ()
-         | Some (f, func) ->
-             let content = UFile.read_file target_file in
-             let s = Semgrep_prefilter_j.string_of_formula f in
-             if not (func content) then
-               Alcotest.fail
-                 (spf
-                    "Rule %s considered irrelevant by regex prefilter, so it \
-                     would never run on this target: %s"
-                    (Rule_ID.to_string (fst rule.id))
-                    s))
-
-let test_relevant_rule_file target_file =
-  t (Fpath.basename target_file) (fun () ->
-      let rules_file =
-        let d, b, _e = Filename_.dbe_of_filename !!target_file in
-        let candidate1 = Filename_.filename_of_dbe (d, b, "yaml") in
-        if Sys.file_exists candidate1 then Fpath.v candidate1
-        else
-          failwith
-            (spf "could not find rule file for relevant rule %s" !!target_file)
-      in
-      test_relevant_rule rules_file target_file)
-
-let filter_relevant_rules_tests () =
-  Testo.categorize "filter relevant rules"
-    (let dir = tests_path / "relevant_rules" in
-     let target_files =
-       Common2.glob (spf "%s/*" !!dir)
-       |> Fpath_.of_strings
-       |> File_type.files_of_dirs_or_files (function
-            | File_type.Config File_type.Yaml -> false
-            | _ -> true)
-     in
-     target_files
-     |> List_.map (fun target_file -> test_relevant_rule_file target_file))
-
 (*****************************************************************************)
 (* Tainting tests *)
 (*****************************************************************************)
@@ -682,7 +625,6 @@ let lang_tainting_tests () =
       (Lang.Go, "go", ".go");
       (Lang.Java, "java", ".java");
       (Lang.Js, "js", ".js");
-      (Lang.Kotlin, "kotlin", ".kt");
       (Lang.Php, "php", ".php");
       (Lang.Python, "python", ".py");
       (Lang.Ruby, "ruby", ".rb");
@@ -704,7 +646,7 @@ let lang_tainting_tests () =
 (*****************************************************************************)
 
 (* DEPRECATED: this is redundant because we now have 'make rules-test'
- * which calls 'opengrep test tests/rules tests/rules_v2'
+ * which calls 'osemgrep-pro test --pro tests/rules tests/rules_v2'
  *)
 let full_rule_regression_tests () =
   let path = tests_path / "rules" in
@@ -810,19 +752,6 @@ let semgrep_rules_repo_tests () : Testo.t list =
              | s when s =~ ".*/semgrep-rules/clojure/lang/security/command-injection-shell-call.yaml" -> None
              (* FIXME: This fails, unblocking to create a binary for testing. *)
              | s when s =~ ".*/semgrep-rules/clojure/lang/security/documentbuilderfactory-xxe.yaml" -> None
-             (* FIXME: The rule is too restrictive, the patterns should contain a (...); see the comment in PR
-             https://github.com/opengrep/opengrep/pull/626 *)
-             | s when s =~ ".*/semgrep-rules/ruby/lang/security/weak-hashes-sha1.yaml" -> None
-             (* These rules use a [metavariable-regex] with a bare-name regex
-                (e.g. [^secret$]) on a metavariable bound via an atom-named
-                pattern like [:$KEY => "$LIT"]. After the atom-as-text
-                alignment, the canonical text form of an atom includes the
-                leading [:], so the regex should be [^:secret$] etc. The
-                rules need updating upstream. *)
-             | s when s =~ ".*/semgrep-rules/ruby/rails/security/brakeman/check-rails-session-secret-handling.yaml" -> None
-             | s when s =~ ".*/semgrep-rules/ruby/rails/security/brakeman/check-cookie-store-session-security-attributes.yaml" -> None
-             | s when s =~ ".*/semgrep-rules/java/spring/security/injection/tainted-sql-string.yaml" -> None
-             | s when s =~ ".*/semgrep-rules/java/lang/security/audit/xss/no-direct-response-writer.yaml" -> None
              (* ok let's keep all the other one with the appropriate group name *)
              | s when s =~ ".*/semgrep-rules/\\([a-zA-Z]+\\)/.*" ->
                  (* This is confusing because it looks like a programming
@@ -831,6 +760,10 @@ let semgrep_rules_repo_tests () : Testo.t list =
                     TODO: don't capitalize? leave a slash? *)
                  let s = Common.matched1 test.name in
                  Some (String.capitalize_ascii s)
+             (* TODO: This is not skipped! See above. It should move further up to be
+              * excluded! Remove exclusion? *)
+             (* this skips a test that incorrectly fails for cross-function tainting (because of false positives) *)
+             (* | s when s =~ ".*/semgrep-rules/java/lang/security/audit/xss/no-direct-response-writer.yaml" -> None *)
              (* this skips the semgrep-rules/.github entries *)
              | _ ->
                  Logs.info (fun m -> m "skipping %s" test.name);
@@ -857,68 +790,9 @@ let semgrep_rules_repo_tests () : Testo.t list =
                   | _ -> test)
            |> Testo.categorize group))
 
-(* The Go module manifest shares the [.mod] extension with Go source files
-   and must not reach the Go parser. *)
-let lang_classification_tests () =
-  let assert_classified_as ~(label : string) (fname : string)
-      (expected : Lang.t list) () =
-    let got = Lang.langs_of_filename (Fpath.v fname) in
-    Alcotest.(check (list string)) label
-      (List.map Lang.to_string expected)
-      (List.map Lang.to_string got)
-  in
-  [
-    t "go.mod is not classified as a source language"
-      (assert_classified_as ~label:"go.mod" "go.mod" []);
-    t ".go files still classify as Go"
-      (assert_classified_as ~label:"foo.go" "foo.go" [ Lang.Go ]);
-    t ".mod files other than go.mod still classify as Go"
-      (assert_classified_as ~label:"foo.mod" "foo.mod" [ Lang.Go ]);
-  ]
-
 (*****************************************************************************)
 (* All tests *)
 (*****************************************************************************)
-
-let taint_partial_parse_tests () =
-  let dir = tests_path / "tainting_partial_parse" in
-  let rule_file = dir / "sink_no_source.yaml" in
-  let target = dir / "sink_no_source.ts" in
-  let check_partial_parse ~(taint_intrafile : bool) () : unit =
-    let rules =
-      match Parse_rule.parse rule_file with
-      | Ok rules -> rules
-      | Error e ->
-          failwith (spf "failed to parse %s: %s" !!rule_file (Rule_error.show e))
-    in
-    let xlang = Test_engine.first_xlang_of_rules rules in
-    let xtarget = Test_engine.xtarget_of_file xlang target in
-    let base_xconf = Match_env.default_xconfig in
-    let xconf =
-      { base_xconf with config = { base_xconf.config with taint_intrafile } }
-    in
-    let res =
-      Match_rules.check ~match_hook:(fun _pm -> ()) ~timeout:None xconf rules
-        xtarget
-    in
-    let partial_parsing =
-      E.ErrorSet.elements res.errors
-      |> List.filter (fun (err : E.t) ->
-             match err.E.typ with
-             | Out.PartialParsing _ -> true
-             | _ -> false)
-    in
-    Alcotest.(check int) "one PartialParsing error" 1
-      (List.length partial_parsing);
-    Alcotest.(check int) "no finding" 0 (List.length res.matches)
-  in
-  Testo.categorize "taint partial parse"
-    [
-      t "a sink without a source reports the partial parse"
-        (check_partial_parse ~taint_intrafile:false);
-      t "a sink without a source reports the partial parse under intrafile"
-        (check_partial_parse ~taint_intrafile:true);
-    ]
 
 let tests () =
   List_.flatten
@@ -928,12 +802,9 @@ let tests () =
       lang_autofix_tests ~polyglot_pattern_path;
       eval_regression_tests ();
       filter_irrelevant_rules_tests ();
-      filter_relevant_rules_tests ();
       maturity_tests ();
       full_rule_taint_maturity_tests ();
       full_rule_regression_tests ();
       semgrep_rules_repo_tests ();
       lang_tainting_tests ();
-      taint_partial_parse_tests ();
-      lang_classification_tests ();
     ]

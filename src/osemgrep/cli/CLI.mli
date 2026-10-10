@@ -14,7 +14,7 @@ type caps =
   ; Cap.memory_limit >
 
 (*
-   Parse the opengrep command line, run the requested subcommand, and return
+   Parse the semgrep command line, run the requested subcommand, and return
    an exit status.
 
    If called as a standalone program, the 'exit' function should be called
@@ -25,3 +25,6 @@ type caps =
    (unless you used --debug).
 *)
 val main : caps -> string array -> Exit_code.t
+
+(* set in semgrep-pro *)
+val hook_semgrep_interactive : (string array -> Exit_code.t) ref

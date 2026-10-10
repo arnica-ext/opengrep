@@ -4,5 +4,5 @@ if True:
     b = sanitize1()
 else:
     b = a
-#ok: tainting
+#ruleid: tainting
 sink1(b)

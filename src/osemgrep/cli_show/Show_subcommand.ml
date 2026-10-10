@@ -20,9 +20,8 @@ module G = AST_generic
 (*****************************************************************************)
 (* Types *)
 (*****************************************************************************)
-(* we need the network for the 'semgrep show identity/deployment', and
-   fork for the projidx build behind 'show interfile-graph' *)
-type caps = < Cap.stdout ; Cap.network ; Cap.tmp ; Cap.fork >
+(* we need the network for the 'semgrep show identity/deployment' *)
+type caps = < Cap.stdout ; Cap.network ; Cap.tmp >
 
 (*****************************************************************************)
 (* Helpers *)
@@ -174,34 +173,6 @@ let run_conf (caps : < caps ; .. >) (conf : Show_CLI.conf) : Exit_code.t =
         in
         Visit_function_defs.visit report_func_def_with_name ast;
       Exit_code.ok ~__LOC__
-  | DumpILPP (file, lang) ->
-      let parse = Parse_target.parse_and_resolve_name lang file in
-      let ast = parse.Parsing_result2.ast in
-      let xs = AST_to_IL.stmt lang (AST_generic.stmt1 ast) in
-      print "// === Toplevel ===";
-      (match xs with
-      | [] -> print "// (none)"
-      | _ -> print (IL_pp.pp_stmts xs));
-      let report_func_def_with_name ent_opt fdef =
-        let name =
-          match ent_opt with
-          | None -> "<lambda>"
-          | Some { G.name = EN n; _ } -> (
-              match n with
-              | G.Id ((s, _), _) -> s
-              | G.IdQualified { name_last = ((s, _), _); _ } -> s)
-          | Some _ -> "<entity>"
-        in
-        (* Creating a CFG and throwing it away here so the implicit return
-         * analysis pass may be run in order to mark implicit return nodes.
-         *)
-        let _ = CFG_build.cfg_of_gfdef lang fdef in
-        let il_fdef = AST_to_IL.function_definition lang fdef in
-        print "";
-        print (IL_pp.pp_function_definition ~name il_fdef)
-      in
-      Visit_function_defs.visit report_func_def_with_name ast;
-      Exit_code.ok ~__LOC__
   | DumpConfig config_str ->
       let in_docker = !Semgrep_envvars.v.in_docker in
       let config = Rules_config.parse_config_string ~in_docker config_str in
@@ -237,121 +208,9 @@ let run_conf (caps : < caps ; .. >) (conf : Show_CLI.conf) : Exit_code.t =
   | DumpPatternsOfRule file ->
       Core_CLI.dump_patterns_of_rule file;
       Exit_code.ok ~__LOC__
-  | DumpIntrafileGraph (file, lang) ->
-      let ast = Parse_target.parse_and_resolve_name_warn_if_partial lang file in
-      let graph = Graph_from_AST.build_call_graph ~lang ast in
-      Call_graph.Dot.output_graph stdout graph;
-      Exit_code.ok ~__LOC__
-  | DumpInterfileGraph (project_root, lang) ->
-      (* Standalone [opengrep show] doesn't carry the user's scan
-         [Find_targets.conf]; use projidx's standalone default. *)
-      let targeting_conf =
-        Opengrep_project_index.Discover.projidx_default_targeting_conf
-      in
-      (match
-         Interfile_graph.load_interfile_graph (caps :> < Cap.fork >)
-           ~targeting_conf lang project_root
-       with
-       | None ->
-         Error.abort
-           (spf "failed to build interfile graph for %s in %s"
-              (Lang.to_string lang) (Fpath.to_string project_root))
-       | Some g ->
-         print (spf "Interfile graph: %d vertices, %d edges"
-           (Call_graph.G.nb_vertex g) (Call_graph.G.nb_edges g));
-         print "Vertices:";
-         Call_graph.G.iter_vertex (fun v ->
-           print (spf "  %s" (Function_id.show_debug v))
-         ) g;
-         print "Edges (callee <- caller @ call_site, kind):";
-         Call_graph.G.iter_edges_e (fun edge ->
-           let src = Call_graph.G.E.src edge in
-           let dst = Call_graph.G.E.dst edge in
-           let label = Call_graph.G.E.label edge in
-           let cs = label.Call_graph.call_site in
-           let kind = match label.Call_graph.kind with
-             | Call_graph.Call -> "Call"
-             | Call_graph.Dispatch -> "Dispatch"
-           in
-           print (spf "  %s <- %s @ %s:%d:%d  [%s]"
-             (Function_id.show_debug src)
-             (Function_id.show_debug dst)
-             (Fpath.to_string cs.Pos.file) cs.Pos.line cs.Pos.column kind)
-         ) g);
-      Exit_code.ok ~__LOC__
-  | DumpTaintSignatures (rule_file, target_file) ->
-      let lang = Lang.lang_of_filename_exn target_file in
-      let rules =
-        match Parse_rule.parse rule_file with
-        | Ok rules -> rules
-        | Error e ->
-            Error.abort
-              (Common.spf "Failed to parse rule file %s: %s"
-                 (Fpath.to_string rule_file)
-                 (Rule_error.string_of_error e))
-      in
-      let has_disabled_intrafile (r: Rule.t) =
-        match r.Rule.options with
-        | Some {taint_intrafile = false; _} -> true
-        | _ -> false
-      in
-      let applicable_rules, non_applicable_rules =
-        rules
-        |> List.partition (fun r ->
-               match r.Rule.target_analyzer with
-               | Xlang.L (x, xs) when not (has_disabled_intrafile r) ->
-                 List.mem lang (x :: xs)
-               | _ -> false)
-      in
-      let _search_rules, taint_rules, _extract_rules, _join_rules =
-        Rule.partition_rules applicable_rules
-      in
-      let num_non_applicable = List.length non_applicable_rules in
-      if num_non_applicable > 0 then
-        print
-          (spf
-             "%d rule(s) were not applicable (check target_analyzer field \
-              and taint_intrafile rule option)"
-             num_non_applicable);
-      (match taint_rules with
-      | [] ->
-          print "No applicable taint rules found";
-          Exit_code.ok ~__LOC__
-      | _ ->
-        List.iter
-          (fun rule ->
-            (* This loop calls [check_rule] directly, bypassing the
-             * [reset_intern] in [check_rules]: clear the guard-atom intern
-             * table per rule so canonical atoms never leak across rules. *)
-            Effect_guard.reset_intern ();
-            let xconf = Match_env.default_xconfig in
-            let xconf = { xconf with config = { xconf.config with taint_intrafile = true; effect_guards = true } } in
-            let xconf = Match_env.adjust_xconfig_with_rule_options xconf rule.Rule.options in
-            let tbl = Formula_cache.mk_specialized_formula_cache [] in
-            let xlang = Xlang.L (lang, []) in
-            let parser xlang file =
-              let { Parsing_result2.ast; skipped_tokens; _ } =
-                Parse_target.parse_and_resolve_name xlang file
-              in
-              (ast, skipped_tokens)
-            in
-            let xtarget =
-              Xtarget.resolve parser (Target.mk_regular xlang Product.all (File target_file))
-            in
-            let _report, signature_db_opt =
-              Match_tainting_mode.check_rule tbl rule Fun.id xconf xtarget
-            in
-            begin match signature_db_opt with
-            | None ->
-                print (spf "Could not obtain taint signatures for rule %s:\n"
-                         (Rule_ID.to_string (fst rule.Rule.id)));
-            | Some signature_db ->
-                print (spf "Taint signatures for rule %s:\n"
-                         (Rule_ID.to_string (fst rule.Rule.id)));
-                print (Shape_and_sig.show_signature_database signature_db)
-            end)
-          taint_rules;
-        Exit_code.ok ~__LOC__)
+  | DumpEnginePath _pro -> failwith "TODO: dump-engine-path not implemented yet"
+  | DumpCommandForCore ->
+      failwith "TODO: dump-command-for-core not implemented yet"
 
 (*****************************************************************************)
 (* Entry point *)

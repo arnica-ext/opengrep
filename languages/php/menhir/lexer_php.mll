@@ -41,28 +41,14 @@ exception Lexical of string
 let error s =
   if !Flag_php.strict_lexer
   then raise (Lexical s)
-  else Log_parser_php.Log.debug (fun m -> m "LEXER: %s" s)
+  else
+    if Domain.DLS.get Flag.verbose_lexing
+    then UCommon.pr2 ("LEXER: " ^ s)
 
 (* pad: hack around ocamllex to emulate the yyless() of flex. The semantic
  * is not exactly the same than yyless(), so I use yyback() instead.
  * http://my.safaribooksonline.com/book/programming/flex/9780596805418/a-reference-for-flex-specifications/yyless
  *)
-(* the offset at which the body rule of a heredoc would stop, i.e. the first
- * character that starts an interpolation or an escape *)
-let heredoc_text_len s =
-  let n = String.length s in
-  let rec aux i =
-    if i >= n then n
-    else
-      match s.[i] with
-      | '$'
-      | '{'
-      | '\\' ->
-          i
-      | _ -> aux (i + 1)
-  in
-  aux 0
-
 let yyback n lexbuf =
   lexbuf.Lexing.lex_curr_pos <- lexbuf.Lexing.lex_curr_pos - n;
   let currp = lexbuf.Lexing.lex_curr_p in
@@ -213,6 +199,7 @@ let keyword_table = Hashtbl_.hash_of_list [
 
   (* recent PHP extensions (some were php-facebook-ext: before) *)
   "yield", (fun ii -> T_YIELD ii);
+  "from", (fun ii -> T_FROM ii);
 
   (* old: "__halt_compiler", (fun ii -> T_HALT_COMPILER ii); *)
 
@@ -292,26 +279,13 @@ type state = {
    * Used for XHP.
    *)
   pending_tokens: Parser_php.token list ref;
-  (* whether the next token of a heredoc body starts a line, which is the
-   * only place its closing marker can be *)
-  at_line_start: bool ref;
 }
-
-(* whether the next token starts a line, which is where a heredoc's closing
- * marker must be. Set from the text just read, since a rule may take a
- * newline with it, as '\\' does when it escapes one.
- *)
-let set_bol state str =
-  let n = String.length str in
-  state.at_line_start :=
-    n > 0 && (Char.equal str.[n - 1] '\n' || Char.equal str.[n - 1] '\r')
 
 let create () = {
   mode = ref [default_state];
   last_non_whitespace_like_token = ref None;
   (* todo: now that I have yyback, maybe I should revisit this code. *)
   pending_tokens = ref [];
-  at_line_start = ref false;
 }
 
 let current_mode state =
@@ -386,28 +360,14 @@ let WHITESPACE = [' ' '\n' '\r' '\t']+
 let TABS_AND_SPACES = [' ''\t']*
 let NEWLINE = ("\r"|"\n"|"\r\n")
 let WHITESPACEOPT = [' ' '\n' '\r' '\t']*
-(* PHP identifiers are byte-based: any byte in 0x80-0xff is a valid identifier
- * character, which is how PHP supports non-ASCII (e.g. UTF-8) identifiers.
- * This mirrors the LABEL definition in Zend's zend_language_scanner.l. *)
-let LABEL_CHAR = ['a'-'z''A'-'Z''0'-'9''_''\128'-'\255']
-let LABEL =	['a'-'z''A'-'Z''_''\128'-'\255'] LABEL_CHAR*
+let LABEL =	['a'-'z''A'-'Z''_']['a'-'z''A'-'Z''0'-'9''_']*
 let BOOL = (['T''t']['R''r']['U''u']['E''e']) | (['F''f']['A''a']['L''l']['S''s']['E''e'])
-(* case-insensitive like every keyword, but needed as regexps because
- * 'yield from' is recognised in a single match *)
-let YIELD = ['Y''y']['I''i']['E''e']['L''l']['D''d']
-let FROM = ['F''f']['R''r']['O''o']['M''m']
-(* the '_' of a numeric literal separator only ever sits between two digits,
- * as in '1_000' or '0x1_C'; leading, trailing and doubled ones are not
- * numbers. coupling: LNUM..ONUM in Zend's zend_language_scanner.l
- *)
-let LNUM =	['0'-'9']+ ('_' ['0'-'9']+)*
-let DNUM =	(LNUM? ['.'] LNUM) | (LNUM ['.'] LNUM?)
+let LNUM =	['0'-'9']+
+let DNUM =	(['0'-'9']*['.']['0'-'9']+) | (['0'-'9']+['.']['0'-'9']* )
 
 let EXPONENT_DNUM =	((LNUM|DNUM)['e''E']['+''-']?LNUM)
-let HEXNUM =	("0x" | "0X")['0'-'9''a'-'f''A'-'F']+ ('_' ['0'-'9''a'-'f''A'-'F']+)*
-let BINNUM =	("0b" | "0B")['0'-'1']+ ('_' ['0'-'1']+)*
-(* PHP 8.1 explicit octal; the legacy '017' form is an LNUM *)
-let OCTNUM =	("0o" | "0O")['0'-'7']+ ('_' ['0'-'7']+)*
+let HEXNUM =	("0x" | "0X")['0'-'9''a'-'f''A'-'F']+
+let BINNUM =	"0b"['0'-'1']+
 (*/*
  * LITERAL_DOLLAR matches unescaped $ that aren't followed by a label character
  * or a { and therefore will be taken literally. The case of literal $ before
@@ -417,9 +377,9 @@ let OCTNUM =	("0o" | "0O")['0'-'7']+ ('_' ['0'-'7']+)*
  */
  *)
 let DOUBLE_QUOTES_LITERAL_DOLLAR =
-  ("$"+([^'a'-'z''A'-'Z''_''\128'-'\255''$''"''\\' '{']|('\\' ANY_CHAR)))
+  ("$"+([^'a'-'z''A'-'Z''_''$''"''\\' '{']|('\\' ANY_CHAR)))
 let BACKQUOTE_LITERAL_DOLLAR =
-  ("$"+([^'a'-'z''A'-'Z''_''\128'-'\255''$''`''\\' '{']|('\\' ANY_CHAR)))
+  ("$"+([^'a'-'z''A'-'Z''_''$''`''\\' '{']|('\\' ANY_CHAR)))
 (*/*
  * CHARS matches everything up to a variable or "{$"
  * {'s are matched as long as they aren't followed by a $
@@ -492,8 +452,6 @@ rule st_in_scripting state = parse
       | "<<=" { T_SL_EQUAL(tokinfo lexbuf) }
       | ">>=" { T_SR_EQUAL(tokinfo lexbuf) }
       | ".="  { T_CONCAT_EQUAL(tokinfo lexbuf) }
-      | "**=" { T_POW_EQUAL(tokinfo lexbuf) }
-      | "??=" { T_NULL_COALESCE_EQUAL(tokinfo lexbuf) }
 
       | "=="  { T_IS_EQUAL(tokinfo lexbuf) }
       | "!="  { T_IS_NOT_EQUAL(tokinfo lexbuf) }
@@ -514,8 +472,6 @@ rule st_in_scripting state = parse
       | "<<" { T_SL(tokinfo lexbuf) }
       | ">>" { T_SR(tokinfo lexbuf) }
       | "&"  { TAND(tokinfo lexbuf) }
-      (* PHP 8.5 pipe operator; must not be lexed as '|' followed by '>' *)
-      | "|>" { T_PIPE_GT(tokinfo lexbuf) }
       | "|"  { TOR(tokinfo lexbuf) }
       | "^"  { TXOR(tokinfo lexbuf) }
 
@@ -544,34 +500,6 @@ rule st_in_scripting state = parse
     | "~"  { TTILDE(tokinfo lexbuf) }
     | ";"  { TSEMICOLON(tokinfo lexbuf) }
     | "!"  { TBANG(tokinfo lexbuf) }
-    (* The same treatment as '->' above: after '::' a word is a member name,
-     * so it must not be read as a keyword. Only a name can be matched here,
-     * as the '$' of 'C::$p' and the '{' of 'C::{$n}' are not label
-     * characters. 'class' keeps its own token, 'C::class' being a construct
-     * of its own.
-     * coupling: identifier in Zend's zend_language_parser.y, which is a
-     * T_STRING or any semi-reserved word
-     *)
-    | "::" (WHITESPACEOPT as white) (LABEL as label) {
-        let info = tokinfo lexbuf in
-        let syminfo = Tok.rewrap_str "::" info in
-
-        let file = Tok.file_of_tok info in
-        let parse_info = Tok.unsafe_loc_of_tok info in
-        let pos_after_sym = parse_info.Tok.pos.bytepos + 2 in
-        let pos_after_white = pos_after_sym + String.length white in
-
-        let whiteinfo = tokinfo_file_str_pos file white pos_after_sym in
-        let lblinfo = tokinfo_file_str_pos file label pos_after_white in
-
-        push_token state
-          (if String.equal (String.lowercase_ascii label) "class"
-           then T_CLASS lblinfo
-           else T_IDENT (case_str label, lblinfo));
-        push_token state (TSpaces whiteinfo);
-
-        TCOLCOL syminfo
-      }
     | "::" { TCOLCOL (tokinfo lexbuf) } (* was called T_PAAMAYIM_NEKUDOTAYIM *)
     | "\\" { TANTISLASH (tokinfo lexbuf) } (* was called T_NS_SEPARATOR *)
 
@@ -647,31 +575,14 @@ rule st_in_scripting state = parse
         {
           let s = tok lexbuf in
           let ii = tokinfo lexbuf in
-          (* BOOL above matches any casing, as PHP is case-insensitive here,
-           * but bool_of_string only accepts "true" and "false" *)
-          T_BOOL (bool_of_string (String.lowercase_ascii s), ii)
+          T_BOOL (bool_of_string s, ii)
         }
-    | LNUM | BINNUM | HEXNUM | OCTNUM
+    | LNUM | BINNUM | HEXNUM
         {
           (* more? cf original lexer *)
           let s = tok lexbuf in
           let ii = tokinfo lexbuf in
-          (* separators carry no value, so drop them before reading the
-           * number. A leading '0' then means base 8, as in '017' = 15; the
-           * 0x, 0b and 0o forms name their base in the prefix instead.
-           * coupling: the {LNUM} action in Zend's zend_language_scanner.l
-           *)
-          let digits = String.concat "" (String.split_on_char '_' s) in
-          let is_c_octal =
-            String.length digits > 1
-            && Char.equal digits.[0] '0'
-            && match digits.[1] with
-               | 'x' | 'X' | 'b' | 'B' | 'o' | 'O' -> false
-               | _ -> true
-          in
-          T_LNUMBER
-            (if is_c_octal then Parsed_int.parse_c_octal (digits, ii)
-             else Parsed_int.parse (digits, ii))
+          T_LNUMBER (Parsed_int.parse (s, ii))
         }
     | DNUM | EXPONENT_DNUM
         { T_DNUMBER(float_of_string_opt ( tok lexbuf), tokinfo lexbuf) }
@@ -698,35 +609,6 @@ rule st_in_scripting state = parse
      * but this is also ugly.
      *)
     | "async" { T_ASYNC (tokinfo lexbuf) }
-
-    (* 'from' is a reserved word only right after 'yield', so it is read here
-     * rather than in keyword_table. Zend has a single T_YIELD_FROM token for
-     * the pair; the grammar here wants two, and the trailing label characters
-     * are part of the match so that the 'from' of 'yield fromage' stays an
-     * identifier.
-     * coupling: the "yield"{WHITESPACE}"from" rule in Zend's
-     * zend_language_scanner.l
-     *)
-    | (YIELD as kwd) (WHITESPACE as white) ((FROM LABEL_CHAR*) as label) {
-        let info = tokinfo lexbuf in
-        let kwdinfo = Tok.rewrap_str kwd info in
-
-        let file = Tok.file_of_tok info in
-        let parse_info = Tok.unsafe_loc_of_tok info in
-        let pos_after_kwd = parse_info.Tok.pos.bytepos + String.length kwd in
-        let pos_after_white = pos_after_kwd + String.length white in
-
-        let whiteinfo = tokinfo_file_str_pos file white pos_after_kwd in
-        let lblinfo = tokinfo_file_str_pos file label pos_after_white in
-
-        push_token state
-          (if String.equal (String.lowercase_ascii label) "from"
-           then T_FROM lblinfo
-           else T_IDENT (case_str label, lblinfo));
-        push_token state (TSpaces whiteinfo);
-
-        T_YIELD kwdinfo
-      }
 
     | LABEL
         { let info = tokinfo lexbuf in
@@ -809,13 +691,11 @@ rule st_in_scripting state = parse
       }
     | 'b'? "<<<" TABS_AND_SPACES (LABEL as s) NEWLINE {
         set_mode state (ST_START_HEREDOC s);
-        set_bol state (tok lexbuf);
         T_START_HEREDOC (tokinfo lexbuf)
       }
 
     | 'b'? "<<<" TABS_AND_SPACES "'" (LABEL as s) "'" NEWLINE {
         set_mode state (ST_START_NOWDOC s);
-        set_bol state (tok lexbuf);
         (* could use another token, but simpler to reuse *)
         T_START_HEREDOC (tokinfo lexbuf)
       }
@@ -866,10 +746,6 @@ rule st_in_scripting state = parse
 
     | "(" TABS_AND_SPACES ("unset") TABS_AND_SPACES ")"
         { lang_ext_or_cast state (T_UNSET_CAST(tokinfo lexbuf)) lexbuf }
-
-    (* PHP 8.5 *)
-    | "(" TABS_AND_SPACES "void" TABS_AND_SPACES ")"
-        { lang_ext_or_cast state (T_VOID_CAST(tokinfo lexbuf)) lexbuf }
     | "?>"
         {
           (* because of XHP and my token merger:
@@ -998,7 +874,7 @@ and st_looking_for_varname state = parse
 (*****************************************************************************)
 and st_var_offset state = parse
 
-  | LNUM | HEXNUM | BINNUM | OCTNUM { (* /* Offset must be treated as a string */ *)
+  | LNUM | HEXNUM | BINNUM { (* /* Offset must be treated as a string */ *)
     T_NUM_STRING (tok lexbuf, tokinfo lexbuf)
   }
 
@@ -1123,58 +999,40 @@ and st_backquote state = parse
  *)
 and st_start_heredoc state stopdoc = parse
 
-  (* The closing marker may be indented and may be followed by anything, not
-   * only by ';' and a newline (PHP 7.3). Matching the rest of the line makes
-   * this the longest match for any line starting with a name, so the label
-   * can be compared against the one that opened the document; whatever
-   * follows it is put back either way, to be read as code after the marker
-   * or as the rest of the body after a name that is not the marker.
-   * coupling: the {LABEL} rules of ST_END_HEREDOC in Zend's
-   * zend_language_scanner.l
-   *)
-  | ([' ' '\t']* as ws) (LABEL as s) ([^ '\n' '\r']* as rest) {
+  | (LABEL as s) (";"? as semi) (['\n' '\r'] as space) {
       let info = tokinfo lexbuf in
+
+      let lbl_info = Tok.rewrap_str s info in
+
       let file = Tok.file_of_tok info in
       let pos = Tok.bytepos_of_tok info in
-      (* only a line of its own can hold the marker: coming back from an
-       * interpolation leaves the cursor inside a line, where a name equal to
-       * the marker is body text, as in 'hello {$name} EOT more' *)
-      let at_line_start = !(state.at_line_start) in
-      set_bol state (tok lexbuf);
-      if s = stopdoc && at_line_start
+      let pos_after_label = pos + String.length s in
+      let pos_after_semi = pos_after_label + String.length semi in
+
+      let colon_info =
+        tokinfo_file_str_pos file semi pos_after_label in
+      let space_info =
+        tokinfo_file_str_pos file (Common2.string_of_char space) pos_after_semi in
+
+      if s = stopdoc
       then begin
-        (* give back what follows the marker, to be read as code *)
-        yyback (String.length rest) lexbuf;
         set_mode state ST_IN_SCRIPTING;
-        T_END_HEREDOC (tokinfo_file_str_pos file s (pos + String.length ws))
-      end
-      else begin
-        (* not the marker, so give back only what the body rule below would
-         * not have taken, and hand over the same text it would have *)
-        let taken = heredoc_text_len rest in
-        yyback (String.length rest - taken) lexbuf;
-        let text = ws ^ s ^ String.sub rest 0 taken in
-        T_ENCAPSED_AND_WHITESPACE (text, Tok.rewrap_str text info)
-      end
+        push_token state (TNewline space_info);
+        if semi = ";"
+        then push_token state (TSEMICOLON colon_info);
+
+        T_END_HEREDOC(lbl_info)
+      end else
+        T_ENCAPSED_AND_WHITESPACE(tok lexbuf, tokinfo lexbuf)
     }
 
   | [^ '\n' '\r' '$' '{' '\\']+ {
-      set_bol state (tok lexbuf); T_ENCAPSED_AND_WHITESPACE(tok lexbuf, tokinfo lexbuf)
+      T_ENCAPSED_AND_WHITESPACE(tok lexbuf, tokinfo lexbuf)
     }
-  (* a backslash before a line break is not an escape in PHP, which keeps the
-   * backslash and the break. Reading them apart leaves the line boundary
-   * standing, which is what the marker's indentation is taken off.
-   *)
-  | "\\" ['\n' '\r'] {
-      yyback 1 lexbuf;
-      set_bol state "\\";
-      T_ENCAPSED_AND_WHITESPACE ("\\", Tok.rewrap_str "\\" (tokinfo lexbuf))
-    }
-  | "\\" ANY_CHAR { set_bol state (tok lexbuf); T_ENCAPSED_AND_WHITESPACE (tok lexbuf, tokinfo lexbuf) }
+  | "\\" ANY_CHAR { T_ENCAPSED_AND_WHITESPACE (tok lexbuf, tokinfo lexbuf) }
 
-    | "$" (LABEL as s)     { set_bol state (tok lexbuf); t_variable_or_metavar s (tokinfo lexbuf) }
+    | "$" (LABEL as s)     { t_variable_or_metavar s (tokinfo lexbuf) }
     | "$" (LABEL as s) "[" {
-          set_bol state (tok lexbuf);
           let info = tokinfo lexbuf in
 
           let file = Tok.file_of_tok info in
@@ -1188,19 +1046,17 @@ and st_start_heredoc state stopdoc = parse
           T_VARIABLE(case_str s, varinfo)
       }
     (* bugfix: can have strings like "$$foo$", or {{$foo}} *)
-    | "$" { set_bol state (tok lexbuf); T_ENCAPSED_AND_WHITESPACE(tok lexbuf, tokinfo lexbuf) }
-    | "{" { set_bol state (tok lexbuf); T_ENCAPSED_AND_WHITESPACE(tok lexbuf, tokinfo lexbuf) }
+    | "$" { T_ENCAPSED_AND_WHITESPACE(tok lexbuf, tokinfo lexbuf) }
+    | "{" { T_ENCAPSED_AND_WHITESPACE(tok lexbuf, tokinfo lexbuf) }
 
-  | ['\n' '\r'] { set_bol state (tok lexbuf); TNewline (tokinfo lexbuf) }
+  | ['\n' '\r'] { TNewline (tokinfo lexbuf) }
 
     | "{$" {
-        set_bol state (tok lexbuf);
         yyback 1 lexbuf;
         push_mode state ST_IN_SCRIPTING;
         T_CURLY_OPEN(tokinfo lexbuf);
       }
     | "${" {
-        set_bol state (tok lexbuf);
         push_mode state ST_LOOKING_FOR_VARNAME;
         T_DOLLAR_OPEN_CURLY_BRACES(tokinfo lexbuf);
       }
@@ -1217,36 +1073,37 @@ and st_start_heredoc state stopdoc = parse
  *)
 and st_start_nowdoc state stopdoc = parse
 
-  (* same as for a heredoc above *)
-  | ([' ' '\t']* as ws) (LABEL as s) ([^ '\n' '\r']* as rest) {
+  | (LABEL as s) (";"? as semi) (['\n' '\r'] as space) {
       let info = tokinfo lexbuf in
+
+      let lbl_info = Tok.rewrap_str s info in
+
       let file = Tok.file_of_tok info in
       let pos = Tok.bytepos_of_tok info in
-      (* only a line of its own can hold the marker: coming back from an
-       * interpolation leaves the cursor inside a line, where a name equal to
-       * the marker is body text, as in 'hello {$name} EOT more' *)
-      let at_line_start = !(state.at_line_start) in
-      set_bol state (tok lexbuf);
-      if s = stopdoc && at_line_start
+      let pos_after_label = pos + String.length s in
+      let pos_after_semi = pos_after_label + String.length semi in
+
+      let colon_info =
+        tokinfo_file_str_pos file semi pos_after_label in
+      let space_info =
+        tokinfo_file_str_pos file (Common2.string_of_char space) pos_after_semi in
+
+      if s = stopdoc
       then begin
-        yyback (String.length rest) lexbuf;
         set_mode state ST_IN_SCRIPTING;
+        push_token state (TNewline space_info);
+        if semi = ";"
+        then push_token state (TSEMICOLON colon_info);
         (* reuse same token than for heredocs *)
-        T_END_HEREDOC (tokinfo_file_str_pos file s (pos + String.length ws))
-      end
-      else begin
-        (* a nowdoc does not interpolate, so its body rule takes the line whole *)
-        let text = ws ^ s ^ rest in
-        T_ENCAPSED_AND_WHITESPACE (text, Tok.rewrap_str text info)
-      end
+        T_END_HEREDOC(lbl_info)
+      end else
+        T_ENCAPSED_AND_WHITESPACE(tok lexbuf, tokinfo lexbuf)
     }
   | [^ '\n' '\r']+ {
-      set_bol state (tok lexbuf);
       T_ENCAPSED_AND_WHITESPACE(tok lexbuf, tokinfo lexbuf)
     }
 
   | ['\n' '\r'] {
-      set_bol state (tok lexbuf);
       TNewline (tokinfo lexbuf)
     }
 

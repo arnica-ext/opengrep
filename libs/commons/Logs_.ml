@@ -127,17 +127,9 @@ let has_nonempty_intersection tag_str_list tag_set =
       ok || List.mem (Logs.Tag.name def) tag_str_list)
     tag_set false
 
-(* Consult environment variables left-to-right in order of precedence; the
-   first one that is set to a non-empty value wins. An empty value is treated as
-   unset so it doesn't shadow the lower-precedence variables (e.g. an empty
-   OPENGREP_LOG_SRCS still lets SEMGREP_LOG_SRCS win). *)
+(* Consult environment variables from left-to-right in order of precedence. *)
 let read_str_from_env_vars (vars : string list) : string option =
-  List.find_map
-    (fun var ->
-      match USys.getenv_opt var with
-      | Some "" | None -> None
-      | Some _ as v -> v)
-    vars
+  List.find_map (fun var -> USys.getenv_opt var) vars
 
 let read_comma_sep_strs_from_env_vars (vars : string list) : string list option
     =
@@ -168,46 +160,14 @@ let create_formatter opt_file =
 (* The "reporter" *)
 (*****************************************************************************)
 
-(* The sink of [redirect_stderr]. Read and written only with logs_mutex
-   held, which Logs holds around every message. *)
-let stderr_sink : (string -> unit) option ref = ref None
-
-let redirect_stderr (sink : string -> unit) : unit =
-  Mutex.protect logs_mutex (fun () -> stderr_sink := Some sink)
-
-let restore_stderr (flush : unit -> unit) : unit =
-  Mutex.protect logs_mutex (fun () ->
-      stderr_sink := None;
-      flush ())
-
-(* Empties [buf] and gives [ppf] the colour setting and geometry of [from].
-   Called before each redirected message: a message that raised leaves its
-   text behind, and the settings of [from] can change after the reporter is
-   created. *)
-let reset_like ~(from : Format.formatter) (ppf : Format.formatter)
-    (buf : Buffer.t) : unit =
-  Format.pp_print_flush ppf ();
-  Buffer.clear buf;
-  Fmt.set_style_renderer ppf (Fmt.style_renderer from);
-  UFormat.pp_set_geometry ppf
-    ~max_indent:(UFormat.pp_get_max_indent from ())
-    ~margin:(UFormat.pp_get_margin from ())
-
-let flush_to_sink (ppf : Format.formatter) (buf : Buffer.t)
-    (sink : string -> unit) : unit =
-  Format.pp_print_flush ppf ();
-  if Buffer.length buf > 0 then sink (Buffer.contents buf)
-
 (* This code was copy-pasted and derived from the example in the Logs library.
    The Logs library interface makes us write this code that is frankly
    incomprehensible and excessively complicated given how little it provides.
 *)
-let mk_reporter ?(additional_reporters : Logs.reporter list = [])
-    ?(to_terminal = false) ~dst ~require_one_of_these_tags
-    ~read_tags_from_env_vars:(env_vars : string list) ~highlight () =
-  (* additional_reporters: the copy of the logs to a file, see setup.
-     to_terminal: the reporter writes to stderr, and [redirect_stderr]
-     redirects its messages. *)
+let mk_reporter ?(additional_reporters : Logs.reporter list = []) ~dst
+    ~require_one_of_these_tags ~read_tags_from_env_vars:(env_vars : string list)
+    ~highlight () =
+  (* TODO: additional_reporters seems to be always empty. Confirm and remove. *)
   let require_one_of_these_tags =
     match read_comma_sep_strs_from_env_vars env_vars with
     | Some tags -> tags
@@ -216,10 +176,6 @@ let mk_reporter ?(additional_reporters : Logs.reporter list = [])
   (* Each debug message is implicitly tagged with "all". *)
   let select_all_debug_messages = List.mem "all" require_one_of_these_tags in
 
-  (* Every redirected message reuses one buffer: the reporter runs under
-     logs_mutex. *)
-  let buf = Buffer.create 256 in
-  let buf_ppf = Format.formatter_of_buffer buf in
   let report src level ~over k msgf =
     let src_name = Logs.Src.name src in
     let is_default_src = src_name = "application" in
@@ -231,57 +187,41 @@ let mk_reporter ?(additional_reporters : Logs.reporter list = [])
           ((fun _ppf _style -> ()), "", "")
     in
     let k _ = k () in
-    (* The whole message, style reset included, goes to stderr, or to the
-       sink while stderr is redirected. A debug message that the tag filter
-       drops produces no text and reaches no sink. *)
-    let sink = if to_terminal then !stderr_sink else None in
-    let dst =
-      match sink with
-      | Some _ ->
-          reset_like ~from:dst buf_ppf buf;
-          buf_ppf
-      | None -> dst
-    in
-    let r =
-      msgf (fun ?header ?(tags = default_tag_set) fmt ->
-          let pp_w_time ~tags =
-            let current = now () in
-            (* Add a header that will look like [00.02][ERROR](lib):
-             * coupling: if you modify the format, please update
-             * the Testutil_logs.mask* regexps. *)
-            Format.kfprintf k dst
-              ("@[[%05.2f]%a%a%s: " ^^ fmt ^^ "@]@.")
-              (current -. time_program_start)
-              Logs_fmt.pp_header (level, header) pp_tags tags
-              (if is_default_src then "" else "(" ^ src_name ^ ")")
-          in
-          match level with
-          | App ->
-              (* App level: no timestamp, tags, or other decorations *)
-              Format.kfprintf k dst (fmt ^^ "@.")
-          | Error
-          | Warning
-          | Info ->
-              (* Print no tags for levels other than Debug since we can't
-                 filter these messages by tag. *)
-              pp_w_time ~tags:Logs.Tag.empty
-          | Debug ->
-              (* Tag-based filtering *)
-              if
-                select_all_debug_messages
-                || has_nonempty_intersection require_one_of_these_tags tags
-              then pp_w_time ~tags
-              else (* print nothing *)
-                Format.ikfprintf k dst fmt)
-    in
-    Format.fprintf dst "%a" pp_style style_off;
-    (match sink with
-    | Some (sink : string -> unit) -> flush_to_sink buf_ppf buf sink
-    | None -> ());
-    (* Not on an exception: Logs.report calls [over] then, and a second call
-       would unlock the mutex twice. *)
-    over ();
-    r
+    Fun.protect ~finally:over (fun () ->
+      let r =
+        msgf (fun ?header ?(tags = default_tag_set) fmt ->
+            let pp_w_time ~tags =
+              let current = now () in
+              (* Add a header that will look like [00.02][ERROR](lib):
+               * coupling: if you modify the format, please update
+               * the Testutil_logs.mask* regexps. *)
+              Format.kfprintf k dst
+                ("@[[%05.2f]%a%a%s: " ^^ fmt ^^ "@]@.")
+                (current -. time_program_start)
+                Logs_fmt.pp_header (level, header) pp_tags tags
+                (if is_default_src then "" else "(" ^ src_name ^ ")")
+            in
+            match level with
+            | App ->
+                (* App level: no timestamp, tags, or other decorations *)
+                Format.kfprintf k dst (fmt ^^ "@.")
+            | Error
+            | Warning
+            | Info ->
+                (* Print no tags for levels other than Debug since we can't
+                   filter these messages by tag. *)
+                pp_w_time ~tags:Logs.Tag.empty
+            | Debug ->
+                (* Tag-based filtering *)
+                if
+                  select_all_debug_messages
+                  || has_nonempty_intersection require_one_of_these_tags tags
+                then pp_w_time ~tags
+                else (* print nothing *)
+                  Format.ikfprintf k dst fmt)
+      in
+      Format.fprintf dst "%a" pp_style style_off;
+      r)
   in
   (* Copied directly from the Logs.mli docs. Just calls a bunch of reporters in
      a row *)
@@ -308,16 +248,10 @@ let log_level_of_string_opt (str : string) : Logs.level option option =
   | "none" -> Some None
   | _ -> None
 
-(* Scalar setting: resolved by precedence, i.e. the first variable that is set
-   to a recognized level wins. An empty or unrecognized value is skipped so it
-   doesn't shadow the lower-precedence variables. *)
 let read_level_from_env (vars : string list) : Logs.level option option =
-  List.find_map
-    (fun var ->
-      match USys.getenv_opt var with
-      | Some "" | None -> None
-      | Some str -> log_level_of_string_opt str)
-    vars
+  match read_str_from_env_vars vars with
+  | None -> None
+  | Some str -> log_level_of_string_opt str
 
 (*****************************************************************************)
 (* Entry points *)
@@ -328,7 +262,7 @@ let read_level_from_env (vars : string list) : Logs.level option option =
 let _ =
   let lock () = Mutex.lock logs_mutex
   and unlock () = Mutex.unlock logs_mutex in
-  Logs.set_reporter_mutex ~lock ~unlock
+Logs.set_reporter_mutex ~lock ~unlock
 
 (* We previously used use a re-entrant mutex above because otherwise tests
  * using [make core-test] raise an error when trying to lock the already locked
@@ -341,49 +275,16 @@ let _ =
 let setup_basic ?(level = Some Logs.Warning) () =
   Logs.set_level ~all:true level;
   Logs.set_reporter
-    (mk_reporter ~to_terminal:true ~dst:UFormat.err_formatter
-       ~require_one_of_these_tags:[]
+    (mk_reporter ~dst:UFormat.err_formatter ~require_one_of_these_tags:[]
        ~read_tags_from_env_vars:[] ~highlight:false ());
   ()
 
-(* The destination of the last file reporter. A process may call [setup] more
-   than once (the test binary, the language server), so we close the previous
-   channel instead of accumulating one per call. *)
-let log_file_dst : (Format.formatter * out_channel) option ref = ref None
-
-let close_log_file () : unit =
-  !log_file_dst
-  |> Option.iter (fun ((dst : Format.formatter), (oc : out_channel)) ->
-         Format.pp_print_flush dst ();
-         close_out_noerr oc);
-  log_file_dst := None
-
-let () = UStdlib.at_exit close_log_file
-
-(* A reporter writing the same messages as the main one, without colours,
-   to a file it truncates. *)
-let file_reporter ~require_one_of_these_tags ~read_tags_from_env_vars
-    (file : Fpath.t) : Logs.reporter =
-  close_log_file ();
-  let oc = UStdlib.open_out (Fpath.to_string file) in
-  let dst = UFormat.formatter_of_out_channel oc in
-  log_file_dst := Some (dst, oc);
-  mk_reporter ~dst ~require_one_of_these_tags ~read_tags_from_env_vars
-    ~highlight:false ()
-
 let setup ?(highlight_setting = Console.get_highlight_setting ())
-    ?log_to_file:opt_file ?copy_to_file ?(additional_reporters = [])
+    ?log_to_file:opt_file ?(additional_reporters = [])
     ?(require_one_of_these_tags = default_tags)
     ?(read_level_from_env_vars = [ "LOG_LEVEL" ])
     ?(read_srcs_from_env_vars = [ "LOG_SRCS" ])
     ?(read_tags_from_env_vars = [ "LOG_TAGS" ]) ~level () =
-  let additional_reporters =
-    match copy_to_file with
-    | None -> additional_reporters
-    | Some file ->
-        file_reporter ~require_one_of_these_tags ~read_tags_from_env_vars file
-        :: additional_reporters
-  in
   (* Override the log level if it's provided by an environment variable!
      This is for debugging a command that gets called by some wrapper. *)
   let level : Logs.level option =
@@ -402,17 +303,15 @@ let setup ?(highlight_setting = Console.get_highlight_setting ())
     | Off -> false
     | Auto -> isatty
   in
-  (* The renderer is set on the log formatter only. The formatter of stdout
-     is set by the code that writes the report to it. *)
-  let style_renderer : Fmt.style_renderer =
-    if highlight then `Ansi_tty else `None
+  let style_renderer =
+    match highlight with
+    | true -> Some `Ansi_tty
+    | false -> None
   in
-  Fmt.set_style_renderer dst style_renderer;
+  Fmt_tty.setup_std_outputs ?style_renderer ();
   Logs.set_level ~all:true level;
   Logs.set_reporter
-    (mk_reporter ~additional_reporters
-       ~to_terminal:(Option.is_none opt_file)
-       ~dst ~require_one_of_these_tags
+    (mk_reporter ~additional_reporters ~dst ~require_one_of_these_tags
        ~read_tags_from_env_vars ~highlight ());
   Logs.debug (fun m ->
       m "setup_logging: highlight_setting=%s, highlight=%B"
@@ -490,6 +389,12 @@ let with_debug_trace ?(src = debug_trace_src) ~__FUNCTION__
       in
       (* Purposefully not using ~src here so that it goes to the
          applications logs. *)
+      (match exn with
+      | Exception.Timeout _ ->
+          (* %t the little known give me back my format stream
+             specifier. *)
+          () (* Logs.debug (fun m -> m "%t" msgf) *)
+      | _ -> () (* Logs.err (fun m -> m "%t" msgf) *));
       Exception.reraise exn'
 
 (*****************************************************************************)

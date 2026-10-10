@@ -289,19 +289,6 @@ let rec expr env (x : expr) =
           in
           let anys = anyops @ (v3 |> List_.map (fun e -> G.E e)) in
           G.OtherExpr (("CmpOps", unsafe_fake ""), anys) |> G.e)
-  (* Lower the builtin single-arg [len(x)] to an [IdSpecial (Op Length)]
-   * call so that [AST_to_IL] produces [Operator (Length, [x])] —
-   * the shape [Eval_il_partial.eval_length] and the taint guard
-   * recogniser in [Dataflow_tainting] can fold. A user function
-   * named [len] would be mis-lowered here; we treat the builtin as
-   * the expected meaning and leave the general [Call] path as a
-   * fallback for anything we do not match. *)
-  | Call (Name (("len", len_tok), _), (p1, [ Arg arg ], p2)) ->
-      let arg = G.Arg (expr env arg) in
-      G.Call
-        ( G.IdSpecial (G.Op G.Length, len_tok) |> G.e,
-          (p1, [ arg ], p2) )
-      |> G.e
   | Call (v1, v2) ->
       let v1 = expr env v1 in
       let v2 = bracket (list (argument env)) v2 in
@@ -333,13 +320,6 @@ let rec expr env (x : expr) =
       let e = expr env e in
       H.set_e_range l r e;
       e
-  | AsPattern (v1, _v2, v3) ->
-      let inner = expr env v1 in
-      let id = name env v3 in
-      G.LetPattern
-        ( H.expr_to_pattern inner,
-          G.N (G.Id (id, G.empty_id_info ())) |> G.e )
-      |> G.e
 
 and argument env = function
   | Arg e ->
@@ -483,18 +463,9 @@ and parameters env xs : G.parameter list =
        | ParamPattern (PatternName n, topt) ->
            let n = name env n and topt = option (type_ env) topt in
            G.Param { (G.param_of_id n) with G.ptype = topt }
-       | ParamPattern (PatternTuple pat, topt) ->
-           (* [topt] is structurally always [None] here: Python tuple
-            * parameters [def f((a, b))] (Python 2) carry no type
-            * annotation, and the tree-sitter and menhir frontends both
-            * produce [(PatternTuple _, None)]. Threaded via [?ptype] to
-            * route any future-typed case through [parameter_classic]
-            * rather than silently dropping it. *)
-           let topt = option (type_ env) topt in
+       | ParamPattern (PatternTuple pat, _) ->
            let pat = list (param_pattern env) pat in
-           let pat = G.PatTuple (Tok.unsafe_fake_bracket pat) in
-           let tk = AST_generic_helpers.first_info_of_any (G.P pat) in
-           G.ParamPattern (pat, G.implicit_param_classic ?ptype:topt tk)
+           G.ParamPattern (G.PatTuple (Tok.unsafe_fake_bracket pat))
        | ParamStar (t, (n, topt)) ->
            let n = name env n in
            let topt = option (type_ env) topt in
@@ -829,14 +800,6 @@ and stmt_aux env x =
   | ImportFrom (t, v1, v2) ->
       let v1 = module_name env v1 and v2 = list (alias env) v2 in
       [ G.DirectiveStmt (G.ImportFrom (t, v1, v2) |> G.d) |> G.s ]
-  | TypeAlias (t, v1, v2) ->
-      let v1 = name env v1 and v2 = type_ env v2 in
-      let ent = G.basic_entity v1 in
-      let st = G.DefStmt (ent, G.TypeDef { G.tbody = G.AliasType v2 }) |> G.s in
-      (* The 'type' keyword is not otherwise part of the generic AST, so set
-       * the range explicitly to cover the whole statement. *)
-      st.s_range <- H.range_of_any_opt (G.Anys [ G.Tk t; G.T v2 ]);
-      [ st ]
   | Global (t, v1)
   | NonLocal (t, v1) ->
       let v1 = list (name env) v1 in
@@ -877,16 +840,10 @@ and cases_and_body env = function
       G.CaseEllipsis x
 
 and case env = function
-  | Case (tok, cp) ->
+  | Case (tok, pat) ->
       let x = info tok in
-      let rec to_gexpr = function
-        | CasePat e -> expr env e
-        | CasePatWhen (cp, g) ->
-            G.OtherExpr
-              (("CasePatWhen", x), [ G.E (to_gexpr cp); G.E (expr env g) ])
-            |> G.e
-      in
-      G.Case (x, H.expr_to_pattern (to_gexpr cp))
+      let pat = expr env pat in
+      G.Case (x, H.expr_to_pattern pat)
 
 and ident_and_id_info env x =
   let x = name env x in
@@ -963,10 +920,25 @@ and decorator env (t, v1) =
               Id (x, G.empty_id_info ()),
               Option.value ~default:(Tok.unsafe_fake_bracket []) args )
       | x :: xs, args ->
-          G.NamedAttr
-            ( t,
-              H.name_of_ids (x :: xs),
-              Option.value ~default:(Tok.unsafe_fake_bracket []) args )
+          let base = G.N (G.Id (x, G.empty_id_info ())) |> G.e in
+          let dot_access =
+            xs
+            |> List.fold_left
+                 (fun e x ->
+                   let tok = Tok.fake_tok (snd x) "." in
+                   G.DotAccess (e, tok, G.FN (G.Id (x, G.empty_id_info ())))
+                   |> G.e)
+                 base
+          in
+          pip0614_expr_attr t
+            [
+              G.E
+                (G.Call
+                   ( dot_access,
+                     args |> Option.value ~default:(Tok.unsafe_fake_bracket [])
+                   )
+                |> G.e);
+            ]
       | [], _ -> raise Impossible)
   | None ->
       let v1 = expr env v1 in

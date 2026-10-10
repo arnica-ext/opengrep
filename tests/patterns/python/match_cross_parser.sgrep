@@ -1,3 +1,0 @@
-match $X:
-    case 1:
-        $Y

@@ -36,17 +36,6 @@ val tokens_to_single_loc : Tok.t list -> Semgrep_output_v1_t.location option
 val sort_core_matches :
   Semgrep_output_v1_t.core_match list -> Semgrep_output_v1_t.core_match list
 
-val compare_cli_matches :
-  Semgrep_output_v1_t.cli_match ->
-  Semgrep_output_v1_t.cli_match ->
-  int
-
 (* Sort matches in an order suitable for displaying results. *)
 val sort_cli_matches :
   Semgrep_output_v1_t.cli_match list -> Semgrep_output_v1_t.cli_match list
-
-(* The order of sort_cli_matches, for core matches: the order in which the
-   findings are reported, which is also the order in which their autofixes
-   are applied when they overlap. *)
-val sort_core_matches_as_reported :
-  Semgrep_output_v1_t.core_match list -> Semgrep_output_v1_t.core_match list

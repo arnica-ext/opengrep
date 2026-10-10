@@ -46,17 +46,18 @@ and show_kind =
   | DumpCST of Fpath.t * Lang.t
   | DumpAST of Fpath.t * Lang.t
   | DumpIL  of Fpath.t * Lang.t
-  | DumpILPP of Fpath.t * Lang.t
   | DumpConfig of Rules_config.config_string
   | DumpRule of Fpath.t
   | DumpRuleV2 of Fpath.t
   | DumpPatternsOfRule of Fpath.t
-  (* 'semgrep show dump-intrafile-graph' *)
-  | DumpIntrafileGraph of Fpath.t * Lang.t
-  (* 'semgrep show dump-taint-signatures' *)
-  | DumpTaintSignatures of Fpath.t * Fpath.t (* rule_file * target_file *)
-  (* 'semgrep show dump-interfile-graph' *)
-  | DumpInterfileGraph of Fpath.t * Lang.t (* project root *)
+  (* 'semgrep show ???'
+   * accessible also as 'semgrep scan --dump-engine-path
+   * LATER: get rid of it? *)
+  | DumpEnginePath of bool (* pro = true *)
+  (* 'semgrep show ???'
+   * accessible also as 'semgrep scan --dump-command-for-core' (or just '-d')
+   * LATER: get rid of it *)
+  | DumpCommandForCore
 [@@deriving show]
 
 (*************************************************************************)
@@ -123,28 +124,9 @@ let cmdline_term : conf Term.t =
       | [ "dump-il"; lang_str; file ] ->
           let lang = Lang.of_string lang_str in
           DumpIL (Fpath.v file, lang)
-      | [ "dump-il-pp"; file ] ->
-          let path = Fpath.v file in
-          let lang = Lang.lang_of_filename_exn path in
-          DumpILPP (path, lang)
-      | [ "dump-il-pp"; lang_str; file ] ->
-          let lang = Lang.of_string lang_str in
-          DumpILPP (Fpath.v file, lang)
       | [ "dump-pattern"; lang_str; pattern ] ->
           let lang = Lang.of_string lang_str in
           DumpPattern (pattern, lang)
-      | [ "dump-intrafile-graph"; file ] ->
-          let path = Fpath.v file in
-          let lang = Lang.lang_of_filename_exn path in
-          DumpIntrafileGraph (path, lang)
-      | [ "dump-intrafile-graph"; lang_str; file ] ->
-          let lang = Lang.of_string lang_str in
-          DumpIntrafileGraph (Fpath.v file, lang)
-      | [ "dump-taint-signatures"; rule_file; target_file ] ->
-          DumpTaintSignatures (Fpath.v rule_file, Fpath.v target_file)
-      | [ "dump-interfile-graph"; lang_str; file ] ->
-          let lang = Lang.of_string lang_str in
-          DumpInterfileGraph (Fpath.v file, lang)
       | [ "supported-languages" ] -> SupportedLanguages
       | [] ->
           Error.abort
@@ -186,22 +168,14 @@ let man : Cmdliner.Manpage.block list =
        resolved)";
     `Pre "opengrep show dump-il [<LANG>] <FILE>";
     `P "Dump the internal representation of the file";
-    `Pre "opengrep show dump-il-pp [<LANG>] <FILE>";
-    `P "Dump the IL of the file in C-like syntax (human-readable pretty-print)";
     `Pre "opengrep show dump-cst [<LANG>] <FILE>";
     `P "Dump the concrete syntax tree of the file (tree sitter only)";
     `Pre "opengrep show dump-pattern <LANG> <STRING>";
     `P "Dump the abstract syntax tree of the pattern string";
-    `Pre "opengrep show dump-intrafile-graph [<LANG>] <FILE>";
-    `P "Dump the intrafile call graph in DOT format";
-    `Pre "opengrep show dump-interfile-graph <LANG> <PROJECT_ROOT>";
-    `P "Dump the interfile call graph built from the project root";
-    `Pre "opengrep show dump-taint-signatures <RULE_FILE> <TARGET_FILE>";
-    `P "Dump taint signatures for all functions in target file using the taint rule";
   ]
   @ CLI_common.help_page_bottom
 
-let cmdline_info : Cmd.info = Cmd.info "opengrep show" ~doc ~man ~exits:CLI_common.exits_show
+let cmdline_info : Cmd.info = Cmd.info "opengrep show" ~doc ~man
 
 (*****************************************************************************)
 (* Entry point *)

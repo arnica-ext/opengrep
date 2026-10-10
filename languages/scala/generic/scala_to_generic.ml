@@ -43,10 +43,7 @@ let v_list = List_.map
 let v_option = Option.map
 
 let cases_to_lambda lb cases : G.function_definition =
-  (* Use the generic implicit-param name so the prefilter exclusion in
-   * Pattern.is_special_identifier (via AST_generic.is_implicit_param)
-   * applies — otherwise rules over `{ case ... }` blocks are filtered out. *)
-  let id = G.implicit_param_id lb in
+  let id = ("!hidden_scala_param!", lb) in
   let param = G.Param (G.param_of_id id) in
   let body =
     G.Switch (lb, Some (G.Cond (G.N (H.name_of_id id) |> G.e)), cases) |> G.s
@@ -136,15 +133,12 @@ and v_import_expr tk import_expr =
 
 and v_named_selector tk path ((v1, v2) : named_selector) =
   let id = id_of_import_path_elem v1 in
-  match (id, v2) with
-  | ("_", tok), None -> G.ImportAll (tk, G.DottedName path, tok) |> G.d
-  | _ ->
-      let alias =
-        match v2 with
-        | None -> None
-        | Some id -> Some (v_ident_or_wildcard id, G.empty_id_info ())
-      in
-      G.ImportFrom (tk, G.DottedName path, [ (id, alias) ]) |> G.d
+  let alias =
+    match v2 with
+    | None -> None
+    | Some id -> Some (v_ident_or_wildcard id, G.empty_id_info ())
+  in
+  G.ImportFrom (tk, G.DottedName path, [ (id, alias) ]) |> G.d
 
 and v_wildcard_selector tk path (x : wildcard_selector) =
   match x with

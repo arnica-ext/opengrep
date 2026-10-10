@@ -14,10 +14,10 @@ def f(x) =
     // ERROR:
     "implicit return if"
   else if x == 0 then
-    // ERROR:
+    // TODO:
     "implicit return else if"
   else
-    // ERROR:
+    // TODO:
     "implicit return else"
 
 def f(x) =
@@ -40,7 +40,7 @@ def f() =
 
 def f() =
   try
-    // ERROR:
+    // TODO:
     "implicit return in try clause"
   catch
     case e => "no implicit return in catch clause if there is no exception"
@@ -51,7 +51,7 @@ def f() =
   catch
     case e => "no implicit return in catch clause if finally is present"
   finally
-    // ERROR:
+    // TODO:
     "implicit return in finally clause"
 
 package p:

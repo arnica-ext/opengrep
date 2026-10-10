@@ -1,2 +1,0 @@
-function sink(s)
-end

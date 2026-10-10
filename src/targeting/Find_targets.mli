@@ -3,7 +3,12 @@
    regardless of rules or languages.
  *)
 
-type project_root = Filesystem of Rfpath.t [@@deriving show]
+type project_root =
+  | Filesystem of Rfpath.t
+  (* currently used to optimize Semgrep query console *)
+  | Git_remote of git_remote
+
+and git_remote = { url : Uri.t } [@@deriving show]
 
 (*
    Abstract type designed for quickly determining whether a path is in the
@@ -22,22 +27,6 @@ module Explicit_targets : sig
   val pp : Format.formatter -> t -> unit
 end
 
-(* What a differential scan diffs against. The constructors record what the
- * producer knows about the ref:
- * - Merge_base_of: any git rev; Diff_scan first computes
- *   merge-base(HEAD, rev). This is 'opengrep scan --baseline-commit'.
- * - Commit: a resolved commit that already is the wanted base, diffed
- *   against directly. 'opengrep ci' produces these from its CI-provider
- *   merge-base machinery (python: BaselineHandler is_mergebase).
- * - Rev: a symbolic rev used directly as the base, no merge-base
- *   computation. 'opengrep ci --baseline-commit main' is this.
- *)
-type baseline_ref =
-  | Merge_base_of of string
-  | Commit of Digestif.SHA1.t
-  | Rev of string
-[@@deriving show]
-
 type conf = {
   (* global exclude list, passed via semgrep --exclude (a glob) *)
   exclude : string list;
@@ -55,11 +44,6 @@ type conf = {
   (* Whether to respect or ignore the '.semgrepignore' files found
      in the project. *)
   respect_semgrepignore_files : bool;
-  (* Built-in semgrepignore patterns applied on top of project '.semgrepignore'
-     files.  [Semgrep_scan_legacy] (the default) excludes common test-paths,
-     package-manager folders, etc.; [Empty] opts out (e.g. for the projidx
-     file discovery, which wants raw targeting). *)
-  default_semgrepignore_patterns : Semgrepignore.default_semgrepignore_patterns;
   (* Custom semgrepignore filename to use instead of '.semgrepignore' *)
   semgrepignore_filename : string option;
   (* Language-specific filtering: CLI option '--scan-unknown-extensions'
@@ -92,18 +76,12 @@ type conf = {
       max_target_bytes, default true *)
   exclude_minified_files : bool;
   (* TODO: not used for now *)
-  baseline_commit : baseline_ref option;
+  baseline_commit : string option;
+  diff_depth : int;
 }
 [@@deriving show]
 
 val default_conf : conf
-
-type 'a targets = {
-  selected : 'a list;
-  skipped : Semgrep_output_v1_t.skipped_target list;
-  git_repo : bool;
-  roots : Scanning_root.directory list
-}
 
 (* Entry point used by osemgrep.
 
@@ -124,20 +102,13 @@ type 'a targets = {
 val get_targets :
   conf ->
   Scanning_root.t list ->
-  Fppath.t targets
+  Fppath.t list * Semgrep_output_v1_t.skipped_target list
 
 (* Same as get_targets but drop the ppath (path within the project) *)
 val get_target_fpaths :
   conf ->
   Scanning_root.t list ->
-  Fpath.t targets
-
-(* Like [get_target_fpaths] but also returns the absolute project root
-   for each target, threaded from the scanning root discovery phase. *)
-val get_target_fpaths_with_project_roots :
-  conf ->
-  Scanning_root.t list ->
-  Target_and_root.t targets
+  Fpath.t list * Semgrep_output_v1_t.skipped_target list
 
 (* internals used also in Find_targets_old.ml *)
 val get_reason_for_exclusion :

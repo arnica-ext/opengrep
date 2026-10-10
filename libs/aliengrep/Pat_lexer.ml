@@ -4,13 +4,14 @@
    This doesn't use ocamllex because we need to support character sets
    defined dynamically (e.g. from a config file).
 *)
+[@@@alert "-deprecated"]
 
 module Log = Log_aliengrep.Log
 open Printf
 
 type compiled_conf = {
   conf : Conf.t;
-  pcre : Pcre2_.t; (* holds the source pattern and the compiled regexp *)
+  pcre : Pcre_.t; (* holds the source pattern and the compiled regexp *)
 }
 
 type token =
@@ -69,7 +70,7 @@ let compile conf =
       ]
   in
   let pcre =
-    try Pcre2_.regexp pat with
+    try Pcre_.regexp pat with
     | exn ->
         let e = Exception.catch exn in
         Log.err (fun m ->
@@ -85,28 +86,28 @@ let char_of_string str =
   else str.[0]
 
 let read_string ?(source_name = "<pattern>") conf str =
-  match Pcre2_.full_split ~rex:conf.pcre str with
+  match Pcre_.full_split ~rex:conf.pcre str with
   | Error pcre_err ->
       pattern_error source_name
         (sprintf "PCRE error while parsing aliengrep pattern: %s; pattern: %s"
-           (Pcre2_.show_error pcre_err)
+           (Pcre_.show_error pcre_err)
            conf.pcre.pattern)
   | Ok res ->
       res
       |> List_.filter_map (function
-           | Pcre2.Delim _
-           | Pcre2.NoGroup ->
+           | Pcre.Delim _
+           | Pcre.NoGroup ->
                None
-           | Pcre2.Text txt ->
+           | Pcre.Text txt ->
                pattern_error source_name
                  (sprintf
                     "Internal error while parsing aliengrep pattern: Text node \
                      %S; pattern: %s"
                     txt conf.pcre.pattern)
-           | Pcre2.Group (_, "") ->
+           | Pcre.Group (_, "") ->
                (* no capture *)
                None
-           | Pcre2.Group (num, capture) ->
+           | Pcre.Group (num, capture) ->
                Some
                  (match num with
                  | 1 -> LONG_ELLIPSIS

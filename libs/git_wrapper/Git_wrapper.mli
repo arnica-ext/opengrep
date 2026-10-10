@@ -16,20 +16,6 @@ exception Error of string
  *)
 val command : < Cap.exec > -> Cmd.args -> string
 
-(* Like command, for a git command needing configuration entries whose
- * values must stay out of the command line (e.g. credentials). The
- * entries reach only this child process, through the GIT_CONFIG_*
- * environment variables; git 2.31 or newer reads them, older git
- * ignores them. *)
-val command_with_config :
-  < Cap.exec > -> config:(string * string) list -> Cmd.args -> string
-
-(* "git version 2.39.3 (Apple Git-146)" -> (2, 39) *)
-val parse_version : string -> (int * int) option
-
-(* Whether git reads the GIT_CONFIG_* environment variables (2.31+). *)
-val supports_config_env : < Cap.exec > -> bool
-
 type ls_files_kind =
   (* --cached, the default:
    * Show all files cached in Git’s index, i.e. all tracked files
@@ -111,13 +97,7 @@ type status = {
 }
 [@@deriving show]
 
-(* git status
- *
- * The paths are relative to [cwd], or to the current directory when [cwd]
- * is not given. The diff covers the whole repository, so a changed file that
- * sits outside that directory is listed with a '../' prefix rather than
- * dropped.
- *)
+(* git status *)
 val status : ?cwd:Fpath.t -> ?commit:string -> unit -> status
 
 (*
@@ -166,13 +146,6 @@ val sparse_shallow_filtered_checkout : Uri.t -> Fpath.t -> (unit, string) result
 
 val sparse_checkout_add : ?cwd:Fpath.t -> Fpath.t list -> (unit, string) result
 (** Add the given files to the sparse-checkout config *)
-
-val shallow_clone :
-  ?ref_:string -> Uri.t -> Fpath.t -> (unit, string) result
-(** [shallow_clone ?ref_ url dst] does a depth-1 clone of [url] into [dst],
-    checking out the whole tree. If [ref_] is given, that branch or tag is
-    checked out. Runs non-interactively (fails fast rather than prompting for
-    credentials); auth is left entirely to git's own mechanisms. *)
 
 (* precondition: cwd must be a directory *)
 val dirty_lines_of_file :

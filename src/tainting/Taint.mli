@@ -49,26 +49,13 @@ type offset =
   | Ofld of IL.name  (** A field, like `.a` *)
   | Oint of int  (** A constant integer index, like `[42]` *)
   | Ostr of string  (** A constant string index, like `['foo']` *)
-  | Oslice of int
-      (** Trailing rest of a list/tuple from index [n], like `[n..]`.
-          Reading element [k] of [Oslice n] resolves to the source's
-          index [n + k]. The engine collapses
-          [Oint k :: Oslice n :: rest] to [Oint (n+k) :: rest] and
-          [Oslice b :: Oslice a :: rest] to [Oslice (a+b) :: rest]. *)
   | Oany  (** An arbitrary non-constant index, `[*]` *)
 
 val compare_offset : offset -> offset -> int
-val equal_offset : offset -> offset -> bool
 val show_offset : offset -> string
 val show_offset_list : offset list -> string
-val offset_of_IL : Lang.t -> IL.offset -> offset
-(** The [Lang.t] matters for JS/TS only, where an integer index and its
-    canonical decimal string form denote the same property and are
-    conflated into [Oint]. Pass the language of the file under analysis
-    consistently: offsets computed under different languages do not
-    compare reliably. *)
-
-val offset_of_rev_IL_offset : Lang.t -> rev_offset:IL.offset list -> offset list
+val offset_of_IL : IL.offset -> offset
+val offset_of_rev_IL_offset : rev_offset:IL.offset list -> offset list
 
 val rev_IL_offset_of_offset : offset list -> IL.offset list option
 (** TODO(shapes): This is needed for stuff that is not yet fully adapted to shapes
@@ -194,23 +181,9 @@ val compare_taint : taint -> taint -> int
 (* Taint sets *)
 (*****************************************************************************)
 
-(** A bundle pairing a taint identity with the [Effect_guard.t] under which it
-    is live. Set membership is by taint identity only ([compare_taint]) — when
-    two bundles share a taint but differ in their guard, [Taint_set.add] fuses
-    via [Effect_guard.compose_or] (different paths converging contribute
-    disjunctively) and picks the best taint via the legacy "shortest trace"
-    rule. *)
-type guarded_taint = { taint : taint; guard : Effect_guard.t }
-
-val lift_taint : taint -> guarded_taint
-(** [lift_taint t] is [{ taint = t; guard = Effect_guard.top }]. *)
-
-val with_guard : Effect_guard.t -> guarded_taint -> guarded_taint
-(** Conjoin [g] into the bundle's guard via [Effect_guard.compose_and]. *)
-
-(** A set of guarded taints. Where two pieces of taint are the same except
- * for "details" such as their call trace, the set picks the "best" one
- * (e.g. the one with the shortest trace) and merges their guards. *)
+(** A set of taints, where given two pieces of taint that are the same except
+ * for "details" such as their call trace, the set picks the "best" one (e.g.
+ * the one with the shortest trace). *)
 module Taint_set : sig
   type t
 
@@ -218,52 +191,18 @@ module Taint_set : sig
   val is_empty : t -> bool
   val cardinal : t -> int
   val equal : t -> t -> bool
-
-  val equal_with_guards : t -> t -> bool
-  (** Like [equal] but also requires the guards of identity-equal taints to
-      be equal (taint identity ignores guards, so plain [equal] treats a
-      guard-only refinement as unchanged). For stability and insertion no-op
-      checks over guard-bearing sets. *)
-
   val compare : t -> t -> int
   val singleton : taint -> t
-  val add : guarded_taint -> t -> t
+  val add : taint -> t -> t
   val union : t -> t -> t
   val diff : t -> t -> t
-  val map : (guarded_taint -> guarded_taint) -> t -> t
-  val bind : t -> (guarded_taint -> t) -> t
-  val iter : (guarded_taint -> unit) -> t -> unit
-  val fold : (guarded_taint -> 'a -> 'a) -> t -> 'a -> 'a
-  val filter : (guarded_taint -> bool) -> t -> t
-  val of_list : guarded_taint list -> t
-  val to_seq : t -> guarded_taint Seq.t
-  val elements : t -> guarded_taint list
-
-  val add_taint : taint -> t -> t
-  (** Add a bare taint with [Effect_guard.top] guard. *)
-
-  val add_taint_with_guard : taint -> Effect_guard.t -> t -> t
-  (** Add a taint paired with the given guard. *)
-
-  val of_taint_list : taint list -> t
-  (** Lift a list of bare taints, each with [Effect_guard.top]. *)
-
-  val to_taint_list : t -> taint list
-  (** Strip per-taint guards; yields the bare taint identities. *)
-
-  val conjoin_guard : Effect_guard.t -> t -> t
-  (** Conjoin [g] into every bundle's guard via [Effect_guard.compose_and]. *)
-
-  val guards_disjunction : t -> Effect_guard.t
-  (** The disjunction of every bundle's guard: the condition under which at
-      least one taint in the set is live. [empty] yields [Effect_guard.top]. *)
-
-  val map_taint : (taint -> taint) -> t -> t
-  (** Map the inner taint of every bundle, leaving guards untouched.
-      [f] MAY change taint identity: the set detects it and rebuilds
-      itself with correct keys, fusing guards of identity-colliding
-      results as [add]/[union] would. Identity-preserving [f] (e.g.
-      token-trace updates) keeps the cheap in-place path. *)
+  val map : (taint -> taint) -> t -> t
+  val iter : (taint -> unit) -> t -> unit
+  val fold : (taint -> 'a -> 'a) -> t -> 'a -> 'a
+  val filter : (taint -> bool) -> t -> t
+  val of_list : taint list -> t
+  val to_seq : t -> taint Seq.t
+  val elements : t -> taint list
 end
 
 type taints = Taint_set.t
@@ -276,7 +215,7 @@ val taints_satisfy_requires : taint list -> Rule.precondition -> bool
 val taints_of_pms :
   incoming:taints -> (Core_match.t * Rule.taint_source) list -> taints
 
-val show_taints : ?truncate_guards:bool -> taints -> string
+val show_taints : taints -> string
 
 (*****************************************************************************)
 (* Taint-oriented comparison functions for non-taint types *)

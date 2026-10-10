@@ -1,15 +1,6 @@
 (* Should be set exactly once after the CLI arguments are read *)
 val profiling : bool ref
 
-(* Common.with_time when profiling, else the result with 0. and no clock
- * read: the measurements of the engine go through this *)
-val with_time : (unit -> 'a) -> 'a * float
-
-(* the same for a span that does not fit in a closure: [since (now ())] is
- * the elapsed time when profiling, else 0. without a clock read *)
-val now : unit -> float
-val since : float -> float
-
 type times = { parse_time : float; match_time : float }
 
 (* Save time information as we run each rule *)
@@ -23,7 +14,6 @@ type rule_profiling = {
 (* Save time information as we run each file *)
 type file_profiling = {
   file : Fpath.t;
-  file_size_bytes : int option;
   rule_times : rule_profiling list;
   run_time : float;
 }
@@ -31,7 +21,6 @@ type file_profiling = {
 
 type partial_profiling = {
   p_file : Fpath.t;
-  p_file_size_bytes : int option;
   p_rule_times : rule_profiling list;
 }
 [@@deriving show]
@@ -44,6 +33,7 @@ type t = {
 }
 [@@deriving show]
 
+val merge : t -> t -> t
 val add_times : times -> times -> times
 val empty_partial_profiling : Fpath.t -> partial_profiling
 val empty_rule_profiling : Rule.t -> rule_profiling

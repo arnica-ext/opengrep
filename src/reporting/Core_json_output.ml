@@ -100,54 +100,30 @@ let range_of_any_opt startp_of_match_range any =
 type key = string * string * int * int * string option * string option
 [@@deriving show]
 
-(* Leaf [CliLoc] of a call trace, unwinding [CliCall] wrappers. *)
-let rec leaf_of_call_trace (trace : Out.match_call_trace) :
-    Out.loc_and_content =
-  match trace with
-  | Out.CliLoc leaf -> leaf
-  | Out.CliCall (_, _, inner) -> leaf_of_call_trace inner
-
-let leaf_source (trace : Out.match_call_trace) : Out.match_call_trace =
-  Out.CliLoc (leaf_of_call_trace trace)
-
 (* This is a port of the original pysemgrep cli_unique_key. This used to be in the CLI,
    but has since been moved to core.
 *)
-let core_unique_key ~(taint_interfile : bool)
-    ~(interfile_dedup_by : Core_match.interfile_dedup_by)
-    (rule_options : Core_match.rule_id_options Rule_ID.Map.t)
-    (c : Out.core_match) : key =
+let core_unique_key (c : Out.core_match) : key =
   let name = Rule_ID.to_string c.check_id in
   let path =
     match c.extra.historical_info with
     | Some { git_blob = Some sha; _ } -> ATD_string_wrap.Sha1.unwrap sha
     | _ -> Fpath.to_string c.path
   in
-  let interfile =
-    taint_interfile
-    || (match Rule_ID.Map.find_opt c.check_id rule_options with
-        | Some o -> o.Core_match.taint_interfile
-        | None -> false)
-  in
-  let source_in_key =
-    interfile
-    &&
-    match interfile_dedup_by with
-    | Core_match.Sink -> false
-    | Core_match.Source_sink -> true
-  in
   ( name,
     path,
     c.start.offset,
     c.end_.offset,
     c.extra.message,
-    (if not source_in_key then None
-     else
-       match c.extra.dataflow_trace with
-       | None -> None
-       | Some { taint_source = Some src; _ } ->
-           Some (Semgrep_output_v1_j.string_of_match_call_trace (leaf_source src))
-       | Some _ -> None)
+    (* TODO: Bring this back.
+       This is necessary so we don't deduplicate taint findings which
+       have different sources.
+
+       self.match.extra.dataflow_trace.to_json_string
+       if self.match.extra.dataflow_trace
+       else None,
+    *)
+    None
     (* NOTE: previously, we considered self.match.extra.validation_state
        here, but since in some cases (e.g., with `anywhere`) we generate
        many matches in certain cases, we want to consider secrets
@@ -188,8 +164,6 @@ let process_matches_with_rule_options
  # (-j option).
 *)
 let dedup_and_sort
-    ?(taint_interfile = false)
-    ~(interfile_dedup_by : Core_match.interfile_dedup_by)
     (rule_options: Core_match.rule_id_options Rule_ID.Map.t)
     (xs : Out.core_match list) : Out.core_match list =
   (* Whether we prefer to report match x over match y.
@@ -215,9 +189,7 @@ let dedup_and_sort
      keep undesirable matches, such as those with less metavariables.
   *)
   |> List.iter (fun x ->
-         let key =
-           core_unique_key ~taint_interfile ~interfile_dedup_by rule_options x
-         in
+         let key = core_unique_key x in
          match Hashtbl.find_opt seen key with
          | None -> Hashtbl.add seen key x
          | Some y when should_report_instead (x, y) ->
@@ -548,32 +520,43 @@ let profiling_to_profiling (profiling_data : Core_profiling.t) : Out.profile =
     targets =
       profiling_data.file_times
       |> List_.map
-           (fun { Core_profiling.file = target; rule_times; run_time; file_size_bytes } ->
-             (* Match times: only store (rule_id, time) for rules that ran. *)
-             let match_times : (Rule_ID.t * float) list =
-               rule_times
-               |> List_.filter_map (fun (rp : Core_profiling.rule_profiling) ->
-                    (* Only include rules with non-zero match time *)
-                    if rp.rule_match_time > 0.0 then
-                      Some (rp.rule_id, rp.rule_match_time)
-                    else None)
-             in
-             (* The target is parsed once, by the first rule that needs its
-              * AST; the other rules record no parse time. The run time also
-              * covers what is neither parsing nor matching, such as the
-              * prefiltering. *)
-             let parse_time : float =
+           (fun { Core_profiling.file = target; rule_times; run_time } ->
+             let (rule_id_to_rule_prof
+                   : (Rule_ID.t, Core_profiling.rule_profiling) Hashtbl.t) =
                rule_times
                |> List_.map (fun (rp : Core_profiling.rule_profiling) ->
-                    rp.rule_parse_time)
-               |> List.fold_left ( +. ) 0.0
+                      (rp.rule_id, rp))
+               |> Hashtbl_.hash_of_list
              in
+
              Out.
                {
                  path = target;
-                 match_times;
-                 parse_time;
-                 num_bytes = Option.value ~default:0 file_size_bytes;
+                 match_times =
+                   rule_ids
+                   |> List_.map (fun rule_id ->
+                          try
+                            let rprof : Core_profiling.rule_profiling =
+                              Hashtbl.find rule_id_to_rule_prof rule_id
+                            in
+                            rprof.rule_match_time
+                          with
+                          | Not_found -> 0.);
+                 (* TODO: we could probably just aggregate in a single
+                  * float instead of returning those list of parse_time
+                  * which don't really make sense; we just parse once a file.
+                  *)
+                 parse_times =
+                   rule_ids
+                   |> List_.map (fun rule_id ->
+                          try
+                            let rprof : Core_profiling.rule_profiling =
+                              Hashtbl.find rule_id_to_rule_prof rule_id
+                            in
+                            rprof.rule_parse_time
+                          with
+                          | Not_found -> 0.);
+                 num_bytes = UFile.filesize target;
                  run_time;
                });
     rules = rule_ids;
@@ -584,8 +567,8 @@ let profiling_to_profiling (profiling_data : Core_profiling.t) : Out.profile =
      *)
     total_bytes =
       profiling_data.file_times
-      |> List_.map (fun { Core_profiling.file_size_bytes; _ } ->
-             Option.value ~default:0 file_size_bytes)
+      |> List_.map (fun { Core_profiling.file = target; _ } ->
+             UFile.filesize target)
       |> Common2.sum_int;
     (* those are filled later in pysemgrep from the Profiler class *)
     profiling_times = [];
@@ -616,10 +599,7 @@ let profiling_to_profiling (profiling_data : Core_profiling.t) : Out.profile =
 (* Final semgrep-core output *)
 (*****************************************************************************)
 
-let core_output_of_matches_and_errors ?(inline = false)
-    ?(taint_interfile = false)
-    ?(interfile_dedup_by = Core_match.Sink) (res : Core_result.t) :
-    Out.core_output =
+let core_output_of_matches_and_errors ?(inline = false) (res : Core_result.t) : Out.core_output =
   let matches, new_errs =
     Result_.partition (match_to_match ~inline) res.processed_matches
   in
@@ -627,8 +607,6 @@ let core_output_of_matches_and_errors ?(inline = false)
   {
     results = matches
               |> dedup_and_sort
-                ~taint_interfile
-                ~interfile_dedup_by
                 (Core_match.to_rule_id_options_map
                    List_.(map (fun (Core_result.{pm; _}) -> pm) res.processed_matches));
     errors = errs |> List_.map error_to_error;
@@ -666,6 +644,4 @@ let core_output_of_matches_and_errors ?(inline = false)
 (* Exposed for testing *)
 (******************************************************************************)
 
-let test_core_unique_key c =
-  core_unique_key ~taint_interfile:false ~interfile_dedup_by:Core_match.Sink
-    Rule_ID.Map.empty c
+let test_core_unique_key = core_unique_key

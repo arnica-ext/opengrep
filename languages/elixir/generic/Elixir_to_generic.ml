@@ -43,13 +43,7 @@ let map_option f env x = Option.map (f env) x
 
 let either_to_either3 = function
   | Left x -> Left3 x
-  (* Use Middle3 (not Right3) so that G.interpolated emits the expression
-   * directly as Arg(e) rather than wrapping it in Call(InterpolatedElement,...).
-   * This keeps the ConcatString arg list flat: literal string parts and
-   * interpolated expressions appear at the same level, which is what both
-   * pattern matching (m_arguments_concat) and taint analysis expect.
-   * Note: AST_to_IL already unwraps InterpolatedElement anyway. *)
-  | Right (_l, x, _r) -> Middle3 x
+  | Right (l, x, r) -> Right3 (l, Some x, r)
 
 exception UnhandledIdEllipsis
 
@@ -67,52 +61,16 @@ type do_block_generic =
   * (exn_clause_kind wrap * body_or_clauses_generic) list)
   bracket
 
-(* Merge consecutive Left (literal) entries so that escape sequences like \'
- * don't fragment a single text segment into multiple concat args.
- * e.g. [Left("foo=", t); Left("\\'", t)] → [Left("foo=\\'", t)] *)
-let merge_adjacent_lefts xs =
-  let rev_merged =
-    List.fold_left
-      (fun acc x ->
-        match (x, acc) with
-        | Left3 (s2, _), Left3 (s1, tok1) :: rest -> Left3 (s1 ^ s2, tok1) :: rest
-        | _ -> x :: acc)
-      [] xs
-  in
-  List.rev rev_merged
-
 let expr_of_quoted (quoted : quoted_generic) : G.expr =
   let l, xs, r = quoted in
-  G.interpolated (l, xs |> List_.map either_to_either3 |> merge_adjacent_lefts, r)
-
-(* Normalise keyword text produced by tree-sitter. The token span for
- * [body:] in [%{body: v}] is captured as ["body: "] or ["body:"] —
- * strip the trailing [:] and whitespace so the field name is the bare
- * [body] in both [keyval_of_pair] (expression-side map literals) and
- * [expr_to_pattern] below (pattern-side map destructures). This keeps
- * caller-side [%{body: v}] and callee-side [%{body: v}] projecting the
- * same offset. *)
-let strip_keyword_suffix (id : string AST_generic.wrap) :
-    string AST_generic.wrap =
-  let s, tok = id in
-  (String_.strip_wrapping_char ':' s, tok)
+  G.interpolated (l, xs |> List_.map either_to_either3, r)
 
 let keyval_of_pair p : G.expr =
   match p with
   | Left (kwd, e) ->
     let key =
       match kwd with
-      | Left id ->
-          (* Keyword-form key [%{body: v}] is syntactic sugar for the
-           * atom-arrow form [%{:body => v}]; both produce the same
-           * runtime map keyed by the atom [:body]. Encode them
-           * identically as [L(Atom (tcolon, ("body", _)))] so AST,
-           * pattern matching, and taint shape behave the same way for
-           * both forms. The bare-name string follows the AST_generic
-           * convention ([Atom of tok * string wrap] — the [tok] holds
-           * the [:] and the wrap is the bare name). *)
-          let s, tok = strip_keyword_suffix id in
-          G.L (G.Atom (tok, (s, tok))) |> G.e
+      | Left id -> G.N (H.name_of_id id) |> G.e
       | Right (quoted : quoted_generic) -> expr_of_quoted quoted
     in
     G.keyval key (G.fake "=>") e
@@ -140,65 +98,6 @@ let expr_of_expr_or_kwds (x : (G.expr, keywords_generic) Either_.t) : G.expr =
   | Left e -> e
   | Right kwds -> list_container_of_kwds kwds
 
-(* This is a modified version of Ast_generic_helpers.expr_to_pattern *)
-let rec expr_to_pattern (e : G.expr) : G.pattern =
-  match e.e with
-  | G.N (G.Id (id, info)) -> G.PatId (id, info)
-  | G.Container (G.Tuple, (t1, xs, t2)) ->
-      G.PatTuple (t1, List_.map expr_to_pattern xs, t2)
-  | G.L l -> G.PatLiteral l
-  | G.Container ((List | Dict), (t1, xs, t2)) ->
-      G.PatList (t1, List_.map expr_to_pattern xs, t2)
-  | G.Constructor (n, (_, args, _)) ->
-      G.PatConstructor (n, List_.map expr_to_pattern args)
-  | G.Ellipsis t -> G.PatEllipsis t
-  | G.OtherExpr
-      ((("MapPairKeyword" | "MapPairArrow") as tag, tk), [ G.E inner ]) ->
-      (* [keyval_of_pair] built the map pair as
-       * [Container(Tuple, [key; val])]. The default [OtherExpr]→[OtherPat]
-       * path below would convert the tuple into [PatTuple([k; v])] and
-       * lose the k/v role. Convert to [PatKeyVal(k_pat, v_pat)] so
-       * downstream (AST_to_IL, pattern_leaves_with_offsets) can read the
-       * key as a field offset and the value as the binding. *)
-      (match inner.e with
-      | G.Container (G.Tuple, (_, [ k; v ], _)) ->
-          G.OtherPat ((tag, tk),
-                      [ G.P (G.PatKeyVal (expr_to_pattern k, expr_to_pattern v)) ])
-      | _ -> G.OtherPat ((tag, tk), [ G.P (expr_to_pattern inner) ]))
-  | G.OtherExpr (tag, [ G.E e ]) -> G.OtherPat (tag, [ G.P (expr_to_pattern e) ])
-  | G.Cast (ty, _tok, expr) -> G.PatTyped (expr_to_pattern expr, ty)
-  | G.LetPattern (p, {e = G.N (G.Id (i, info)); _} ) -> G.PatAs (p, (i, info))
-  | G.Call (f, args) ->
-      begin match f.e, Tok.unbracket args with
-      | G.N (G.Id (("<>", _), _) as n),
-        [ G.Arg ({ e = G.L (G.String _); _ } as l);
-          G.Arg ({ e = G.N _; _ } as r) ] ->
-          G.PatConstructor (n, [ expr_to_pattern l; expr_to_pattern r ])
-      | G.N (G.Id (("^", _), _)),
-        [ G.Arg ({ e = G.N _; _ } as rhs) ] ->
-          let tmp = "__tmp", Tok.unsafe_fake_tok "__tmp" in
-          let tmp_info = G.empty_id_info ~hidden:true () in
-          let lhs = G.N (G.Id (tmp, tmp_info)) |> G.e in
-          let op = G.IdSpecial (G.Op G.Eq, Tok.unsafe_fake_tok "==") |> G.e in
-          let cmp = G.Call (op, Tok.unsafe_fake_bracket [ G.Arg lhs; G.Arg rhs ]) |> G.e in
-          G.PatWhen (G.PatId (tmp, tmp_info), cmp)
-      | _ -> OtherPat (("ExprToPattern", Tok.unsafe_fake_tok ""), [ G.E e ])
-      end
-  (* TODO: PatKeyVal and more *)
-  | _ -> OtherPat (("ExprToPattern", Tok.unsafe_fake_tok ""), [ G.E e ])
-
-let pats_of_args (args : G.argument list) : G.pattern list =
-  List_.map
-    (function
-      | G.OtherArg (("ArgKwdQuoted", _), [ G.E e ]) -> expr_to_pattern e
-      | arg -> H.argument_to_expr arg |> expr_to_pattern)
-    args
-
-let wrap_when (when_opt : (Tok.t * G.expr) option) (pat : G.pattern) : G.pattern =
-  match when_opt with
-  | None -> pat
-  | Some (_tok, e) -> G.PatWhen (pat, e)
-
 (* TODO: lots of work here to detect when args is really a single
  * pattern, or tuples *)
 let pat_of_args_and_when (args, when_opt) : G.pattern =
@@ -207,13 +106,23 @@ let pat_of_args_and_when (args, when_opt) : G.pattern =
        | None -> []
        | Some (_tok, e) -> [ G.E e ]
      in *)
+  let pats =
+    List_.map
+      (function
+        | G.OtherArg (("ArgKwdQuoted", _), [ G.E e ]) -> H.expr_to_pattern e
+        | arg -> H.argument_to_expr arg |> H.expr_to_pattern)
+      args
+  in
   let pat =
-    match pats_of_args args with
+    match pats with
     | [] -> G.PatLiteral (G.Null (G.fake "no_arg")) (* invalid syntax anyway. *)
-    | pats -> G.PatTuple (fb pats)
+    | _ ->
+      G.PatTuple (fb pats)
   in
   (* G.OtherPat (("ArgsAndWhenOpt", G.fake ""), G.Args args :: rest) |> G.p *)
-  wrap_when when_opt pat
+  match when_opt with
+    | None -> pat
+    | Some (_tok, e) -> G.PatWhen (pat, e)
 
 let case_and_body_of_stab_clause (x : stab_clause_generic) : G.case_and_body =
   (* body can be empty *)
@@ -221,17 +130,6 @@ let case_and_body_of_stab_clause (x : stab_clause_generic) : G.case_and_body =
   let pat = pat_of_args_and_when args_and_when in
   let stmt = G.stmt1 stmts in
   G.case_of_pat_and_stmt (pat, stmt)
-
-let case_and_body_of_case_clause (x : stab_clause_generic) : G.case_and_body =
-  let (args, when_opt), _tarrow, stmts = x in
-  let pat =
-    match pats_of_args args with
-    | [] -> G.PatLiteral (G.Null (G.fake "no_arg"))
-    | [ single ] -> single
-    | pats -> G.PatTuple (fb pats)
-  in
-  let pat = wrap_when when_opt pat in
-  G.case_of_pat_and_stmt (pat, G.stmt1 stmts)
 
 (* TODO: if the list contains just one element, can be a simple lambda
  * as in 'fn (x, y) -> x + y end'. Otherwise it can be a multiple-cases
@@ -385,62 +283,6 @@ let map_ident_should_not_use env v : G.ident =
 (* TODO: this should really return a dotted_ident *)
 let map_alias env v : G.ident = (map_wrap map_string) env v
 
-let dotted_ident_of_alias ((name : string), (tok : tok)) : G.dotted_ident =
-  String.split_on_char '.' name
-  |> List_.map (fun (part : string) -> (part, tok))
-
-let module_import (tok : tok) (parts : G.dotted_ident)
-    (local : G.ident option) : G.directive =
-  { G.d =
-      G.ImportAs
-        ( tok,
-          G.DottedName parts,
-          Option.map
-            (fun (id : G.ident) -> (id, G.empty_id_info ()))
-            local );
-    G.d_attrs = [ G.OtherAttribute (("alias", tok), []) ] }
-
-let map_directive env (v : directive) : G.stmt =
-  match v with
-  | AliasDirective { ad_alias; ad_module; ad_binding } -> (
-      let prefix = dotted_ident_of_alias ad_module in
-      match ad_binding with
-      | BindLastSegment ->
-          G.DirectiveStmt (module_import ad_alias prefix None) |> G.s
-      | BindAs (local : alias) ->
-          G.DirectiveStmt
-            (module_import ad_alias prefix (Some (map_alias env local)))
-          |> G.s
-      | BindGroup (members : alias list) ->
-          let stmts =
-            members
-            |> List_.map (fun (member : alias) ->
-                   G.DirectiveStmt
-                     (module_import ad_alias
-                        (prefix @ dotted_ident_of_alias member) None)
-                   |> G.s)
-          in
-          G.Block (fb stmts) |> G.s)
-  | ImportDirective { imd_import; imd_module; imd_selection } -> (
-      let parts = dotted_ident_of_alias imd_module in
-      let attrs = [ G.KeywordAttr (G.Callable, imd_import) ] in
-      match imd_selection with
-      | ImportEveryFunction ->
-          G.DirectiveStmt
-            { G.d = G.ImportAll (imd_import, G.DottedName parts, imd_import);
-              G.d_attrs = attrs }
-          |> G.s
-      | ImportOnly (functions : imported_function list) ->
-          let names =
-            functions
-            |> List_.map (fun (f : imported_function) ->
-                   (map_ident_should_not_use env f.imf_name, None))
-          in
-          G.DirectiveStmt
-            { G.d = G.ImportFrom (imd_import, G.DottedName parts, names);
-              G.d_attrs = attrs }
-          |> G.s)
-
 let map_wrap_operator env (op, tk) =
   match op with
   | OPin
@@ -474,10 +316,7 @@ let map_wrap_operator_ident env v : G.ident =
 let rec map_atom env (tcolon, v2) : G.expr =
   let v2 = (map_or_quoted1 (map_wrap map_string)) env v2 in
   match v2 with
-  | Left x ->
-      let s, tok = x in
-      let s = String_.strip_wrapping_char ':' s in
-      G.L (G.Atom (tcolon, (s, tok))) |> G.e
+  | Left x -> G.L (G.Atom (tcolon, x)) |> G.e
   | Right quoted ->
       let e = expr_of_quoted quoted in
       G.OtherExpr (("AtomExpr", tcolon), [ E e ]) |> G.e
@@ -509,25 +348,6 @@ and map_items env (v1, v2) : G.expr list =
   let v1 = (map_list map_expr) env v1 in
   let v2 = map_keywords env v2 in
   v1 @ List_.map keyval_of_pair v2
-
-(* Like map_items but wraps each pair in OtherExpr to distinguish
- * arrow syntax (%{"k" => v}) from keyword syntax (%{k: v}). *)
-and map_map_items env (v1, v2) : G.expr list =
-  let v1 = (map_list map_expr) env v1 in
-  let v2 = map_keywords env v2 in
-  let wrap_arrow (e : G.expr) : G.expr =
-    match e.G.e with
-    | G.Ellipsis _ -> e
-    | _ -> G.OtherExpr (("MapPairArrow", G.fake "=>"), [ G.E e ]) |> G.e
-  in
-  let wrap_keyword p : G.expr =
-    match p with
-    | Right e -> e (* ellipsis or metavar, pass through unwrapped *)
-    | Left _ ->
-        let e = keyval_of_pair p in
-        G.OtherExpr (("MapPairKeyword", G.fake ":"), [ G.E e ]) |> G.e
-  in
-  List_.map wrap_arrow v1 @ List_.map wrap_keyword v2
 
 and map_keywords env v = (map_list map_pair) env v
 
@@ -566,276 +386,31 @@ and map_stmt env (v : stmt) : G.stmt =
       in
       let st1 = G.Block (tdo, then_, tthenend) |> G.s in
       G.If (tif, G.Cond e, st1, elseopt) |> G.s
-  | Throw (tthrow, e) ->
-      let e = map_expr env e in
-      G.Throw (tthrow, e, G.sc) |> G.s
-  | Case (tcase, e, (_tdo, clauses, _tend)) ->
-      let e = map_expr env e in
-      let xs = map_clauses env clauses in
-      let cases = xs |> List_.map case_and_body_of_case_clause in
-      G.Switch (tcase, Some (G.Cond e), cases) |> G.s
-  | For (tfor, clauses, (tdo, body, tend)) ->
-      let comp_clauses = List_.map (fun (clause : for_clause) ->
-        match clause with
-        | ForGenerator (pat, tarrow, collection) ->
-            let pat = map_expr env pat |> expr_to_pattern in
-            let collection = map_expr env collection in
-            G.CompFor (tfor, pat, tarrow, collection)
-        | ForFilter e ->
-            let e = map_expr env e in
-            G.CompIf (G.fake "if", e)
-      ) clauses in
-      let body_stmts = map_stmts env body in
-      let body_expr =
-        match body_stmts with
-        | [ { G.s = G.ExprStmt (e, _sc); _ } ] -> e
-        | _ -> G.stmt_to_expr (G.Block (tdo, body_stmts, tend) |> G.s)
-      in
-      let comp = G.Comprehension (G.List, (tdo, (body_expr, comp_clauses), tend)) in
-      G.ExprStmt (comp |> G.e, G.sc) |> G.s
-  | Try (ttry, (tdo, (boc, extras), tend)) ->
-      let body_stmts =
-        match boc with
-        | Body stmts -> map_stmts env stmts
-        | Clauses _ -> (* unreachable: try body is always Body stmts *) []
-      in
-      let body_stmt = G.Block (tdo, body_stmts, tend) |> G.s in
-      wrap_with_rescue env ttry body_stmt extras
   | D def ->
       let d = map_definition env def in
       G.DefStmt d |> G.s
-  | Dir dir -> map_directive env dir
-
-and map_param_as_arg env (p : parameter) : G.argument =
-  match p with
-  | P { pname; pdefault = None } ->
-      let e =
-        match pname with
-        | IdEllipsis tok -> G.Ellipsis tok |> G.e
-        | Id _ | IdMetavar _ ->
-            let id = map_ident_should_not_use env pname in
-            G.N (H.name_of_id id) |> G.e
-      in
-      G.Arg e
-  | P { pname; pdefault = Some _ } ->
-      let id = map_ident_should_not_use env pname in
-      G.Arg (G.N (H.name_of_id id) |> G.e)
-  | OtherParamExpr e -> G.Arg (map_expr env e)
-  | OtherParamPair (kwd, e) ->
-      let kwd = map_keyword env kwd in
-      let e = map_expr env e in
-      argument_of_pair (Left (kwd, e))
-
-and map_param_to_gparam env (p : parameter) : G.parameter =
-  match p with
-  | P { pname; pdefault } -> (
-      match (pname, pdefault, env) with
-      | IdEllipsis t, None, Pattern -> G.ParamEllipsis t
-      | _else_ ->
-          let id = map_ident_should_not_use env pname in
-          let pdefault =
-            match pdefault with
-            | None -> None
-            | Some (_tk, e) -> Some (map_expr env e)
-          in
-          G.Param (G.param_of_id ?pdefault id))
-  | OtherParamExpr e ->
-      let e = map_expr env e in
-      let pat = expr_to_pattern e in
-      let tk = AST_generic_helpers.first_info_of_any (G.P pat) in
-      G.ParamPattern (pat, G.implicit_param_classic tk)
-  | OtherParamPair (kwd, e) ->
-      let kwd = map_keyword env kwd in
-      let e = map_expr env e in
-      let e = keyval_of_pair (Left (kwd, e)) in
-      let pat = expr_to_pattern e in
-      let tk = AST_generic_helpers.first_info_of_any (G.P pat) in
-      G.ParamPattern (pat, G.implicit_param_classic tk)
-
-(* Convert one rescue/catch stab clause to a G.catch arm.
- * Each stab has a list of exception-type expressions and a handler body. *)
-and map_rescue_stab_to_catch env tok (stab : stab_clause) : G.catch =
-  let ((args, _kwargs), guard_opt), _tarrow, body_stmts = stab in
-  let catch_pat =
-    match args with
-    | [] -> G.PatEllipsis tok
-    | [arg] ->
-        let e = map_expr env arg in
-        expr_to_pattern e
-    | args ->
-        let pats = List_.map (fun a -> expr_to_pattern (map_expr env a)) args in
-        let pat =
-          List.fold_right (fun p acc -> G.DisjPat (p, acc))
-            (List.tl pats) (List.hd pats)
-        in
-        pat
-  in
-  let catch_pat = 
-    match guard_opt with
-    | Some (_tok, guard) -> G.PatWhen (catch_pat, map_expr env guard)
-    | None -> catch_pat
-  in
-  let catch_exn = G.CatchPattern catch_pat in
-  let body = map_stmts env body_stmts in
-  (tok, catch_exn, G.Block (Tok.unsafe_fake_bracket body) |> G.s)
-
-(* Wrap a body statement in a G.Try when there are rescue/catch/after clauses.
- * `tok` is used as the try token. *)
-and wrap_with_rescue env tok body_stmt rescue =
-  match rescue with
-  | [] -> body_stmt
-  | extras ->
-      let catches, try_else, finally =
-        List.fold_left
-          (fun (catches, try_else, finally) ((kind, t), boc) ->
-            match (kind : exn_clause_kind) with
-            | Rescue | Catch ->
-                let s =
-                  match boc with
-                  | Clauses stabs ->
-                      let cs = List_.map (map_rescue_stab_to_catch env t) stabs in
-                      catches @ cs
-                  | Body _ -> catches
-                in
-                (s,
-                 try_else,
-                 finally)
-            | Else ->
-                let s =
-                  match boc with
-                  | Clauses stabs ->
-                      stabs |> List.concat_map (fun (_, _, b) -> map_stmts env b)
-                  | Body _ -> []
-                in
-                (catches,
-                 Some (t, G.Block (Tok.unsafe_fake_bracket s) |> G.s),
-                 finally)
-            | After ->
-                let s =
-                  match boc with
-                  | Clauses stabs ->
-                      stabs |> List.concat_map (fun (_, _, b) -> map_stmts env b)
-                  | Body stmts -> map_stmts env stmts
-                in
-                (catches,
-                 try_else,
-                 Some (t, G.Block (Tok.unsafe_fake_bracket s) |> G.s)))
-          ([], None, None) extras
-      in
-      G.Try (tok, body_stmt, catches, try_else, finally) |> G.s
-
-and map_func_clause_to_stab env (clause : function_definition) :
-    stab_clause_generic =
-  let _, params, _ = clause.f_params in
-  let args = List_.map (map_param_as_arg env) params in
-  let guard_opt =
-    match clause.f_guard with
-    | None -> None
-    | Some guard -> Some (G.fake "when", map_expr env guard)
-  in
-  let body = map_body env (let _, b, _ = clause.f_body in b) in
-  ((args, guard_opt), G.fake "->", body)
 
 and map_definition env (v : definition) : G.definition =
   match v with
-  | FuncDef [ { f_def; f_name; f_params; f_guard = None; f_body; f_rescue; f_is_private } ] ->
-      (* Single clause, no guard: use direct param names (original behavior).
-       * This preserves the simple fparams=[x,y,...] representation so that
-       * taint analysis can match call arguments to parameters by position
-       * without any call-site wrapping. *)
+  | FuncDef { f_def; f_name; f_params; f_body; f_is_private } ->
       let id = map_ident_should_not_use env f_name in
-      let ent =
-        G.basic_entity
-          ~attrs:
-            (if f_is_private then
-               [ G.KeywordAttr (G.Private, Tok.fake_tok f_def "") ]
-             else [])
+      let ent = G.basic_entity
+          ~attrs:(if f_is_private
+                  then [G.KeywordAttr (G.Private, Tok.fake_tok f_def "" (* vs. [G.fake ""] *))]
+                  else [])
           id
       in
-      let fparams = map_bracket (map_list map_param_to_gparam) env f_params in
-      let l, body, r = f_body in
-      let body_stmts = map_stmts env body in
-      let body_stmt =
-        wrap_with_rescue env l (G.Block (l, body_stmts, r) |> G.s) f_rescue
-      in
-      let fdef =
+      let fparams = map_parameters env f_params in
+      let body = map_compound env f_body in
+      let def =
         {
           G.fkind = (G.Function, f_def);
           fparams;
           frettype = None;
-          fbody = G.FBStmt body_stmt;
+          fbody = G.FBStmt body;
         }
       in
-      (ent, G.FuncDef fdef)
-  | FuncDef (clause :: _ as clauses) ->
-      (* Multi-clause or guarded: N synthetic params + Switch.
-       * We build Container(Tuple, [__p0__, ..., __pN__]) as the switch
-       * discriminant so that PatTuple case patterns can destructure it.
-       * Calls remain as N-argument calls (no wrapping needed), and
-       * find_pos_in_actual_args maps each call arg to __pI__ by position. *)
-      let id = map_ident_should_not_use env clause.f_name in
-      let ent =
-        G.basic_entity
-          ~attrs:
-            (if clause.f_is_private then
-               [ G.KeywordAttr (G.Private, Tok.fake_tok clause.f_def "") ]
-             else [])
-          id
-      in
-      let tk = clause.f_def in
-      let _, first_params, _ = clause.f_params in
-      let n = List.length first_params in
-      let param_ids = List.init n (fun i -> (Printf.sprintf "__p%d__" i, tk)) in
-      (* The __pN__ names are synthesised for the multi-clause lowering
-         and never appear in Elixir source; mark hidden so the prefilter
-         regex doesn't require them. *)
-      let synthetic_fparams =
-        Tok.unsafe_fake_bracket
-          (List_.map (fun pid -> G.Param (G.param_of_id ~hidden:true pid))
-             param_ids)
-      in
-      let switch_cond =
-        match param_ids with
-        | [] -> G.L (G.Null tk) |> G.e
-        | ids ->
-            let refs =
-              List_.map (fun pid ->
-                  G.N (H.name_of_id ~hidden:true pid) |> G.e)
-                ids
-            in
-            G.Container (G.Tuple, Tok.unsafe_fake_bracket refs) |> G.e
-      in
-      let cases =
-        clauses
-        |> List_.map (fun c ->
-               let stab = map_func_clause_to_stab env c in
-               case_and_body_of_stab_clause stab)
-      in
-      let switch_stmt = G.Switch (tk, Some (G.Cond switch_cond), cases) |> G.s in
-      (* Aggregate rescue/catch/after clauses from all function clauses *)
-      let all_rescue = List.concat_map (fun c -> c.f_rescue) clauses in
-      let body_stmt = wrap_with_rescue env tk switch_stmt all_rescue in
-      let fdef =
-        {
-          G.fkind = (G.Function, tk);
-          fparams = synthetic_fparams;
-          frettype = None;
-          fbody = G.FBStmt body_stmt;
-        }
-      in
-      (ent, G.FuncDef fdef)
-  | FuncDef [] ->
-      let fake_tok = G.fake "def" in
-      let ent = G.basic_entity ("?", fake_tok) in
-      let fdef =
-        {
-          G.fkind = (G.Function, fake_tok);
-          fparams = Tok.unsafe_fake_bracket [];
-          frettype = None;
-          fbody = G.FBStmt (G.Block (Tok.unsafe_fake_bracket []) |> G.s);
-        }
-      in
-      (ent, G.FuncDef fdef)
+      (ent, G.FuncDef def)
   | ModuleDef { m_defmodule = _; m_name; m_body = _tdo, xs, _tend } ->
       (* TODO: split alias in components, and then use name_of_ids *)
       let v = map_alias env m_name in
@@ -845,6 +420,39 @@ and map_definition env (v : definition) : G.definition =
       (* alt: we could also generate a Package directive instead *)
       let def = { G.mbody = G.ModuleStruct (None, items) } in
       (ent, G.ModuleDef def)
+
+and map_compound env (v : stmts bracket) : G.stmt =
+  let l, xs, r = v in
+  let xs = map_stmts env xs in
+  G.Block (l, xs, r) |> G.s
+
+and map_parameters env (params : parameters) : G.parameters =
+  map_bracket (map_list map_parameter) env params
+
+and map_parameter env (p : parameter) : G.parameter =
+  match p with
+  | P { pname; pdefault } -> (
+      match (pname, pdefault, env) with
+      | IdEllipsis t, None, Pattern -> G.ParamEllipsis t
+      | _else_ ->
+          let id = map_ident_should_not_use env pname in
+          let pdefault =
+            match pdefault with
+            | None -> None
+            | Some (_tk, e) ->
+                let e = map_expr env e in
+                Some e
+          in
+          let pclassic = G.param_of_id ?pdefault id in
+          G.Param pclassic)
+  | OtherParamExpr e ->
+      let e = map_expr env e in
+      G.OtherParam (("OtherParamExpr", G.fake ""), [ G.E e ])
+  | OtherParamPair (kwd, e) ->
+      let kwd = map_keyword env kwd in
+      let e = map_expr env e in
+      let e = keyval_of_pair (Left (kwd, e)) in
+      G.OtherParam (("OtherParamPair", G.fake ""), [ G.E e ])
 
 and map_stmts env (xs : stmts) : G.stmt list =
   xs
@@ -867,10 +475,10 @@ and map_vardef env v1 v2 =
 (* TODO: Elixir also has these patterns:
  *   ^x = 0 meaning x cannot be re-assigned later, and
  *   [x|y] = [0, 1, 2] where x maps to 0, and y maps to the rest
- * and expr_to_pattern doesn't cover these cases.
+ * and H.expr_to_pattern doesn't cover these cases.
  *)
 and map_letpattern env v1 v2 =
-  let e1 = expr_to_pattern (map_expr env v1) in
+  let e1 = H.expr_to_pattern (map_expr env v1) in
   let e2 = map_expr env v2 in
   G.LetPattern (e1, e2) |> G.e
 
@@ -880,29 +488,9 @@ and map_binary_op env v1 v2 v3 =
   let e2 = map_expr env v3 in
   match op with
   | Left (op, tk) -> G.opcall (op, tk) [ e1; e2 ]
-  | Right (("=>", tk) as _id) ->
-      G.keyval e1 tk e2
   | Right id ->
       let n = G.N (H.name_of_id id) |> G.e in
       G.Call (n, fb ([ e1; e2 ] |> List_.map G.arg)) |> G.e
-
-(* Desugar pipe: x |> f(a, b) becomes f(x, a, b), tagged with
- * OtherExpr("PipelineCall", ...) so search patterns can distinguish
- * piped calls from direct calls. *)
-and map_pipeline env (v1 : expr) (tk : tok) (v3 : expr) : G.expr =
-  let desugared =
-    match v3 with
-    | Call (fn, (l, (args, kwds), r), blk) ->
-        (* Insert v1 as first argument at the Elixir AST level;
-         * map_call will call map_expr on v1, handling nested pipes. *)
-        map_call env (fn, (l, (v1 :: args, kwds), r), blk)
-    | _ ->
-        (* Bare function reference: x |> f  becomes  f(x) *)
-        let e1 = map_expr env v1 in
-        let e2 = map_expr env v3 in
-        G.Call (e2, fb [ G.Arg e1 ]) |> G.e
-  in
-  G.OtherExpr (("PipelineCall", tk), [ G.E desugared ]) |> G.e
 
 and map_match env v1 v2 =
   (* Single LHS names are VarDefs.
@@ -965,17 +553,20 @@ and map_expr env v : G.expr =
       |> G.e
   | Map (v1, v2, v3) -> (
       let v2 = (map_option map_astruct) env v2 in
-      let l, xs, r = (map_bracket map_map_items) env v3 in
-      let dict_l = Tok.combine_toks v1 [ l ] in
-      let dict_body = G.Container (G.Dict, (dict_l, xs, r)) |> G.e in
+      let l, xs, r = (map_bracket map_items) env v3 in
       match v2 with
-      | None -> dict_body
-      | Some name_expr -> (
-          match H.name_of_dot_access name_expr with
-          | Some n -> G.Constructor (n, fb [ dict_body ]) |> G.e
-          | None ->
-              (* Fallback for dynamic struct names that can't be statically resolved *)
-              G.Call (name_expr, fb [ G.arg dict_body ]) |> G.e))
+      | None ->
+          let l = Tok.combine_toks v1 [ l ] in
+          G.Container (G.Dict, (l, xs, r)) |> G.e
+      | Some astruct ->
+          (* TODO?
+             | Some (Left id) ->
+                 let n = H2.name_of_id id in
+                 let ty = G.TyN n |> G.t in
+                 G.New (tpercent, ty, G.empty_id_info (), (l, List_.map G.arg xs, r))
+                 |> G.e
+          *)
+          G.Call (astruct, (l, List_.map G.arg xs, r)) |> G.e)
   | Alias v ->
       (* TODO: split alias in components, and then use name_of_ids *)
       let v = map_alias env v in
@@ -1003,10 +594,6 @@ and map_expr env v : G.expr =
       G.OtherExpr (("DotAnon", tdot), [ G.E e ]) |> G.e
   (* only inside a Call *)
   | DotRemote v -> map_remote_dot env v
-  (* Elixir field access: `foo.bar` (no parens). Translate to a plain
-   * DotAccess so downstream analysis treats it as field access, not a
-   * zero-arity function call. *)
-  | FieldAccess v -> map_remote_dot env v
   | ModuleVarAccess (tat, v2) ->
       let e = map_expr env v2 in
       G.OtherExpr (("AttrExpr", tat), [ G.E e ]) |> G.e
@@ -1026,7 +613,6 @@ and map_expr env v : G.expr =
   | BinaryOp (v1, v2, v3) -> (
       match v2 with
       | OMatch, _tk -> map_match env v1 v3
-      | OPipeline, tk -> map_pipeline env v1 tk v3
       | _else_ -> map_binary_op env v1 v2 v3)
   | OpArity (v1, tslash, pi) ->
       let id = map_wrap_operator_ident env v1 in
@@ -1041,7 +627,7 @@ and map_expr env v : G.expr =
       let e1 = map_expr env v1 in
       let v3 = map_expr_or_kwds env v3 in
       let e3 = expr_of_expr_or_kwds v3 in
-      G.Constructor (H.name_of_id ("|", tbar), fb [ e1; e3 ]) |> G.e
+      G.OtherExpr (("Join", tbar), [ G.E e1; G.E e3 ]) |> G.e
   | Lambda (tfn, v2, _tend) ->
       let xs = map_clauses env v2 in
       let fdef = stab_clauses_to_function_definition tfn xs in
@@ -1084,8 +670,7 @@ and map_body env v : G.stmt list =
 
 and map_call env (v1, v2, v3) : G.expr =
   (* Special handling for DotAnon - extract the inner expression to use as callee *)
-  let e =
-    match v1 with
+  let e = match v1 with
     | DotAnon (inner_expr, _tdot) -> map_expr env inner_expr
     | _ -> map_expr env v1
   in

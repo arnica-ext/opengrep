@@ -100,15 +100,11 @@ let add_type_args_opt_to_name name topt =
   | None -> name
   | Some t -> add_type_args_to_name name t
 
-(* NOTE: [~hidden] flags only the envelope; inner qualifier idents
-   in [name_middle] are not marked hidden. Current prefilter visitor
-   short-circuits at the envelope so this is fine — keep in mind if
-   you add a visitor that descends into [name_middle]. *)
-let name_of_ids ?name_top ?(case_insensitive = false) ?(hidden = false) xs =
+let name_of_ids ?name_top ?(case_insensitive = false) xs =
   match List.rev xs with
   | [] -> failwith "name_of_ids: empty ids"
   | [ x ] when Option.is_none name_top ->
-    Id (x, empty_id_info ~case_insensitive ~hidden ())
+    Id (x, empty_id_info ~case_insensitive ())
   | x :: xs ->
       let qualif =
         if xs =*= [] then None
@@ -119,7 +115,7 @@ let name_of_ids ?name_top ?(case_insensitive = false) ?(hidden = false) xs =
           name_last = (x, None);
           name_middle = qualif;
           name_top;
-          name_info = empty_id_info ~hidden ();
+          name_info = empty_id_info ();
         }
 
 let add_suffix_to_name suffix name =
@@ -140,8 +136,8 @@ let add_suffix_to_name suffix name =
           name_middle = new_name_middle;
         }
 
-let name_of_id ?(case_insensitive = false) ?(hidden = false) id =
-  Id (id, empty_id_info ~case_insensitive ~hidden ())
+let name_of_id ?(case_insensitive = false) id =
+  Id (id, empty_id_info ~case_insensitive ())
 
 let name_of_dot_access e =
   let rec fetch_ids = function
@@ -162,15 +158,6 @@ let name_of_dot_access e =
   in
   let* xs = fetch_ids e.e in
   Some (name_of_ids xs)
-
-let name_of_entity_name (en : entity_name) : name option =
-  match en with
-  | EN name -> Some name
-  | EDynamic ({ e = DotAccess _; _ } as e) -> name_of_dot_access e
-  | EDynamic _
-  | EPattern _
-  | OtherEntity _ ->
-      None
 
 (* TODO: you should not need to use that. This is mostly because
  * Constructor and PatConstructor currently takes a dotted_ident instead
@@ -212,79 +199,11 @@ let rec expr_to_pattern e =
   | Container (Tuple, (t1, xs, t2)) ->
       PatTuple (t1, xs |> List_.map expr_to_pattern, t2)
   | L l -> PatLiteral l
-  | Container ((List | Array), (t1, xs, t2)) ->
+  | Container (List, (t1, xs, t2)) ->
       PatList (t1, xs |> List_.map expr_to_pattern, t2)
-  (* JS/TS rest binding [...rest_target] inside a destructure. Recogniser
-   * gating by lang lives downstream in [AST_to_IL.split_trailing_rest]. *)
-  | Call ({ e = IdSpecial (Spread, tok); _ }, (_, [ Arg rest_target ], _)) ->
-      PatConstructor
-        (Id (("...", tok), empty_id_info ()), [ expr_to_pattern rest_target ])
-  (* Dict destructuring (e.g. Python [{"a": x}], Elixir map patterns
-   * after the frontend lowers them). Each entry is
-   * [Container(Tuple, [key; val])]. Entries whose key is a static
-   * ident / string / atom are routed through [PatRecord]; the
-   * [AST_to_IL.PatRecord] lowering emits a [Dot] offset per field,
-   * which is what makes field-sensitive lookups and destructured HOF
-   * callbacks work end-to-end.
-   *
-   * Entries with non-static keys are dropped here; their values never
-   * bind usefully through pattern destructuring. *)
-  | Container (Dict, (t1, xs, t2)) ->
-      let fields =
-        List.filter_map
-          (fun entry ->
-            match entry.e with
-            | Container (Tuple, (_, [ k; v ], _)) -> (
-                let key_ident =
-                  match k.e with
-                  | L (String (_, (s, tok), _)) -> Some (s, tok)
-                  | L (Atom (tok, (s, _))) -> Some (s, tok)
-                  | N (Id (id, _)) -> Some id
-                  | _ -> None
-                in
-                match key_ident with
-                | Some ident -> Some ([ ident ], expr_to_pattern v)
-                | None -> None)
-            | _ -> None)
-          xs
-      in
-      PatRecord (t1, fields, t2)
-  (* Object/record literal used as a destructuring pattern (JS/TS
-   * [{cb, data}] or [{cb: handler}]). Each field is a [DefStmt] whose
-   * entity name is the field label and whose [vinit] (or the
-   * [FieldDefColon]'s [vinit]) is the value pattern.
-   *
-   * For JS shorthand [{cb}], the field's [vinit] is a reference [N (Id
-   * ("cb", _))]; recursing into [expr_to_pattern] on that turns the
-   * reference into a [PatId] binding, which Naming_AST later resolves. *)
-  | Record (t1, fields, t2) ->
-      let pat_fields =
-        List.filter_map
-          (fun f ->
-            match f with
-            | F
-                {
-                  s =
-                    DefStmt
-                      ( { name = EN (Id (id, _)); tparams = None; _ },
-                        ( VarDef { vinit = Some v_expr; _ }
-                        | FieldDefColon { vinit = Some v_expr; _ } ) );
-                  _;
-                } ->
-                Some ([ id ], expr_to_pattern v_expr)
-            | _ -> None)
-          fields
-      in
-      PatRecord (t1, pat_fields, t2)
-  | Constructor (n, (_, args, _)) ->
-      PatConstructor (n, args |> List_.map expr_to_pattern)
   | Ellipsis t -> PatEllipsis t
-  | OtherExpr (tag, [ E e ]) -> OtherPat (tag, [ P (expr_to_pattern e) ])
   | Cast (ty, _tok, expr) -> PatTyped (expr_to_pattern expr, ty)
-  | LetPattern (p, {e = N (Id (i, info)); _} ) -> PatAs (p, (i, info))
-  (* coupling: emitted by Python_to_generic for `case ... if guard:`. *)
-  | OtherExpr (("CasePatWhen", _), [ E inner; E guard ]) ->
-      PatWhen (expr_to_pattern inner, guard)
+  (* TODO: PatKeyVal and more *)
   | _ -> OtherPat (("ExprToPattern", fake ""), [ E e ])
 
 exception NotAnExpr
@@ -298,12 +217,7 @@ let rec pattern_to_expr p =
   | PatLiteral l -> L l
   | PatList (t1, xs, t2) ->
       Container (List, (t1, xs |> List_.map pattern_to_expr, t2))
-  | PatConstructor (n, ps) ->
-      Constructor (n, Tok.unsafe_fake_bracket (ps |> List_.map pattern_to_expr))
-  | PatEllipsis t -> Ellipsis t
-  | PatTyped (p, ty) -> Cast (ty, fake "", pattern_to_expr p)
   | OtherPat (("ExprToPattern", _), [ E e ]) -> e.e
-  | OtherPat (tag, [ P p ]) -> OtherExpr (tag, [ E (pattern_to_expr p) ])
   | _ -> raise NotAnExpr)
   |> G.e
 
@@ -475,7 +389,7 @@ let parameter_to_catch_exn_opt p =
   match p with
   | Param p -> Some (CatchParam p)
   | ParamEllipsis t -> Some (CatchPattern (PatEllipsis t))
-  | ParamPattern (p, _) -> Some (G.CatchPattern p)
+  | ParamPattern p -> Some (G.CatchPattern p)
   (* TODO: valid in exn spec? *)
   | ParamRest (_, _p)
   | ParamHashSplat (_, _p) ->

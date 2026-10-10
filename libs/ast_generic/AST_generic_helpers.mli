@@ -45,10 +45,10 @@ val funcbody_to_stmt : AST_generic.function_body -> AST_generic.stmt
 
 (* name building *)
 
-val name_of_id : ?case_insensitive:bool -> ?hidden:bool -> AST_generic.ident -> AST_generic.name
+val name_of_id : ?case_insensitive:bool -> AST_generic.ident -> AST_generic.name
 
 val name_of_ids :
-  ?name_top:Tok.t -> ?case_insensitive:bool -> ?hidden:bool -> AST_generic.dotted_ident -> AST_generic.name
+  ?name_top:Tok.t -> ?case_insensitive:bool -> AST_generic.dotted_ident -> AST_generic.name
 
 val name_of_ids_with_opt_typeargs :
   (AST_generic.ident * AST_generic.type_arguments option) list ->
@@ -71,9 +71,6 @@ val add_suffix_to_name :
 
 (* Tries to re-interpreted a DotAccess expression a.b.c as an IdQualified. *)
 val name_of_dot_access : AST_generic.expr -> AST_generic.name option
-
-val name_of_entity_name :
-  AST_generic.entity_name -> AST_generic.name option
 
 (* name conversions *)
 

@@ -6,7 +6,7 @@ let spinner = [| "⠋"; "⠙"; "⠹"; "⠸"; "⠼"; "⠴"; "⠦"; "⠧"; "⠇"; 
 
 (* only show the console spinner if this is a non-JSOO Unix TTY *)
 let should_show_spinner () =
-  !ANSITerminal.isatty Unix.stdout && Sys.unix
+  !ANSITerminal.isatty Unix.stdout && (not !Common.jsoo) && Sys.unix
 
 let show_spinner delay_ms : unit =
   if not (should_show_spinner ()) then (
@@ -26,12 +26,10 @@ let show_spinner delay_ms : unit =
       Unix.sleepf (Float.of_int delay_ms /. Float.of_int (1000 * 100))
     done
 
-(* Clears only the spinner's line and leaves the cursor at its start, so that
-   the next output overwrites it. Erasing below the cursor would also erase
-   what the caller printed under it. *)
 let erase_spinner () : unit =
+  ANSITerminal.set_cursor 1 (-1);
   ANSITerminal.move_bol ();
-  ANSITerminal.erase ANSITerminal.Eol
+  ANSITerminal.erase ANSITerminal.Below
 
 let spinner_async () : 'a Lwt.t =
   (* nosemgrep *)
@@ -45,14 +43,9 @@ let spinner_async () : 'a Lwt.t =
     if !jump_y then (
       (* jump to the line above to add the indicator *)
       ANSITerminal.move_cursor 0 (-1);
-      jump_y := false);
-    (* the glyph's colour follows $NO_COLOR like every other output *)
-    let style =
-      match Console.get_highlight () with
-      | On -> [ ANSITerminal.green ]
-      | Off -> []
-    in
-    ANSITerminal.printf style "%s" spinner;
+      jump_y := false)
+    else ();
+    ANSITerminal.printf [ ANSITerminal.green ] "%s" spinner;
     Lwt.return ()
   in
   (* create a cancellable promise *)

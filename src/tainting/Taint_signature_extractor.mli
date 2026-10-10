@@ -21,29 +21,29 @@ type signature_database = Shape_and_sig.signature_database
 val extract_signature :
   Taint_rule_inst.t ->
   ?in_env:Taint_lval_env.t ->
-  ?name:IL.name ->
+  ?name:Shape_and_sig.fn_id ->
   ?signature_db:signature_database ->
   ?builtin_signature_db:Shape_and_sig.builtin_signature_database ->
-  ?call_graph:Call_graph.G.t option ->
+  ?call_graph:Function_call_graph.FuncGraph.t option ->
   IL.fun_cfg ->
   extraction_result
 (** Extract both signature and taint mapping from a function *)
 
 val mk_global_assumptions_with_sids :
-  Lang.t -> (string * AST_generic.SId.t) list -> Taint_lval_env.t
+  (string * AST_generic.SId.t) list -> Taint_lval_env.t
 (** Create global variable taint assumptions with specific SIDs *)
 
 val mk_global_tracking_without_taint :
-  Lang.t -> (string * AST_generic.SId.t) list -> Taint_lval_env.t
+  (string * AST_generic.SId.t) list -> Taint_lval_env.t
 (** Register global variables for tracking without pre-tainting them *)
 
 val extract_signature_with_file_context :
-  arity:Shape_and_sig.sig_arity ->
+  arity:int ->
   ?db:signature_database ->
   ?builtin_signature_db:Shape_and_sig.builtin_signature_database ->
-  name:IL.name ->
+  ?name:Shape_and_sig.fn_id ->
   ?method_properties:AST_generic.expr list ->
-  ?call_graph:Call_graph.G.t option ->
+  ?call_graph:Function_call_graph.FuncGraph.t option ->
   Taint_rule_inst.t ->
   IL.fun_cfg ->
   AST_generic.program ->
@@ -62,3 +62,22 @@ val show_signature_extraction :
 val extract_method_properties :
   AST_generic.function_definition -> AST_generic.expr list
 (** Extract this.x and self.x property accesses from a function definition *)
+
+
+(*****************************************************************************)
+(* Batch extraction *)
+(*****************************************************************************)
+
+
+val empty_signature_database : unit -> signature_database
+(** Create an empty signature database *)
+
+val lookup_signature :
+  signature_database -> Shape_and_sig.fn_id -> int -> Shape_and_sig.Signature.t option
+(** Look up a signature by function name *)
+
+val show_signature_database : signature_database -> string
+(** Show all signatures in the database *)
+
+val detect_object_initialization : AST_generic.program -> Lang.t -> (AST_generic.name * AST_generic.name) list
+(** Detect object initialization patterns in the AST for the given language *)

@@ -92,10 +92,7 @@ let is_private attr =
   | _ -> false
 
 (* TODO: incomplete, e.g. Record is not handled *)
-(* [base] is set while peeling the receiver of a subscript/field store: a
-   Container there is a temporary literal (`[x][0] = v`), not a
-   destructuring target, and the variables inside it are not written. *)
-let rec lvars_in_lhs ?(base = false) expr =
+let rec lvars_in_lhs expr =
   match expr.e with
   | N (Id (id, { id_resolved = { contents = Some (_kind, sid) }; _ }))
   | DotAccess
@@ -103,16 +100,7 @@ let rec lvars_in_lhs ?(base = false) expr =
         _,
         FN (Id (id, { id_resolved = { contents = Some (_kind, sid) }; _ })) ) ->
       [ (id, sid) ]
-  | Container ((Tuple | Array), (_, es, _)) when not base ->
-      List.concat_map lvars_in_lhs es
-  (* A store through a subscript or a field (`a[i] = v`, `a.f = v`,
-     `a[i].f = v`) mutates the container/object held by the base variable,
-     so it must count as a write to it: otherwise `a = {}; a[k] = v` leaves
-     `a` "assigned just once" and its stale initial value gets propagated
-     into later reads of `a`. *)
-  | ArrayAccess (e, _)
-  | DotAccess (e, _, _) ->
-      lvars_in_lhs ~base:true e
+  | Container ((Tuple | Array), (_, es, _)) -> List.concat_map lvars_in_lhs es
   | __else__ -> []
 
 class ['self] no_cycles_in_sym_prop_visitor =
@@ -425,6 +413,14 @@ let add_special_constants env lang prog =
 (* Entry point *)
 (*****************************************************************************)
 
+type propagate_basic_visitor_funcs = {
+  visit_definition :
+    Eval.env * Iter_with_context.context -> AST_generic.definition -> unit;
+}
+
+let hook_propagate_basic_visitor : propagate_basic_visitor_funcs option ref =
+  ref None
+
 class ['self] propagate_basic_visitor lang stats =
   object (_self : 'self)
     inherit [_] Iter_with_context.iter_with_context as super
@@ -498,8 +494,13 @@ class ['self] propagate_basic_visitor lang stats =
           super#visit_definition (env, ctx) x
       | entity, ClassDef c ->
           let x' = entity, ClassDef (H.reorder_fields_in_class_definition c) in
+          !hook_propagate_basic_visitor
+          |> Option.iter (fun v -> v.visit_definition (env, ctx) x');
           super#visit_definition (env, ctx) x'
-      | _ -> super#visit_definition (env, ctx) x
+      | _ ->
+          !hook_propagate_basic_visitor
+          |> Option.iter (fun v -> v.visit_definition (env, ctx) x);
+          super#visit_definition (env, ctx) x
 
     (* THINK: Should we just visit every single name ? *)
     method! visit_NamedAttr (env, ctx) tok name args =
@@ -599,11 +600,7 @@ class ['self] propagate_basic_visitor lang stats =
                   && no_cycles_in_sym_prop sid rexp
                 then add_constant_env id (sid, Sym rexp) env;
                 ());
-          (* Let Iter_with_context's Assign branch dispatch the children: it
-             sends [rexp] back through [self#visit_expr], so an RHS that is
-             exactly an Id (q = SOME_CONST) gets its svalue stamped, like the
-             same id in argument position would. *)
-          super#visit_expr (env, ctx) x
+          super#visit_expr (env, ctx) rexp
       | __else__ -> super#visit_expr (env, ctx) x
   end
 
@@ -647,6 +644,15 @@ let propagate_dataflow lang ast =
       ast
       |> Visit_function_defs.visit (fun _ent fdef ->
              let fun_cfg = CFG_build.cfg_of_gfdef lang fdef in
+             (* when/ pattern when is not constant propagation but is related in the sense
+              * that it also finds extra info by analyzing the cfg. we are reusing the cfg
+              * created here to annotate facts for the pattern when feature.
+              *
+              * TODO: refactor this code if we don't incorporate when into svalue analysis.
+              *)
+             (match !Dataflow_when.hook_annotate_facts with
+             | None -> ()
+             | Some annotate_facts -> annotate_facts fun_cfg.cfg);
              propagate_dataflow_one_function lang fun_cfg);
 
       (* We consider the top-level function the interior of a degenerate function,

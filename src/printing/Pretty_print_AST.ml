@@ -64,11 +64,9 @@ type env = { lang : Lang.t; (* indentation level *) level : int }
 (*****************************************************************************)
 (* Helpers *)
 (*****************************************************************************)
-
-(* when we don't have a nice representation, just print out the AST.
- * This is used only in logs and dumps. *)
 let todo any =
-  show_any any
+  Log.warn (fun m -> m "Pretty_print_AST TODO: %s" (show_any any));
+  "*TODO*"
 
 let rec indent = function
   | 0 -> ""
@@ -223,7 +221,6 @@ and if_stmt env (tok, e, s, sopt) =
     | Lang.Julia
     | Lang.Elixir
     | Lang.Bash
-    | Lang.Crystal
     | Lang.Dockerfile
     | Lang.Ruby
     | Lang.Ocaml
@@ -342,9 +339,7 @@ and while_stmt env (tok, e, s) =
     | Lang.R ->
         c_while
     | Lang.Go -> go_while
-    | Lang.Crystal
-    | Lang.Ruby ->
-        ruby_while
+    | Lang.Ruby -> ruby_while
     | Lang.Ocaml -> ocaml_while
   in
   while_format (token ~d:"while" tok) (condition env e)
@@ -401,9 +396,7 @@ and do_while stmt env (s, e) =
     | Lang.Rust
     | Lang.R ->
         failwith "impossible; no do while"
-    | Lang.Crystal
-    | Lang.Ruby ->
-        failwith "ruby is so weird (here, do while loop)"
+    | Lang.Ruby -> failwith "ruby is so weird (here, do while loop)"
   in
   do_while_format (stmt { env with level = env.level + 1 } s) (expr env e)
 
@@ -454,9 +447,7 @@ and for_stmt env (for_tok, hdr, s) =
     | Lang.Python2
     | Lang.Python3 ->
         F.sprintf "%s %s:\n%s"
-    | Lang.Crystal
-    | Lang.Ruby ->
-        F.sprintf "%s %s\ndo %s\nend"
+    | Lang.Ruby -> F.sprintf "%s %s\ndo %s\nend"
     | Lang.Json
     | Lang.Jsonnet
     | Lang.Ocaml
@@ -558,7 +549,6 @@ and def_stmt env (entity, def_kind) =
       | Lang.Python
       | Lang.Python2
       | Lang.Python3
-      | Lang.Crystal
       | Lang.Ruby
       | Lang.Ql ->
           ( (fun _typ id _e -> F.sprintf "%s" id),

@@ -1,1 +1,0 @@
-Osemgrep Scan autofix (e2e) > autofix: flask-use-jsonify.yaml flask-use-jsonify.py text --dryrun

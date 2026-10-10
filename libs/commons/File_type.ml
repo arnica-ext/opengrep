@@ -57,13 +57,11 @@ and pl_type =
   | Java
   | Kotlin
   | Csharp
-  | Crystal
   | Vb
   | ObjectiveC of string
   | Swift
   | Apex
   | Dart
-  | Solidity
   (* advanced script *)
   | Julia
   | Perl
@@ -198,7 +196,6 @@ let file_type_of_file file =
   | "java" -> PL Java
   | "kt" -> PL Kotlin
   | "cs" -> PL Csharp
-  | "cr" -> PL Crystal
   | "p" -> PL Pascal
   | "thrift" -> PL (IDL Thrift)
   | "atd" -> PL (IDL ATD)
@@ -402,8 +399,6 @@ let file_type_of_file file =
   | "mk" -> Config Makefile
   | "rs" -> PL Rust
   | "move" -> PL Move
-  (* the Go module manifest shares its extension with Go source files *)
-  | "mod" when String.equal b "go" -> Text "go.mod"
   | "mod"
   | "go" ->
       PL Go
@@ -412,7 +407,6 @@ let file_type_of_file file =
   | "ex" | "exs" -> PL Elixir
   | "cls" | "trigger" -> PL Apex
   | "dart" -> PL Dart
-  | "sol" -> PL Solidity
   | "vb" -> PL Vb
   | _ when UFile.is_executable file -> Binary e
   | _ when b = "Makefile" || b = "mkfile" || b = "Imakefile" -> Config Makefile
@@ -453,6 +447,14 @@ let is_textual_file file =
   | Archive _
   | Other _ ->
       false
+
+let webpl_type_of_file file =
+  match file_type_of_file file with
+  | PL (Web x) -> Some x
+  | _ -> None
+
+let is_syncweb_obj_file file = !!file =~ ".*md5sum_"
+let is_json_filename filename = !!filename =~ ".*\\.json$"
 
 let files_of_dirs_or_files p xs =
   xs |> UFile.files_of_dirs_or_files_no_vcs_nofilter

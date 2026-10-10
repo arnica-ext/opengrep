@@ -57,7 +57,7 @@ type classmember =
   | EnumCase of A.class_var (* TODO add enum case to AST *)
 
 let todo (env : env) _ = failwith "not implemented"
-let map_name (env : env) tok : A.name = A.name_of_ids [ _str env tok ]
+let map_name (env : env) tok : A.name = [ _str env tok ]
 
 let rec _split_classmembers env members constants variables methods uses =
   match members with
@@ -96,7 +96,7 @@ let stmt1 xs =
 let fake_call_to_builtin (env : env) tok args =
   let str, tok = tok in
   A.Call
-    ( A.expr_id [ (A.builtin str, tok) ],
+    ( A.Id [ (A.builtin str, tok) ],
       Tok.fake_bracket tok (args |> List_.map (fun x -> A.Arg x)) )
 
 let rec chain_else_if (env : env) ifelses (else_ : A.stmt) : A.stmt =
@@ -120,11 +120,6 @@ let map_primitive_type (env : env) (x : CST.primitive_type) : A.hint_type =
   | `False tok -> (* "false" *) Hint (map_name env tok)
   | `Null tok -> (* "null" *) Hint (map_name env tok)
 
-(* No case for the PHP 8.5 '(void)' cast below: it is absent from this
- * grammar's cast_type, so '(void) foo()' is parsed as a parenthesized
- * expression followed by an ERROR node rather than as a cast. Supporting it
- * would require regenerating the grammar.
- * The menhir parser (the primary one for PHP) does handle it. *)
 let map_cast_type (env : env) (x : CST.cast_type) =
   match x with
   | `Array tok -> (* "array" *) (A.ArrayTy, token env tok)
@@ -213,47 +208,50 @@ let map_string__ (env : env) (x : CST.string__) =
       A.String (value, tok)
   | `Here tok -> (* heredoc *) A.String (_str env tok)
 
-let map_func_or_const (env : env) (x : CST.anon_choice_pat_func_6731ab8)
-    : A.use_kind =
+let map_func_or_const (env : env) (x : CST.anon_choice_pat_func_6731ab8) =
   match x with
-  | `Pat_func _tok ->
-      (* pattern [fF][uU][nN][cC][tT][iI][oO][nN] *) A.Use_function
-  | `Pat_const _tok -> (* pattern [cC][oO][nN][sS][tT] *) A.Use_constant
+  | `Pat_func tok ->
+      (* pattern [fF][uU][nN][cC][tT][iI][oO][nN] *) token env tok
+  | `Pat_const tok -> (* pattern [cC][oO][nN][sS][tT] *) token env tok
 
 let map_semicolon (env : env) (x : CST.semicolon) =
   match x with
   | `Auto_semi tok -> (* automatic_semicolon *) token env tok
   | `SEMI tok -> (* ";" *) token env tok
 
-let map_namespace_root env tok : Tok.t = token env tok
+let map_namespace_root env tok = [ (A.special "ROOT", token env tok) ]
 
 let map_namespace_name_as_prefix (env : env) (x : CST.namespace_name_as_prefix)
-    : Tok.t option * A.qualified_ident =
+    : A.name =
   match x with
-  | `BSLASH tok -> (* "\\" *) (Some (map_namespace_root env tok), [])
+  | `BSLASH tok -> (* "\\" *) map_namespace_root env tok
   | `Opt_BSLASH_name_name_BSLASH (v1, v2, v3) ->
       let v1 =
         match v1 with
-        | Some tok -> (* "\\" *) Some (map_namespace_root env tok)
-        | None -> None
+        | Some tok -> (* "\\" *) map_namespace_root env tok
+        | None -> []
       in
       let v2 = map_namespace_name env v2 in
       let v3 = (* "\\" *) token env v3 in
-      (v1, v2)
+      v1 @ v2
   | `Pat_name_BSLASH (v1, v2) ->
       let v1 =
         (* pattern [nN][aA][mM][eE][sS][pP][aA][cC][eE] *) token env v1
       in
-      let _v2 = (* "\\" *) token env v2 in
-      (None, [ (A.special "namespace", v1) ])
+      let v2 = (* "\\" *) map_namespace_root env v2 in
+      v2
   | `Pat_name_opt_BSLASH_name_name_BSLASH (v1, v2, v3, v4) ->
       let v1 =
         (* pattern [nN][aA][mM][eE][sS][pP][aA][cC][eE] *) token env v1
       in
-      let _v2 = v2 in
+      let v2 =
+        match v2 with
+        | Some tok -> (* "\\" *) map_namespace_root env tok
+        | None -> []
+      in
       let v3 = map_namespace_name env v3 in
       let v4 = (* "\\" *) token env v4 in
-      (None, (A.special "namespace", v1) :: v3)
+      v2 @ v3
 
 let map_anonymous_function_use_clause (env : env)
     ((v1, v2, v3, v4, v5, v6, v7) : CST.anonymous_function_use_clause) :
@@ -316,7 +314,7 @@ let map_literal (env : env) (x : CST.literal) : A.expr =
   | `Null tok ->
       (* pattern [nN][uU][lL][lL] *)
       (* TODO Null should have its own AST node *)
-      A.expr_id [ _str env tok ]
+      Id [ _str env tok ]
 
 let map_namespace_use_group_clause (env : env)
     ((v1, v2, v3) : CST.namespace_use_group_clause) =
@@ -331,7 +329,7 @@ let map_namespace_use_group_clause (env : env)
     | Some x -> Some (map_namespace_aliasing_clause env x)
     | None -> None
   in
-  (v1, v2, v3)
+  (v2, v3)
 
 let map_modifier (env : env) (x : CST.modifier) : A.modifier =
   match x with
@@ -360,16 +358,14 @@ let map_relative_scope (env : env) (x : CST.relative_scope) =
   | `Self tok -> (* "self" *) A.IdSpecial (A.Self, token env tok)
   | `Parent tok -> (* "parent" *) A.IdSpecial (A.Parent, token env tok)
   | `Pat_static tok ->
-      (* pattern [sS][tT][aA][tT][iI][cC] *)
-      A.IdSpecial (A.LateStatic, token env tok)
+      (* pattern [sS][tT][aA][tT][iI][cC] *) A.Id (map_name env tok)
 
 let map_reserved_identifier (env : env) (x : CST.reserved_identifier) =
   match x with
   | `Self tok -> (* "self" *) A.IdSpecial (A.Self, token env tok)
   | `Parent tok -> (* "parent" *) A.IdSpecial (A.Parent, token env tok)
   | `Pat_static tok ->
-      (* pattern [sS][tT][aA][tT][iI][cC] *)
-      A.IdSpecial (A.LateStatic, token env tok)
+      (* pattern [sS][tT][aA][tT][iI][cC] *) A.Id (map_name env tok)
 
 let map_reserved_identifier_ident (env : env) (x : CST.reserved_identifier) =
   match x with
@@ -377,13 +373,13 @@ let map_reserved_identifier_ident (env : env) (x : CST.reserved_identifier) =
   | `Parent tok -> (* "parent" *) _str env tok
   | `Pat_static tok -> (* pattern [sS][tT][aA][tT][iI][cC] *) _str env tok
 
-let map_qualified_name (env : env) ((v1, v2) : CST.qualified_name) : A.name =
-  let root, prefix = map_namespace_name_as_prefix env v1 in
+let map_qualified_name (env : env) ((v1, v2) : CST.qualified_name) =
+  let v1 = map_namespace_name_as_prefix env v1 in
   let v2 =
     (* pattern [_a-zA-Z\u00A1-\u00ff][_a-zA-Z\u00A1-\u00ff\d]* *)
-    _str env v2
+    map_name env v2
   in
-  { A.n_root = root; n_parts = prefix @ [ v2 ] }
+  v1 @ v2
 
 let map_declare_directive (env : env) ((v1, v2, v3) : CST.declare_directive) =
   let v1 =
@@ -432,7 +428,7 @@ let map_anon_choice_name_062e4f2 (env : env) (x : CST.anon_choice_name_062e4f2)
   | `Name tok ->
       (* pattern [_a-zA-Z\u00A1-\u00ff][_a-zA-Z\u00A1-\u00ff\d]* *)
       map_name env tok
-  | `Rese_id x -> A.name_of_ids [ map_reserved_identifier_ident env x ]
+  | `Rese_id x -> [ map_reserved_identifier_ident env x ]
   | `Qual_name x -> map_qualified_name env x
 
 let map_type_list (env : env) ((v1, v2) : CST.type_list) : A.hint_type list =
@@ -633,9 +629,7 @@ and map_anon_choice_simple_param_5af5eb3 (env : env)
           p_name = v4;
           p_default = v5;
           p_attrs = v1;
-          p_modifiers = [];
           p_variadic = None;
-          p_hooks = [];
         }
   | `Vari_param (v1, v2, v3, v4, v5) ->
       let v1 =
@@ -662,12 +656,10 @@ and map_anon_choice_simple_param_5af5eb3 (env : env)
           p_name = v5;
           p_default = None;
           p_attrs = v1;
-          p_modifiers = [];
           p_variadic = Some v4;
-          p_hooks = [];
         }
   | `Prop_prom_param (v1, v2, v3, v4) ->
-      let v1 = map_visibility_modifier env v1 in
+      let v1_todo = map_visibility_modifier env v1 in
       let v2 =
         match v2 with
         | Some x -> Some (map_type_ env x)
@@ -685,15 +677,8 @@ and map_anon_choice_simple_param_5af5eb3 (env : env)
           p_ref = None;
           p_name = v3;
           p_default = v4;
-          (* this grammar's property_promotion_parameter carries only a
-           * visibility modifier: no attribute_list, no PHP 8.4 property hooks,
-           * and no PHP 8.5 'final' (which it rejects outright), so there is
-           * nothing to propagate into p_attrs/p_hooks, and p_modifiers can
-           * only ever hold the visibility *)
           p_attrs = [];
-          p_modifiers = [ v1 ];
           p_variadic = None;
-          p_hooks = [];
         }
 
 and map_argument (env : env) ((v1, v2) : CST.argument) =
@@ -779,7 +764,7 @@ and map_array_destructing (env : env) ((v1, v2, v3, v4) : CST.array_destructing)
   let v2 =
     match v2 with
     | Some x -> map_anon_choice_choice_array_dest_abfb170 env x
-    | None -> A.expr_id [ ("", Tok.fake_tok v1 "") ]
+    | None -> A.Id [ ("", Tok.fake_tok v1 "") ]
   in
   let v3 =
     List_.map
@@ -788,7 +773,7 @@ and map_array_destructing (env : env) ((v1, v2, v3, v4) : CST.array_destructing)
         let v2 =
           match v2 with
           | Some x -> map_anon_choice_choice_array_dest_abfb170 env x
-          | None -> A.expr_id [ ("", Tok.fake_tok v1 "") ]
+          | None -> A.Id [ ("", Tok.fake_tok v1 "") ]
         in
         v2)
       v3
@@ -836,10 +821,6 @@ and map_attribute_list (env : env) (xs : CST.attribute_list) : A.attribute list
       v2 :: v3)
     xs
 
-(* No case for the PHP 8.5 pipe operator below: this grammar has no '|>'
- * token, so '$x |> f(...)' lexes as '|' followed by '>' and yields an ERROR
- * node. Supporting it would require regenerating the grammar.
- * The menhir parser (the primary one for PHP) does handle it. *)
 and map_binary_expression (env : env) (x : CST.binary_expression) =
   match x with
   | `Un_exp_pat_inst__choice_qual_name (v1, v2, v3) ->
@@ -1039,25 +1020,21 @@ and map_function_name env tok =
   | "exit" -> A.IdSpecial (A.FuncLike A.Exit, tok)
   | "isset" -> A.IdSpecial (A.FuncLike A.Isset, tok)
   | "unset" -> A.IdSpecial (A.FuncLike A.Unset, tok)
-  | _ -> A.expr_id [ id ]
+  | _ -> A.Id [ id ]
 
 and map_catch_clause (env : env) ((v1, v2, v3, v4, v5, v6) : CST.catch_clause) :
     A.catch =
   let v1 = (* pattern [cC][aA][tT][cC][hH] *) token env v1 in
   let v2 = (* "(" *) token env v2 in
   let v3 = map_type_list env v3 in
-  let v4 = Option.map (map_variable_name env) v4 in
+  let v4 =
+    match v4 with
+    | Some x -> map_variable_name env x
+    | None -> ("", Tok.fake_tok v2 "")
+  in
   let v5 = (* ")" *) token env v5 in
   let v6 = map_compound_statement env v6 in
-  (* 'catch (Exn1 | Exn2 $e)' is a union of the two, as the menhir parser
-   * builds it; a lone type stands for itself *)
-  let ht =
-    match v3 with
-    | [ ty ] -> ty
-    | tys -> A.HintUnion (List_.hd_exn "empty catch type list" tys,
-                          List_.tl_exn "empty catch type list" tys
-                          |> List_.map (fun ty -> (Tok.fake_tok v2 "|", ty)))
-  in
+  let ht = A.HintTuple (v2, v3, v5) in
   (v1, ht, v4, v6)
 
 and map_class_constant_access_expression (env : env)
@@ -1065,7 +1042,7 @@ and map_class_constant_access_expression (env : env)
   let v1 = map_scope_resolution_qualifier env v1 in
   let v2 = (* "::" *) token env v2 in
   let v3 = map_anon_choice_name_9dd129a env v3 in
-  A.Class_get (v1, v2, A.expr_id [ v3 ])
+  A.Class_get (v1, v2, A.Id [ v3 ])
 
 and map_class_type_designator (env : env) (x : CST.class_type_designator) =
   match x with
@@ -1080,10 +1057,6 @@ and map_class_type_designator (env : env) (x : CST.class_type_designator) =
   | `Scoped_prop_access_exp x -> map_scoped_property_access_expression env x
   | `Choice_dyna_var_name x -> map_variable_name_ env x
 
-(* Only the prefix 'clone $obj' below: this grammar predates PHP 8.5
- * clone-with, so 'clone($obj, ['p' => 1])' makes it emit an ERROR node at the
- * comma. Supporting it would require regenerating the grammar.
- * The menhir parser (the primary one for PHP) does handle it. *)
 and map_clone_expression (env : env) ((v1, v2) : CST.clone_expression) =
   let v1 = (* "clone" *) _str env v1 in
   let v2 = map_primary_expression env v2 in
@@ -1104,17 +1077,14 @@ and map_compound_statement_ (env : env) ((v1, v2, v3) : CST.compound_statement)
 and map_compound_statement (env : env) ((v1, v2, v3) : CST.compound_statement) =
   A.Block (map_compound_statement_ env (v1, v2, v3))
 
-(* [attrs] and [modifiers] come from the enclosing class_const_declaration,
- * which is where this grammar keeps the attribute list and the 'final'
- * keyword. *)
-and map_const_declaration ?(attrs = []) ?(modifiers = []) (env : env)
-    (x : CST.const_declaration) : classmember list =
-  let consts = map_const_declaration_ ~attrs ~modifiers env x in
+and map_const_declaration (env : env) (x : CST.const_declaration) :
+    classmember list =
+  let consts = map_const_declaration_ env x in
   List_.map (fun c -> ConstantDef c) consts
 
-and map_const_declaration_ ?(attrs = []) ?(modifiers = []) (env : env)
+and map_const_declaration_ (env : env)
     ((v1, v2, v3, v4, v5) : CST.const_declaration_) =
-  let visibility =
+  let v1 =
     match v1 with
     | Some x -> [ map_visibility_modifier env x ]
     | None -> []
@@ -1132,8 +1102,7 @@ and map_const_declaration_ ?(attrs = []) ?(modifiers = []) (env : env)
   let v5 = map_semicolon env v5 in
   List_.map
     (fun (name, expr) ->
-      { A.cst_tok = v2; A.cst_name = name; A.cst_body = expr;
-        A.cst_modifiers = modifiers @ visibility; A.cst_attrs = attrs })
+      { A.cst_tok = v2; A.cst_name = name; A.cst_body = expr; A.cst_modifiers = [] })
     (v3 :: v4)
 
 and map_const_element (env : env) ((v1, v2, v3) : CST.const_element) =
@@ -1168,14 +1137,13 @@ and map_dynamic_variable_name (env : env) (x : CST.dynamic_variable_name) =
       let v1 = (* "$" *) token env v1 in
       let v2 = map_variable_name_ env v2 in
       A.Call
-        ( A.expr_id [ (A.builtin "eval_var", v1) ],
-          Tok.fake_bracket v1 [ A.Arg v2 ] )
+        (A.Id [ (A.builtin "eval_var", v1) ], Tok.fake_bracket v1 [ A.Arg v2 ])
   | `DOLLAR_LCURL_exp_RCURL (v1, v2, v3, v4) ->
       let v1 = (* "$" *) token env v1 in
       let v2 = (* "{" *) token env v2 in
       let v3 = map_expression env v3 in
       let v4 = (* "}" *) token env v4 in
-      A.Call (A.expr_id [ (A.builtin "eval_var", v1) ], (v2, [ A.Arg v3 ], v4))
+      A.Call (A.Id [ (A.builtin "eval_var", v1) ], (v2, [ A.Arg v3 ], v4))
 
 and map_else_clause (env : env) ((v1, v2) : CST.else_clause) =
   let v1 = (* pattern [eE][lL][sS][eE] *) token env v1 in
@@ -1210,7 +1178,7 @@ and map_enum_member_declaration (env : env) (x : CST.enum_member_declaration) :
     classmember list =
   match x with
   | `Enum_case (v1, v2, v3, v4, v5) ->
-      let attrs =
+      let v1 =
         match v1 with
         | Some x -> map_attribute_list env x
         | None -> []
@@ -1228,11 +1196,11 @@ and map_enum_member_declaration (env : env) (x : CST.enum_member_declaration) :
               match v2 with
               | `Str tok ->
                   (* string *)
-                  ( Some (A.Hint (A.name_of_ids [ ("string", token env tok) ])),
+                  ( Some (A.Hint [ ("string", token env tok) ]),
                     Some (A.String (_str env tok)) )
               | `Int tok ->
                   (* integer *)
-                  ( Some (A.Hint (A.name_of_ids [ ("int", token env tok) ])),
+                  ( Some (A.Hint [ ("int", token env tok) ]),
                     Some (map_integer env tok) )
             in
             v2
@@ -1242,8 +1210,7 @@ and map_enum_member_declaration (env : env) (x : CST.enum_member_declaration) :
       let type_, value = v4 in
       [
         EnumCase
-          { cv_name = v3; cv_type = type_; cv_value = value; cv_modifiers = [];
-            cv_hooks = []; cv_attrs = attrs };
+          { cv_name = v3; cv_type = type_; cv_value = value; cv_modifiers = []; cv_hooks = [] };
       ]
   | `Meth_decl x -> [ map_method_declaration env x ]
   | `Use_decl x -> map_use_declaration env x
@@ -1316,18 +1283,21 @@ and map_expression (env : env) (x : CST.expression) : A.expr =
       let v4 = map_expression env v4 in
       let v4 = map_ref_expr env v3 v4 in
       A.Assign (v1, v2, v4)
-  | `Yield_exp (v1, v2) -> (
+  | `Yield_exp (v1, v2) ->
       let v1 = (* "yield" *) _str env v1 in
-      match v2 with
-      | Some (`From_exp (v2, v3)) ->
-          let v2 = (* "from" *) token env v2 in
-          let v3 = map_expression env v3 in
-          A.Call
-            ( A.expr_id [ (A.builtin "yield_from", snd v1) ],
-              Tok.fake_bracket v2 [ A.Arg v3 ] )
-      | Some (`Array_elem_init x) ->
-          fake_call_to_builtin env v1 [ map_array_element_initializer env x ]
-      | None -> fake_call_to_builtin env v1 [])
+      let v2 =
+        match v2 with
+        | Some x -> (
+            match x with
+            | `Array_elem_init x -> [ map_array_element_initializer env x ]
+            | `From_exp (v1, v2) ->
+                let v1 = (* "from" *) token env v1 in
+                (* TODO handle `yield from` *)
+                let v2 = map_expression env v2 in
+                [ v2 ])
+        | None -> []
+      in
+      fake_call_to_builtin env v1 v2
   | `Un_exp x -> map_unary_expression env x
   | `Bin_exp x -> map_binary_expression env x
   | `Incl_exp (v1, v2) ->
@@ -1438,7 +1408,7 @@ and map_list_destructing (env : env)
   let v3 =
     match v3 with
     | Some x -> map_anon_choice_choice_list_dest_c865322 env x
-    | None -> A.expr_id [ ("", Tok.fake_tok v2 "") ]
+    | None -> A.Id [ ("", Tok.fake_tok v2 "") ]
   in
   let v4 =
     List_.map
@@ -1447,7 +1417,7 @@ and map_list_destructing (env : env)
         let v2 =
           match v2 with
           | Some x -> map_anon_choice_choice_list_dest_c865322 env x
-          | None -> A.expr_id [ ("", Tok.fake_tok v1 "") ]
+          | None -> A.Id [ ("", Tok.fake_tok v1 "") ]
         in
         v2)
       v4
@@ -1505,20 +1475,21 @@ and map_member_declaration (env : env) (x : CST.member_declaration) :
     classmember list =
   match x with
   | `Class_const_decl (v1, v2, v3) ->
-      let attrs =
+      let v1 =
         match v1 with
         | Some x -> map_attribute_list env x
         | None -> []
       in
-      let modifiers =
+      let v2 =
         match v2 with
         | Some tok ->
             (* pattern [fF][iI][nN][aA][lL] *) [ (A.Final, token env tok) ]
         | None -> []
       in
-      map_const_declaration ~attrs ~modifiers env v3
+      let v3 = map_const_declaration env v3 in
+      v3
   | `Prop_decl (v1, v2, v3, v4, v5, v6) ->
-      let attrs =
+      let v1 =
         match v1 with
         | Some x -> map_attribute_list env x
         | None -> []
@@ -1547,13 +1518,7 @@ and map_member_declaration (env : env) (x : CST.member_declaration) :
               A.cv_type = v3;
               A.cv_value = value;
               A.cv_modifiers = v2;
-              (* This grammar has no notion of PHP 8.4 property hooks at all:
-               * 'public int $x { get => 1; }' makes it emit an ERROR node for
-               * the whole '{ get => 1; }' part, so there is nothing to map.
-               * Propagating them would require regenerating the grammar.
-               * The menhir parser (the primary one for PHP) does handle them. *)
               A.cv_hooks = [];
-              A.cv_attrs = attrs;
             })
         (v4 :: v5)
   | `Meth_decl x -> [ map_method_declaration env x ]
@@ -1610,15 +1575,6 @@ and map_nullsafe_member_access_expression (env : env)
   let v3 = map_member_name env v3 in
   A.Obj_get (v1, v2, v3)
 
-(* Known limitation: this grammar predates PHP 8.4 'new Foo()->bar()', and it
- * does not reject it — it silently applies the old precedence and yields
- * 'new (Foo()->bar())' instead of '(new Foo())->bar()'. The two spellings are
- * still distinguishable here ('new Foo()->bar()' puts a Call at the head of
- * the chain, 'new Foo->bar()' a plain name), so the tree could in principle be
- * re-associated, but doing that for every postfix form ('->', '::', '[', '(')
- * is a rewrite better handled by regenerating the grammar.
- * The menhir parser (the primary one for PHP) gets this right.
- *)
 and map_object_creation_expression (env : env)
     (x : CST.object_creation_expression) =
   match x with
@@ -1667,7 +1623,6 @@ and map_object_creation_expression (env : env)
             c_uses = uses;
             c_enum_type = None;
             c_modifiers = [];
-            (* this grammar's anonymous class carries no attribute_list *)
             c_attrs = [];
             c_constants = consts;
             c_variables = vars;
@@ -1725,8 +1680,6 @@ and map_primary_expression (env : env) (x : CST.primary_expression) : A.expr =
           A.f_return_type = v6;
           A.f_ref = v3;
           A.m_modifiers = v1;
-          (* this grammar's anonymous_function_creation_expression carries no
-           * attribute_list *)
           A.f_attrs = [];
           A.l_uses = v5;
           A.f_body = v7;
@@ -1756,11 +1709,9 @@ and map_primary_expression (env : env) (x : CST.primary_expression) : A.expr =
           A.f_return_type = v5;
           A.f_ref = v3;
           A.m_modifiers = v1;
-          (* this grammar's arrow_function carries no attribute_list *)
           A.f_attrs = [];
           A.l_uses = [];
-          (* the body of a short lambda is its return value *)
-          A.f_body = Return (v6, Some v7);
+          A.f_body = Expr (v7, Tok.unsafe_sc);
         }
   | `Obj_crea_exp x -> map_object_creation_expression env x
   | `Update_exp x -> map_update_expression env x
@@ -1768,7 +1719,7 @@ and map_primary_expression (env : env) (x : CST.primary_expression) : A.expr =
       (* shell_command_expression *)
       let tok = token env tok in
       A.Call
-        ( A.expr_id [ (A.builtin "exec", tok (* not really an exec token *)) ],
+        ( A.Id [ (A.builtin "exec", tok (* not really an exec token *)) ],
           Tok.fake_bracket tok [ (* TODO insert content of backquote expr *) ]
         )
   | `Paren_exp x -> map_parenthesized_expression env x
@@ -2005,8 +1956,7 @@ and map_statement (env : env) (x : CST.statement) =
             v4
         | `Choice_auto_semi x -> map_semicolon env x
       in
-      A.Expr
-        (A.Call (A.expr_id [ (A.builtin "declare", v1) ], (v2, [ v3 ], v4)), v5)
+      A.Expr (A.Call (A.Id [ (A.builtin "declare", v1) ], (v2, [ v3 ], v4)), v5)
   | `Echo_stmt (v1, v2, v3) ->
       let v1 = (* pattern [eE][cC][hH][oO] *) _str env v1 in
       let v2 = map_expressions env v2 in
@@ -2029,12 +1979,6 @@ and map_statement (env : env) (x : CST.statement) =
       A.Expr
         (A.Call (A.IdSpecial (A.FuncLike A.Unset, v1), (v2, v3 :: v4, v5)), v6)
   | `Const_decl x ->
-      (* No attributes here, and none are recoverable: this grammar predates
-       * PHP 8.5 attributes on global constants, so '#[A] const X = 1;' makes
-       * the parser emit an ERROR node holding the attribute_list as a sibling
-       * of the const declaration, and the typed CST we get passed keeps only
-       * the const. Propagating them would require regenerating the grammar.
-       * The menhir parser (the primary one for PHP) does handle them. *)
       let consts = map_const_declaration_ env x in
       let consts = List_.map (fun c -> A.ConstantDef c) consts in
       stmt1 consts
@@ -2140,7 +2084,6 @@ and map_statement (env : env) (x : CST.statement) =
           c_uses = uses;
           c_enum_type = None;
           c_modifiers = [];
-          (* this grammar's interface_declaration carries no attribute_list *)
           c_attrs = [];
           c_constants = consts;
           c_variables = vars;
@@ -2165,7 +2108,6 @@ and map_statement (env : env) (x : CST.statement) =
           c_uses = uses;
           c_enum_type = None;
           c_modifiers = [];
-          (* this grammar's trait_declaration carries no attribute_list *)
           c_attrs = [];
           c_constants = consts;
           c_variables = vars;
@@ -2234,10 +2176,10 @@ and map_statement (env : env) (x : CST.statement) =
       A.NamespaceDef (v1, name, block)
   | `Name_use_decl (v1, v2, v3, v4) ->
       let use_tok = (* pattern [uU][sS][eE] *) token env v1 in
-      let outer_kind =
+      let v2_todo =
         match v2 with
-        | Some x -> map_func_or_const env x
-        | None -> A.Use_class
+        | Some x -> Some (map_func_or_const env x)
+        | None -> None
       in
       let v3 =
         match v3 with
@@ -2253,28 +2195,21 @@ and map_statement (env : env) (x : CST.statement) =
             in
             let names = v1 :: v2 in
             List_.map
-              (fun (name, alias) ->
-                A.NamespaceUse (use_tok, outer_kind, name, alias))
+              (fun (name, alias) -> A.NamespaceUse (use_tok, name, alias))
               names
         | `Opt_BSLASH_name_name_BSLASH_name_use_group (v1, v2, v3, v4) ->
             let v1 =
               match v1 with
-              | Some tok -> (* "\\" *) Some (map_namespace_root env tok)
-              | None -> None
+              | Some tok -> (* "\\" *) map_namespace_root env tok
+              | None -> []
             in
             let v2 = map_namespace_name env v2 in
             let v3 = (* "\\" *) token env v3 in
             let v4 = map_namespace_use_group env v4 in
+            let namespace = v1 @ v2 in
             List_.map
-              (fun (clause_kind, (name : A.qualified_ident), alias) ->
-                let kind =
-                  match clause_kind with
-                  | Some (kind : A.use_kind) -> kind
-                  | None -> outer_kind
-                in
-                A.NamespaceUse
-                  (use_tok, kind, { A.n_root = v1; n_parts = v2 @ name },
-                   alias))
+              (fun (name, alias) ->
+                A.NamespaceUse (use_tok, namespace @ name, alias))
               v4
       in
       let v4 = map_semicolon env v4 in
@@ -2371,7 +2306,7 @@ and map_unary_op_expression (env : env) (x : CST.unary_op_expression) =
   | `AT_exp (v1, v2) ->
       let v1 = (* "@" *) token env v1 in
       let v2 = A.Arg (map_expression env v2) in
-      A.Call (A.expr_id [ (A.builtin "at", v1) ], Tok.fake_bracket v1 [ v2 ])
+      A.Call (A.Id [ (A.builtin "at", v1) ], Tok.fake_bracket v1 [ v2 ])
   | `Choice_PLUS_exp (v1, v2) ->
       let v1 =
         match v1 with
@@ -2504,31 +2439,12 @@ and map_variable_name_ (env : env) (x : CST.variable_name_) : A.expr =
       let str, tok = map_variable_name env x in
       match str with
       | "$this" -> IdSpecial (A.This, tok)
-      | _ -> A.expr_id [ (str, tok) ])
+      | _ -> A.Id [ (str, tok) ])
 
 and map_variadic_unpacking (env : env) ((v1, v2) : CST.variadic_unpacking) =
   let v1 = (* "..." *) token env v1 in
   let v2 = map_expression env v2 in
   A.Unpack v2
-
-let rec map_toplevels (env : env) (xs : CST.statement list) : A.program =
-  match xs with
-  | [] -> []
-  | `Name_defi (kwd, `Name_name_choice_auto_semi (name, semi)) :: rest ->
-      let body, after =
-        List_.span
-          (fun (stmt : CST.statement) ->
-            match stmt with
-            | `Name_defi _ -> false
-            | _ -> true)
-          rest
-      in
-      A.NamespaceDef
-        ( token env kwd,
-          map_namespace_name env name,
-          Tok.fake_bracket (map_semicolon env semi) (map_toplevels env body) )
-      :: map_toplevels env after
-  | x :: rest -> map_statement env x :: map_toplevels env rest
 
 let map_program (env : env) ((v1, v2) : CST.program) : A.program =
   let v1 =
@@ -2540,7 +2456,7 @@ let map_program (env : env) ((v1, v2) : CST.program) : A.program =
     match v2 with
     | Some (v1, v2) ->
         let v1 = (* pattern <\?([pP][hH][pP]|=)? *) token env v1 in
-        let v2 = map_toplevels env v2 in
+        let v2 = List_.map (map_statement env) v2 in
         v2
     | None -> []
   in

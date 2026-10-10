@@ -27,7 +27,7 @@
 (opam_file_location inside_opam_directory)
 
 ;; set here so the semgrep package below can use it and we can easily bump it
-(version 1.30.0)
+(version 1.100.0) ; TODO: Bump as per our version, but this ruins caching.
 
 ;; Default attributes of opam packages
 (source (github opengrep/opengrep))
@@ -106,17 +106,14 @@ a few other projects developed at r2c.
     (ANSITerminal (>= "0.8.4"))
     (alcotest (>= "1.5.0"))
     (cmdliner (>= "1.1.1" ))
-    ; 0.10.0 unlocks the reporter mutex when a reporter raises, which
-    ; Logs_.mk_reporter relies on
-    (logs (>= "0.10.0" ))
+    (logs (>= "0.7.0" ))
     (yojson (>= "1.7.0"))
     (re (>= "1.10.4"))
+    (pcre (>= "7.5.0" ))
     ; we're currently "vendoring" pcre2 in libs/pcre2
     ; so no need to get opam to install it
     ;(pcre2 (>= "7.5.3" ))
-    ; the C library it binds must be libpcre2 >= 10.43
-    ; (checked at build time by src/main/flags.sh)
-    (ppxlib (= "0.38.0"))
+    (ppxlib (= "0.35.0"))
     (ppx_deriving (>= "5.2.1"))
     (ppx_hash (>= "v0.14.0" ))
     (digestif (>= "1.0.0"))
@@ -222,15 +219,9 @@ parsers, especially ocamlyacc/menhir based parsers.
   (synopsis "XXX")
   (description "XXX")
 )
-(package (name parser_crystal)
-  (synopsis "XXX")
-  (description "XXX")
-  (authors "Opengrep authors")
-)
 (package (name parser_apex)
   (synopsis "XXX")
   (description "XXX")
-  (authors "Opengrep authors")
 )
 (package (name parser_dart)
   (synopsis "XXX")
@@ -359,7 +350,6 @@ parsers, especially ocamlyacc/menhir based parsers.
 (package (name parser_vbnet)
   (synopsis "XXX")
   (description "XXX")
-  (authors "Opengrep authors")
 )
 (package (name parser_yaml)
   (synopsis "XXX")
@@ -397,7 +387,6 @@ time and memory used by Semgrep.
     (dune (>= "3.2.0" ))
     (commons (>= "1.5.5"))
     (memprof-limits (= "dev"))
-    (memtrace (= "dev"))
   )
 )
 
@@ -459,7 +448,7 @@ For more information see https://opengrep.dev.
     (ocaml (>= 5.2.1))
     (dune (>= 3.7))
     ; parser generators
-    (menhir (= 20250912))
+    (menhir (= 20230608))
     ; standard libraries
     ; We don't use Base directly. If it's being used indirectly
     ; (is it, though?), we need a version that doesn't register
@@ -472,6 +461,7 @@ For more information see https://opengrep.dev.
     ; unit testing (note that testo is vendored in libs/ so not listed here)
     ; TODO? still need those alcotest-xx now that we use testo?
     alcotest
+    alcotest-js
     alcotest-lwt
     calendar
     ; text and terminal formating
@@ -482,8 +472,8 @@ For more information see https://opengrep.dev.
     ; Unicode - used via python-str-repr
     uucp
     uutf
-    ; logging; see the commons package for the bound
-    (logs (>= "0.10.0"))
+    ; logging
+    logs
     ; JSON/YAML/XML
     atdgen
     (yojson (>= 2.0.0))
@@ -493,48 +483,54 @@ For more information see https://opengrep.dev.
     ; CLI
     cmdliner
     ; PPX
-    (ppxlib (= 0.38.0))
+    (ppxlib (= 0.35.0)) ; because 0.36.0 moved to AST 5.2, breaking ppx_profiling.
     (ppx_deriving (>= 6.0.3))
     ppx_deriving_yojson
     ppx_hash
     ppx_inline_test
     (ppx_sexp_conv (>= v0.16.0))
     ppx_expect
-    (visitors (= 20260520))
+    (visitors (= 20250212))
     ; regexps
     re
+    pcre
     ; we're currently "vendoring" pcre2 in libs/pcre2
     ; so no need to get opam to install it
     ;(pcre2 (>= "7.5.3" ))
-    ; the C library it binds must be libpcre2 >= 10.43
-    ; (checked at build time by src/main/flags.sh)
     ; misc
     ocamlgraph
     semver
     (timedesc (>= 2.0.0)) ; used via git-wrapper
-    (lsp (= 1.27.0))
+    (lsp (= 1.22.0))
     git
+    ; tracing
+    ambient-context-lwt
     ; web stuff
     uri
     (uuidm (>= 0.9.9))
-    (cohttp (= 6.3.0))
+    (cohttp (= 6.0.0)) ; 6.0.0 for better error handling
     cohttp-lwt-unix
     tls-lwt ; needed for TLS support in the cohttp HTTP client (only TLS 1.3 seems to work)
     emile
     (digestif (>= 1.0.0))
-    tls-mirage
+    (tls-mirage (= 0.17.3)) ; force older version of tls-mirage to make windows work
     ; concurrency
     lwt
     lwt_ppx
     (conf-libev (<> :os win32)) ; for lwt, to get better FD perf
+    integers_stubs_js
+    ;TODO: this is for secrets and should be in ../dune-project but doing so
+    ; slows down a lot our CI because it pulls dependencies that seem
+    ; to cause the removal and recompilation of many packages (e.g., tls) and
+    ; make our GHA opam cache useless. We might need to install here instead
+    ; packages that would avoid this effect.
+    git-unix
     (memprof-limits (= "dev")) ; NOTE: Just to invalidate CI cache for now.
-    (memtrace (= "dev"))
     thread-local-storage ; NOTE: We should not mess with memprof-limits, but in
                          ; fact there is a TLS module in there also; however, it's
                          ; not exposed in the public interface.
     domainslib
-    (saturn (>= "1.0.0")) ; Saturn.Htbl exists since 1.0.0.
-    otoml ; pyproject.toml include/exclude parsing in projidx
+    kcas_data ; lock-free data structures, also makes life easier for refactoring.
   )
 )
 
@@ -546,7 +542,7 @@ Uses indentation and standard braces to determine a crude parse tree
 "
   )
   (maintainers "martin@semgrep.com")
-  (authors "Semgrep authors, Opengrep authors")
+  (authors "Semgrep authors")
   (license "LGPL-2.1-only")
 
   (depends
@@ -568,9 +564,4 @@ Uses indentation and standard braces to determine a crude parse tree
 (package (name TCB)
   (synopsis "XXX")
   (description "XXX")
-)
-
-(package (name call_graph)
-  (synopsis "Call graph infrastructure for opengrep")
-  (description "Call graph construction, serialization, and analysis utilities.")
 )

@@ -50,18 +50,6 @@
 let profiling = ref false
 let profiling_opt prof = if !profiling then Some prof else None
 
-(* Common.with_time when profiling, else no clock read at all: the engine
- * calls this once per rule and file, and the time is discarded without
- * --time anyway (see profiling_opt). *)
-let with_time (f : unit -> 'a) : 'a * float =
-  if !profiling then Common.with_time f else (f (), 0.0)
-
-(* the same for a span that does not fit in a closure *)
-let now () : float = if !profiling then Unix.gettimeofday () else 0.0
-
-let since (start : float) : float =
-  if !profiling then Unix.gettimeofday () -. start else 0.0
-
 (*****************************************************************************)
 (* Types *)
 (*****************************************************************************)
@@ -86,10 +74,6 @@ type rule_profiling = {
 (* Save time information as we run each file *)
 type file_profiling = {
   file : Fpath.t;
-  (* The size the scan took when scheduling the target, to avoid system
-   * calls later; None only for the synthetic entries of an interfile
-   * error. *)
-  file_size_bytes : int option;
   rule_times : rule_profiling list;
   run_time : float;
 }
@@ -97,7 +81,6 @@ type file_profiling = {
 
 type partial_profiling = {
   p_file : Fpath.t;
-  p_file_size_bytes : int option;
   p_rule_times : rule_profiling list;
 }
 [@@deriving show]
@@ -110,7 +93,7 @@ type t = {
   rules_parse_time : float;
   file_times : file_profiling list;
   (* This is meant to represent the maximum amount of memory used by
-     Opengrep during the course of its execution.
+     Semgrep during the course of its execution.
 
      This is useful to emit with the other profiling data for telemetry
      purposes, particuarly as it relates to measuring memory management
@@ -128,6 +111,15 @@ type t = {
 (* Merge helpers *)
 (*****************************************************************************)
 
+(* used in pro engine e.g. when merging secret mode results *)
+let merge a b : t =
+  {
+    rules = a.rules @ b.rules;
+    rules_parse_time = a.rules_parse_time +. b.rules_parse_time;
+    file_times = a.file_times @ b.file_times;
+    max_memory_bytes = Int.max a.max_memory_bytes b.max_memory_bytes;
+  }
+
 let add_times (a : times) (b : times) : times =
   {
     match_time = a.match_time +. b.match_time;
@@ -139,7 +131,7 @@ let add_times (a : times) (b : times) : times =
 (*****************************************************************************)
 
 let empty_partial_profiling file : partial_profiling =
-  { p_file = file; p_rule_times = []; p_file_size_bytes = None }
+  { p_file = file; p_rule_times = [] }
 
 let empty_rule_profiling (rule : Rule.t) : rule_profiling =
   { rule_id = fst rule.Rule.id; rule_parse_time = 0.0; rule_match_time = 0.0 }

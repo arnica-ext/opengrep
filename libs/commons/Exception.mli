@@ -88,7 +88,10 @@
 *)
 type t
 
-(* Create a traced exception.
+(* Catch any exception and capture a stack backtrace *)
+val catch_all : (unit -> 'a) -> ('a, t) Result.t
+
+(* Create a traced exception in case we can't use 'catch_all'.
    This records the stack backtrace which is the state of the call stack
    where the exception was raised. *)
 val catch : exn -> t
@@ -128,3 +131,15 @@ val get_trace : t -> Printexc.raw_backtrace
    'Printexc.register_printer'.
 *)
 val to_string : t -> string
+
+(* A timeout exception with accompanying debug information:
+   - a descriptive name
+   - the time limit
+*)
+type timeout_info = { name : string; max_duration : float }
+
+(*
+   If ever caught, this exception must be re-raised immediately so as
+   to not interfere with the timeout handler. See function 'set_timeout'.
+*)
+exception Timeout of timeout_info

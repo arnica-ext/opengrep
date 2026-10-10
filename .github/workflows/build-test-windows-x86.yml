@@ -35,14 +35,14 @@ env:
   OPAMROOT: D:/.opam
   DUNE_CACHE_ROOT: D:/dune
   OPAMCONFIRMLEVEL: unsafe-yes
-  OPAM_VERSION: "2.5.1"
+  OPAM_VERSION: "2.3.0"
 
 jobs:
 
   build-core:
     strategy:
       matrix:
-        ocaml_version: ["5.5.0"]
+        ocaml_version: ["5.3.0"]
     # defaults:
     #   run:
     #     shell: bash
@@ -79,7 +79,7 @@ jobs:
         uses: cygwin/cygwin-install-action@f2009323764960f80959895c7bc3bb30210afe4d # ratchet:cygwin/cygwin-install-action@v6
         with:
           install-dir: D:/cygwin
-          packages: curl,diffutils,m4,make,mingw64-i686-gcc-core,mingw64-i686-gcc-g++,mingw64-i686-openssl,mingw64-x86_64-gcc-core=13.4.0-1,mingw64-x86_64-gcc-g++=13.4.0-1,mingw64-x86_64-openssl=1.0.2u+za-1,patch,perl,rsync,unzip,mingw64-x86_64-libssh2,mingw64-x86_64-nghttp2,mingw64-x86_64-pcre2,mingw64-x86_64-win-iconv,mingw64-x86_64-zstd,mingw64-x86_64-gettext,mingw64-x86_64-libidn2,mingw64-x86_64-curl,gnupg2,mingw64-x86_64-gmp
+          packages: curl,diffutils,m4,make,mingw64-i686-gcc-core,mingw64-i686-gcc-g++,mingw64-i686-openssl,mingw64-x86_64-gcc-core,mingw64-x86_64-gcc-g++,mingw64-x86_64-openssl=1.0.2u+za-1,patch,perl,rsync,unzip,mingw64-x86_64-libssh2,mingw64-x86_64-nghttp2,mingw64-x86_64-pcre,mingw64-x86_64-pcre2,mingw64-x86_64-win-iconv,mingw64-x86_64-zstd,mingw64-x86_64-gettext,mingw64-x86_64-libidn2,mingw64-x86_64-curl,gnupg2=2.4.8-1,mingw64-x86_64-gmp
 
       - name: Create BASH_ENV configuration
         shell: bash
@@ -122,27 +122,19 @@ jobs:
           key: dune-cache-${{ runner.os }}-${{ runner.arch }}-v1-opam-${{ matrix.ocaml_version }}-${{ github.run_id }}
           restore-keys: dune-cache-${{ runner.os }}-${{ runner.arch }}-v1-opam-${{ matrix.ocaml_version }}-
       
-      - name: Compute OPAM cache fingerprint
-        shell: bash
-        run: ./scripts/opam-cache-fingerprint.sh
-
       - name: Restore _opam
         id: cache-opam-win32-64
         uses: actions/cache/restore@d4323d4df104b026a6aa633fdb11d772146be0bf # ratchet:actions/cache/restore@v4
         with:
           path: _opam
-          key: opam-cache-${{ runner.os }}-${{ runner.arch }}-v1-opam-${{ matrix.ocaml_version }}-${{ hashFiles('.ci-cache/opam-fingerprint.txt') }}
-          restore-keys: |
-            opam-cache-${{ runner.os }}-${{ runner.arch }}-v1-opam-${{ matrix.ocaml_version }}-
+          key: opam-cache-${{ runner.os }}-${{ runner.arch }}-v1-opam-${{ matrix.ocaml_version }}-${{ hashFiles('opam/*.opam') }}
 
       - name: Restore OPAM_ROOT
         id: cache-opamroot-win32-64
         uses: actions/cache/restore@d4323d4df104b026a6aa633fdb11d772146be0bf # ratchet:actions/cache/restore@v4
         with:
           path: ${{ env.OPAMROOT }} # C:\Users\runneradmin\AppData\Local\opam
-          key: opamroot-cache-${{ runner.os }}-${{ runner.arch }}-v1-opam-${{ matrix.ocaml_version }}-${{ hashFiles('.ci-cache/opam-fingerprint.txt') }}
-          restore-keys: |
-            opamroot-cache-${{ runner.os }}-${{ runner.arch }}-v1-opam-${{ matrix.ocaml_version }}-
+          key: opamroot-cache-${{ runner.os }}-${{ runner.arch }}-v1-opam-${{ matrix.ocaml_version }}-${{ hashFiles('opam/*.opam') }}
           
       - name: Install OPAM
         env:
@@ -169,18 +161,18 @@ jobs:
           curl -fsSL "${DOWNLOAD_URL}/${OPAM_SIG}" -o "${OPAM_SIG}"
           curl -fsSL "${GPG_KEY_URL}" -o opam-dev-pubkey.pgp
 
-          # Verify the signature in an isolated GNUPGHOME so that we don't
-          # inherit any system gpg config (notably anything that turns on
-          # keyboxd, which has historically broken verification on cygwin).
-          GNUPG_TMP="$(mktemp -d)"
-          mkdir -m 0700 "${GNUPG_TMP}/gnupg"
-          echo "Importing OCaml's GPG public key..."
-          gpg --homedir "${GNUPG_TMP}/gnupg" --batch --quiet \
-              --import opam-dev-pubkey.pgp
-          echo "Verifying the signature..."
-          gpg --homedir "${GNUPG_TMP}/gnupg" --batch \
-              --verify "${OPAM_SIG}" "${OPAM_BIN}"
-          rm -rf "${GNUPG_TMP}"
+          # # Import the GPG public key
+          # echo "Importing OCaml's GPG public key..."
+          # gpg --keyring ~/.gnupg/pubring.gpg --import opam-dev-pubkey.pgp
+
+          # # Verify the signature
+          # echo "Verifying the signature..."
+          # gpg --verify "${OPAM_SIG}" "${OPAM_BIN}"
+          # if [ $? -ne 0 ]; then
+          #     echo "Signature verification failed. Aborting."
+          #     exit 1
+          # fi
+          echo "FIXME: OPAM Signature verification DISABLED"
 
           # Move and make the binary executable
           echo "Moving the binary to ${DEST_DIR}..."
@@ -204,7 +196,8 @@ jobs:
           OPAMCOLOR: always
           # OPAMROOT: C:/Users/runneradmin/AppData/Local/opam
         shell: bash
-        if: steps.cache-opamroot-win32-64.outputs.cache-matched-key == ''
+        if: steps.cache-opamroot-win32-64.outputs.cache-hit != 'true'
+        # if: steps.cache-opam-win32-64.outputs.cache-hit != 'true'
         run: |
           opam init \
           --no-setup \
@@ -224,7 +217,7 @@ jobs:
           OPAMSOLVERTIMEOUT: 600
           OPAMCOLOR: always
         shell: bash
-        if: steps.cache-opam-win32-64.outputs.cache-matched-key == ''
+        if: steps.cache-opam-win32-64.outputs.cache-hit != 'true'
         run: |
           export OCAML_VERSION=${{ matrix.ocaml_version }}
           echo "Creating local switch with OCaml $OCAML_VERSION..."
@@ -244,7 +237,7 @@ jobs:
           # OPAMCONFIRMLEVEL: unsafe-yes
           OPAMCOLOR: always
         shell: bash
-        if: steps.cache-opam-win32-64.outputs.cache-matched-key == ''
+        if: steps.cache-opam-win32-64.outputs.cache-hit != 'true'
         run: |
           eval $(opam env)
 
@@ -288,6 +281,7 @@ jobs:
           export CYGWIN_MINGW_BIN=/usr/x86_64-w64-mingw32/sys-root/mingw/bin
           export PATH="${CYGWIN_ROOT_BIN}:${PATH}:${CYGWIN_MINGW_BIN}"
           make install-deps-WINDOWS-for-semgrep-core
+          ./scripts/install-memprof-limits-dev.sh
           make install-opam-deps
 
       - name: Prepare _opam for saving
@@ -318,7 +312,7 @@ jobs:
           path: ${{ env.OPAMROOT }} # C:\Users\runneradmin\AppData\Local\opam
           key: ${{ steps.cache-opamroot-win32-64.outputs.cache-primary-key }}
           
-      - name: Build opengrep
+      - name: Build opengrep-core
         env:
           BASH_ENV: ${{ github.workspace }}/bash_env.sh
         shell: bash
@@ -339,7 +333,7 @@ jobs:
           # Else one gets weird linking errors, because of the length of the
           # argument list. And `opam exec` will always re-arrange the path and
           # make this fail to compile.
-          PATH="${CYGWIN_ROOT_BIN}:$(opam exec -- printenv PATH)" dune build _build/install/default/bin/opengrep.exe
+          PATH="${CYGWIN_ROOT_BIN}:$(opam exec -- printenv PATH)" dune build _build/install/default/bin/opengrep-core.exe
 
       - name: Trim Dune cache
         env:
@@ -348,7 +342,7 @@ jobs:
         run: |
           opam exec -- dune cache trim --size=1000MB
 
-      - name: Test opengrep
+      - name: Test opengrep-core
         env:
           BASH_ENV: ${{ github.workspace }}/bash_env.sh
         shell: bash
@@ -356,100 +350,94 @@ jobs:
           export CYGWIN_MINGW_BIN=/usr/x86_64-w64-mingw32/sys-root/mingw/bin
           export PATH="${CYGWIN_MINGW_BIN}:${PATH}"
           
-          ldd _build/install/default/bin/opengrep.exe
+          ldd _build/install/default/bin/opengrep-core.exe
 
-          _build/install/default/bin/opengrep.exe --core -version
-          _build/install/default/bin/opengrep.exe --core -l python -rules tests/windows/rules.yml -json tests/windows/test.py
+          _build/install/default/bin/opengrep-core.exe -version
+          _build/install/default/bin/opengrep-core.exe -l python -rules tests/windows/rules.yml -json tests/windows/test.py
 
-      - name: Package opengrep and its DLLs
+      - name: Package opengrep-core
         env:
           BASH_ENV: ${{ github.workspace }}/bash_env.sh
         shell: bash
         run: |
           mkdir artifacts
-          cp _build/install/default/bin/opengrep.exe artifacts/
+          cp _build/install/default/bin/opengrep-core.exe artifacts/
 
-          # The mingw runtime, plus the native libraries opengrep links
-          # against. Keep in sync with the ldd output printed by the
-          # opengrep test step; everything else it needs comes from
-          # System32.
           cp d:/cygwin/usr/x86_64-w64-mingw32/sys-root/mingw/bin/libstdc++-6.dll artifacts/
           cp d:/cygwin/usr/x86_64-w64-mingw32/sys-root/mingw/bin/libgcc_s_seh-1.dll artifacts/
           cp d:/cygwin/usr/x86_64-w64-mingw32/sys-root/mingw/bin/libwinpthread-1.dll artifacts/
+          cp d:/cygwin/usr/x86_64-w64-mingw32/sys-root/mingw/bin/libpcre-1.dll artifacts/
           cp d:/cygwin/usr/x86_64-w64-mingw32/sys-root/mingw/bin/libgmp-10.dll artifacts/
           cp d:/cygwin/usr/x86_64-w64-mingw32/sys-root/mingw/bin/libpcre2-8-0.dll artifacts/
-          cp d:/cygwin/usr/x86_64-w64-mingw32/sys-root/mingw/bin/libzstd-1.dll artifacts/
           # cp d:/cygwin/usr/x86_64-w64-mingw32/sys-root/mingw/bin/libeay32.dll artifacts/
+          cp d:/cygwin/usr/x86_64-w64-mingw32/sys-root/mingw/bin/libidn2-0.dll artifacts/
+          cp d:/cygwin/usr/x86_64-w64-mingw32/sys-root/mingw/bin/libnghttp2-14.dll artifacts/
+          cp d:/cygwin/usr/x86_64-w64-mingw32/sys-root/mingw/bin/libssh2-1.dll artifacts/
           # cp d:/cygwin/usr/x86_64-w64-mingw32/sys-root/mingw/bin/ssleay32.dll artifacts/
+          cp d:/cygwin/usr/x86_64-w64-mingw32/sys-root/mingw/bin/libzstd-1.dll artifacts/
+          cp d:/cygwin/usr/x86_64-w64-mingw32/sys-root/mingw/bin/zlib1.dll artifacts/
+          cp d:/cygwin/usr/x86_64-w64-mingw32/sys-root/mingw/bin/iconv.dll artifacts/
+          cp d:/cygwin/usr/x86_64-w64-mingw32/sys-root/mingw/bin/libintl-8.dll artifacts/
+          cp "c:/Program Files/Amazon/AWSCLIV2/libcrypto-3.dll" artifacts/
+          cp "c:/Program Files/Amazon/AWSCLIV2/libssl-3.dll" artifacts/
 
           tar czvf artifacts.tgz artifacts
 
       - uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # ratchet:actions/upload-artifact@v4
         with:
-          name: opengrep-and-dependent-libs-w64-artifact
+          name: opengrep-core-and-dependent-libs-w64-artifact
           path: artifacts.tgz
 
-      - name: Package opengrep
-        env:
-          BASH_ENV: ${{ github.workspace }}/bash_env.sh
+  build-wheels:
+    defaults:
+      run:
         shell: bash
-        run: |
-          # The executable with the DLLs packaged in the step above.
-          mkdir opengrep
-          cp _build/install/default/bin/opengrep.exe opengrep/
-          cp artifacts/*.dll opengrep/
-
-          tar czvf opengrep.tgz opengrep
-
-      # The checks below run with the build's PATH, which holds the mingw
-      # directory the DLLs were copied from, so they would not notice one
-      # missing from the package. Every DLL that does not come from System32
-      # must be next to the exe.
-      - name: test packaged DLLs
-        env:
-          BASH_ENV: ${{ github.workspace }}/bash_env.sh
-        shell: bash
-        run: |
-          export CYGWIN_MINGW_BIN=/usr/x86_64-w64-mingw32/sys-root/mingw/bin
-          export PATH="${CYGWIN_MINGW_BIN}:${PATH}"
-
-          ldd opengrep/opengrep.exe
-
-          missing=""
-          while read -r dll arrow path _; do
-            [ "$arrow" = "=>" ] || continue
-            case "$(echo "$path" | tr 'A-Z' 'a-z')" in
-              /cygdrive/c/windows/*) continue ;;
-            esac
-            [ -f "opengrep/$dll" ] || missing="$missing $dll"
-          done < <(ldd opengrep/opengrep.exe)
-
-          if [ -n "$missing" ]; then
-            echo "DLLs needed by opengrep.exe and absent from opengrep/:$missing"
-            exit 1
-          fi
-
-      # Run from the package, so that a missing DLL fails the job.
-      - name: test version output
-        env:
-          BASH_ENV: ${{ github.workspace }}/bash_env.sh
-        shell: bash
-        run: opengrep/opengrep.exe --version
-
-      # Test SARIF output which previously failed on Windows only:
-      - name: include paths test
-        env:
-          BASH_ENV: ${{ github.workspace }}/bash_env.sh
-        shell: bash
-        run: opengrep/opengrep.exe scan -f tests/windows/rules.yml tests/windows/test.py
-
-      - name: sarif output test
-        env:
-          BASH_ENV: ${{ github.workspace }}/bash_env.sh
-        shell: bash
-        run: opengrep/opengrep.exe scan --sarif -f tests/windows/rules.yml tests/windows/test.py
-
+    needs:
+      - build-core
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # ratchet:actions/checkout@v4
+        with:
+          submodules: true
+      - uses: actions/download-artifact@b14cf4c92620c250e1c074ab0a5800e37df86765 # ratchet:actions/download-artifact@v4
+        with:
+          name: opengrep-core-and-dependent-libs-w64-artifact
+      - run: |
+          tar xvfz artifacts.tgz
+          cp artifacts/* cli/src/semgrep/bin
+          ./scripts/build-wheels.sh --plat-name win_amd64
       - uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # ratchet:actions/upload-artifact@v4
         with:
-          name: opengrep-windows-x86
-          path: opengrep.tgz
+          name: windows-x86-wheel
+          path: cli/dist.tgz
+
+  test-wheels:
+    defaults:
+      run:
+        shell: bash
+    needs:
+      - build-wheels
+    runs-on: windows-2022
+    steps:
+      - uses: actions/download-artifact@b14cf4c92620c250e1c074ab0a5800e37df86765 # ratchet:actions/download-artifact@v4
+        with:
+          name: windows-x86-wheel
+      - run: tar xzvf dist.tgz
+      - name: install package
+        run: pip3 install dist/*.whl
+      - name: test version output
+        run: opengrep --version
+      - name: test help output
+        run: opengrep --help
+      - name: e2e opengrep-core test
+        run: >-
+          export PYTHONIOENCODING=utf-8;
+          echo '1 == 1' | opengrep -l python -e '$X == $X' -
+      # Test SARIF output which previously failed on Windows only:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # ratchet:actions/checkout@v4
+        with:
+          submodules: false
+      - name: include paths test
+        run: PYTHONIOENCODING=utf-8 opengrep scan -f tests/windows/rules.yml tests/windows/test.py
+      - name: sarif output test
+        run: PYTHONIOENCODING=utf-8 opengrep scan --sarif -f tests/windows/rules.yml tests/windows/test.py

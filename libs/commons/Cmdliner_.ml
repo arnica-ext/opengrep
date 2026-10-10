@@ -32,7 +32,7 @@ let uri =
 
 let sha1 =
   let parser str =
-    match Digestif.SHA1.consistent_of_hex_opt str with
+    match Digestif.SHA1.of_hex_opt str with
     | Some sha1 -> Ok sha1
     | None -> Error (`Msg (Fmt.str "Invalid SHA1 value: %S" str))
   in
@@ -61,160 +61,26 @@ let negatable_flag ?(default = false) ~neg_options ~doc options =
   let disable = (false, Arg.info neg_options ~doc:neg_doc) in
   Arg.value (Arg.vflag default [ enable; disable ])
 
-(* the error of a variable whose value is not what the option expects *)
-let env_value_error ~(var : string) ~(value : string) (expected : string) :
-    [> `Msg of string ] =
-  `Msg
-    (Printf.sprintf "environment variable %s: invalid value %S, expected %s"
-       var value expected)
-
-(* same vocabulary as cmdliner's env_bool_parse, which is not exported *)
-let parse_env_bool (var : string) (value : string) :
-    (bool, [ `Msg of string ]) result =
-  match String.lowercase_ascii value with
-  | "false"
-  | "no"
-  | "n"
-  | "0" ->
-      Ok false
-  | "true"
-  | "yes"
-  | "y"
-  | "1" ->
-      Ok true
-  | _else_ -> Error (env_value_error ~var ~value "a boolean")
-
-(* Cmdliner.Arg.vflag_all ignores environment variables (the one on the
-   positive flag is attached only for the man page), so the variable is read
-   here instead, through Opengrep_env so the OPENGREP_/SEMGREP_ alias also
-   counts, and an explicit false is distinguished from an unset variable.
-   vflag_all keeps the command-line order: with the flag and its negation
-   both given, the last one wins, and an explicit flag wins over the
-   environment. *)
-(* An option given on the command line wins over its environment variable;
-   the user is told which variable was ignored. [vars] are the names the
-   option reads, the first one set is the one named. *)
-let warn_env_ignored ~(vars : string list) (options : string list) : unit =
-  match List.find_map Opengrep_env.getenv_with_name_opt vars with
-  | None -> ()
-  | Some ((name : string), (_ : string)) ->
-      let option =
-        add_option_dashes options |> List.hd
-      in
-      Logs.warn (fun m -> m "%s is given; ignoring $%s" option name)
-
+(* Cmdliner.Arg.vflag does not support environment variables, thus we use
+   Arg.value manually if we need supporting environment variables as well *)
 let negatable_flag_with_env ?(default = false) ?env ~neg_options ~doc options =
   let neg_doc =
     let options_str = add_option_dashes options |> String.concat "/" in
     Printf.sprintf "negates %s" options_str
   in
-  let env_info = Option.map Cmd.Env.info env in
-  let enable = (true, Arg.info options ~doc ?env:env_info) in
-  let disable = (false, Arg.info neg_options ~doc:neg_doc) in
-  let flags = Arg.(value (vflag_all [] [ enable; disable ])) in
-  (* a bad value is reported by cmdliner like a bad option value, not as
-     an exception *)
-  let combine (values : bool list) : (bool, [ `Msg of string ]) result =
-    match List.rev values with
-    | last :: _ ->
-        warn_env_ignored ~vars:(Option.to_list env) options;
-        Ok last
-    | [] -> (
-        match env with
-        | None -> Ok default
-        | Some var -> (
-            match Opengrep_env.getenv_opt var with
-            | Some value -> parse_env_bool var value
-            | None -> Ok default))
+  let enable = Arg.(value (flag (info options ~doc ?env))) in
+  let disable = Arg.(value (flag (info neg_options ~doc:neg_doc))) in
+  let combine yes no =
+    match (yes, no) with
+    | true, false -> true
+    | false, true -> false
+    | false, false -> default
+    | true, true ->
+        invalid_arg
+          ("mutually exclusive options: "
+          ^ String.concat ", " (options @ neg_options))
   in
-  Term.cli_parse_result Term.(const combine $ flags)
-
-(* A repeatable string option whose environment variable holds a
-   whitespace-separated list (e.g. SEMGREP_RULES="p/default extra.yml").
-   Cmdliner's own env handling would turn the variable into a single
-   list element, so the variable is read here instead, through
-   Opengrep_env so the OPENGREP_/SEMGREP_ alias also counts and an empty
-   value means unset. Occurrences on the command line win over the
-   environment and are never split. *)
-let string_list_with_env ?(default = []) ~env ~doc options =
-  let values = Arg.(value (opt_all string [] (Arg.info options ~doc))) in
-  let combine (values : string list) =
-    match values with
-    | _ :: _ ->
-        warn_env_ignored ~vars:[ env ] options;
-        values
-    | [] -> (
-        match Opengrep_env.getenv_opt env with
-        | Some value -> String_.split ~sep:"[ \t\r\n]+" value
-        | None -> default)
-  in
-  Term.(const combine $ values)
-
-(* A single-valued float option that can also be set by an environment
-   variable, read through Opengrep_env so that the OPENGREP_* alias counts.
-   The command line wins over the environment, and a variable that does not
-   hold a number is reported the way a bad option value is. *)
-let float_opt_with_env ~(env : string) ~(doc : string) (options : string list)
-    =
-  let value = Arg.(value (opt (some float) None (Arg.info options ~doc))) in
-  let combine (value : float option) :
-      (float option, [ `Msg of string ]) result =
-    match value with
-    | Some _ ->
-        warn_env_ignored ~vars:[ env ] options;
-        Ok value
-    | None -> (
-        match Opengrep_env.getenv_with_name_opt env with
-        | None -> Ok None
-        | Some ((name : string), (str : string)) -> (
-            match float_of_string_opt str with
-            | Some (f : float) -> Ok (Some f)
-            | None -> Error (env_value_error ~var:name ~value:str "a number")))
-  in
-  Term.cli_parse_result Term.(const combine $ value)
-
-(* [env] is not passed to Arg.info: the helper reads the variable through
-   Opengrep_env, which accepts both the OPENGREP_ and the SEMGREP_ prefix.
-   Cmdliner therefore does not list the variable under ENVIRONMENT, and the
-   doc string refers to it instead, as for the other *_with_env helpers. *)
-let enum_with_env ~(env : string) ~(doc : string) ~(default : 'a)
-    ~(names : (string * 'a) list) (options : string list) : 'a Term.t =
-  let value =
-    Arg.(value (opt (some (enum names)) None (Arg.info options ~doc)))
-  in
-  let combine (value : 'a option) : ('a, [ `Msg of string ]) result =
-    match value with
-    | Some (v : 'a) ->
-        warn_env_ignored ~vars:[ env ] options;
-        Ok v
-    | None -> (
-        match Opengrep_env.getenv_with_name_opt env with
-        | None -> Ok default
-        | Some ((name : string), (str : string)) -> (
-            match List.assoc_opt str names with
-            | Some (v : 'a) -> Ok v
-            | None ->
-                Error
-                  (* An error message, not a doc string: quoted, without
-                     cmdliner's $(b,...) markup. *)
-                  (env_value_error ~var:name ~value:str
-                     (Arg.doc_alts ~quoted:true (List_.map fst names)))))
-  in
-  Term.cli_parse_result Term.(const combine $ value)
-
-(* A single-valued option whose value can also come from one of several
-   environment variables (cmdliner supports only one per option). The
-   first set variable wins; the command line wins over the environment. *)
-let string_opt_with_envs ~envs ~doc options =
-  let value = Arg.(value (opt (some string) None (Arg.info options ~doc))) in
-  let combine (value : string option) =
-    match value with
-    | Some _ as v ->
-        warn_env_ignored ~vars:envs options;
-        v
-    | None -> List.find_map Opengrep_env.getenv_opt envs
-  in
-  Term.(const combine $ value)
+  Term.(const combine $ enable $ disable)
 
 (* Parse command-line arguments representing a number of bytes, such as
  * '5 mb' or '3.2GiB'
@@ -238,7 +104,7 @@ let units_conversion =
 let number_of_bytes_converter : int Cmdliner.Arg.conv =
   let parser s =
     let fail =
-      Error (`Msg (spf "Invalid representation for a number of bytes: %s" s))
+      `Error (spf "Invalid representation for a number of bytes: %s" s)
     in
     let s = String.uppercase_ascii s in
     if s =~ "^\\([^ BKMGT]*\\)[ ]*\\([BKMGT][A-Z]*\\)$" then
@@ -246,12 +112,12 @@ let number_of_bytes_converter : int Cmdliner.Arg.conv =
       match
         (float_of_string_opt number, List.assoc_opt unit units_conversion)
       with
-      | Some n, Some unit -> Ok (int_of_float (n *. unit))
+      | Some n, Some unit -> `Ok (int_of_float (n *. unit))
       | _else_ -> fail
     else
       match int_of_string_opt s with
-      | Some i -> Ok i
+      | Some i -> `Ok i
       | None -> fail
   in
   let printer ppf x = Format.pp_print_int ppf x in
-  Arg.conv (parser, printer)
+  (parser, printer)

@@ -64,14 +64,14 @@ let (matches_of_matcher :
   if xpatterns =*= [] then Core_result.empty_match_result
   else
     let target_content_opt, parse_time =
-      Core_profiling.with_time (fun () -> matcher.init internal_path)
+      Common.with_time (fun () -> matcher.init internal_path)
     in
     match target_content_opt with
     | None ->
         Core_result.empty_match_result (* less: could include parse_time *)
     | Some target_content ->
         let res, match_time =
-          Core_profiling.with_time (fun () ->
+          Common.with_time (fun () ->
               xpatterns
               |> List.concat_map (fun (xpat, id, pstr) ->
                      let xs =
@@ -107,13 +107,12 @@ let (matches_of_matcher :
           { Core_profiling.parse_time; match_time }
 
 (* XXX: This *must* be cleared for baseline scanning, after the head scan! *)
-let hmemo : (Fpath.t, Pos.bytepos_linecol_converters) Saturn.Htbl.t =
-  Saturn.Htbl.create ~hashed_type:(module Fpath_.Hashed) ()
+let hmemo : (Fpath.t, Pos.bytepos_linecol_converters) Kcas_data.Hashtbl.t =
+  Kcas_data.Hashtbl.create () (* 101 *)
 
 let () =
   (* nosemgrep: forbid-tmp *)
-  UTmp.register_temp_file_cleanup_hook (fun file ->
-      ignore (Saturn.Htbl.try_remove hmemo file : bool))
+  UTmp.register_temp_file_cleanup_hook (fun file -> Kcas_data.Hashtbl.remove hmemo file)
 
 let line_col_of_charpos (file : Fpath.t) (charpos : int) : int * int =
   let conv =

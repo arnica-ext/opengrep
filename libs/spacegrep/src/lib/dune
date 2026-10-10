@@ -4,9 +4,8 @@
   (libraries
      ANSITerminal
      unix
-     pcre2
+     pcre
      commons
-     saturn
   )
   (preprocess
    (pps

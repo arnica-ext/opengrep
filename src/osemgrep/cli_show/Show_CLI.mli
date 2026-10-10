@@ -24,14 +24,12 @@ and show_kind =
   | DumpCST of Fpath.t * Lang.t
   | DumpAST of Fpath.t * Lang.t
   | DumpIL  of Fpath.t * Lang.t
-  | DumpILPP of Fpath.t * Lang.t
   | DumpConfig of Rules_config.config_string
   | DumpRule of Fpath.t
   | DumpRuleV2 of Fpath.t
   | DumpPatternsOfRule of Fpath.t
-  | DumpIntrafileGraph of Fpath.t * Lang.t
-  | DumpTaintSignatures of Fpath.t * Fpath.t
-  | DumpInterfileGraph of Fpath.t * Lang.t
+  | DumpEnginePath of bool (* pro = true *)
+  | DumpCommandForCore
 [@@deriving show]
 
 (*

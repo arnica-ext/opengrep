@@ -422,9 +422,6 @@ and definition_kind =
   | FuncDef of function_definition
   | VarDef of variable_definition
   | ClassDef of class_definition
-  (* TS 'namespace Foo { ... }' / 'module Foo { ... }'; the stmt is the body
-   * block (None for an ambient declaration without a body) *)
-  | ModuleDef of stmt option
   | DefTodo of a_todo_category * any list
 
 and variable_definition = {
@@ -450,11 +447,11 @@ and function_definition = {
 
 and parameter =
   | ParamClassic of parameter_classic
-  (* transpiled: when Ast_js_build.transpile_pattern. Carries the
-   * destructure pattern plus the optional type annotation and default
-   * value the way [parameter_classic] does for plain identifiers, so
-   * the parsers do not have to fake-wrap them in [Cast] / [Assign]. *)
-  | ParamPattern of param_pattern_extras
+  (* transpiled: when Ast_js_build.transpile_pattern
+   * TODO: can also have types and default, so factorize with
+   * parameter_classic?
+   *)
+  | ParamPattern of a_pattern
   (* sgrep-ext: *)
   | ParamEllipsis of tok
 
@@ -465,12 +462,6 @@ and parameter_classic = {
   p_type : type_ option;
   p_dots : tok option;
   p_attrs : attribute list;
-}
-
-and param_pattern_extras = {
-  pp_pattern : a_pattern;
-  pp_type : type_ option;
-  pp_default : expr option;
 }
 
 (* expr is usually simply an Id
@@ -537,26 +528,20 @@ and module_directive =
    * when you do 'import "react"' to get a resolved path).
    * See Module_path_js to resolve paths.
    *)
-  | Import of
-      tok * import_role * import_binding * import_specifier list * a_filename
+  | Import of tok * import_specifier list * a_filename
   | Export of tok * a_ident
   (* export * from 'foo'
      export * as bar from 'foo' *)
   | ReExportNamespace of tok * tok * a_ident option * tok * a_filename
   (* hard to unsugar in Import because we do not have the list of names *)
   | ModuleAlias of
-      tok * import_binding * a_ident
-      * a_filename (* import * as 'name' from 'file' *)
-  | ImportAlias of tok * a_ident * a_ident list
+      tok * a_ident * a_filename (* import * as 'name' from 'file' *)
   (* those should not exist (except for sgrep where they are useful),
    * unless file is a CSS file.
    *)
   | ImportFile of tok * a_filename
 
 and import_specifier = a_ident * a_ident option
-
-and import_role = Import_binds | Import_reexports
-and import_binding = Binds_value | Binds_type
 
 (* 'name1 as name2' *)
 (*  [@@deriving show { with_path = false} ] *)
@@ -719,18 +704,7 @@ let parameter_to_pattern tok (param : parameter) : a_pattern =
       (* TODO? *)
       ignore p_attrs;
       pat
-  | ParamPattern { pp_pattern; pp_type; pp_default } ->
-      let pat =
-        match pp_type with
-        | None -> pp_pattern
-        | Some type_ -> Cast (pp_pattern, Tok.fake_tok tok ":", type_)
-      in
-      let pat =
-        match pp_default with
-        | None -> pat
-        | Some expr -> Assign (pat, Tok.fake_tok tok "=", expr)
-      in
-      pat
+  | ParamPattern pat -> pat
   | ParamEllipsis tok -> Ellipsis tok
 
 let mk_const_var id e =

@@ -172,15 +172,6 @@ let param_arg (x : param) : G.argument =
   let option_str = Tok.content_of_tok dashdash ^ name_str in
   G.ArgKwdOptional ((option_str, option_tok), string_or_metavar_expr value)
 
-let copy_param_arg (x : copy_param) : G.argument =
-  match x with
-  | CopyParam p -> param_arg p
-  | CopyFlag (_loc, (dashdash, (name_str, name_tok))) ->
-      let option_tok = Tok.combine_toks dashdash [ name_tok ] in
-      let option_str = Tok.content_of_tok dashdash ^ name_str in
-      G.ArgKwdOptional
-        ((option_str, option_tok), G.L (G.Bool (true, option_tok)) |> G.e)
-
 let from (params : param list) (image_spec : image_spec) opt_alias :
     G.argument list =
   (* TODO: metavariable for image name *)
@@ -269,14 +260,14 @@ let label_pair_exprs (instr_name : string wrap) (kv_pairs : label_pair list) :
                 sense since each key=value pair gets its own ENV call.
                 Such an ellipsis is ignored. *)
              None
-       | Label_pair (loc, key, _sep, value) ->
+       | Label_pair (loc, key, _eq, value) ->
            let key_expr = key_or_metavar_expr key in
            let value_expr = docker_string_expr value in
            Some (call instr_name loc [ G.Arg key_expr; G.Arg value_expr ]))
 
-let add_or_copy (params : copy_param list) (src : path_or_ellipsis list)
+let add_or_copy (params : param list) (src : path_or_ellipsis list)
     (dst : docker_string) =
-  let params = List_.map copy_param_arg params in
+  let params = List_.map param_arg params in
   let src = List_.map (fun x -> G.Arg (str_or_ellipsis_expr x)) src in
   src @ [ G.Arg (docker_string_expr dst) ] @ params
 

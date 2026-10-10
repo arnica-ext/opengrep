@@ -269,11 +269,6 @@ let rec equal_ast_bound_code (config : Rule_options.t) (a : MV.mvalue)
         | None, _ ->
             true
         | Some i1, Some i2 ->
-            (* The names are already established equal above (first conjunct).
-               The strict sid comparison keeps same-named locals in different
-               scopes apart; two definitions of one name in one scope share
-               their binding, so a rule like 'def $R ... def $R' unifies
-               them under one metavar. *)
             (not config.unify_ids_strictly) || G.equal_id_info i1 i2
         | Some _, None -> false)
     (* In Ruby, they use atoms for metaprogramming to generate fields
@@ -285,19 +280,6 @@ let rec equal_ast_bound_code (config : Rule_options.t) (a : MV.mvalue)
     | ( MV.Id ((s1, _), Some { G.id_resolved = { contents = None }; _ }),
         MV.Text (s2, _, _) )
     | ( MV.Text (s1, _, _),
-        MV.Id ((s2, _), Some { G.id_resolved = { contents = None }; _ }) ) ->
-        s1 = s2
-    (* Same equivalence for atom-named metavariables that bind as
-     * [MV.E (L(Atom _))] rather than [MV.Text] — the [m_expr]
-     * atom-metavar case binds as [MV.E] so [metavariable-pattern] can
-     * lift the binding to a program. The Ruby/Elixir metaprogramming
-     * idiom (e.g. [serialize :$INPUT ... post.$INPUT]) needs the same
-     * cross-form equality. The [id_resolved = None] guard restricts
-     * this to free identifiers — metaprogramming-generated names —
-     * not references to defined variables. *)
-    | ( MV.Id ((s1, _), Some { G.id_resolved = { contents = None }; _ }),
-        MV.E { e = G.L (G.Atom (_, (s2, _))); _ } )
-    | ( MV.E { e = G.L (G.Atom (_, (s1, _))); _ },
         MV.Id ((s2, _), Some { G.id_resolved = { contents = None }; _ }) ) ->
         s1 = s2
     (* A variable occurrence that is known to have a constant value is equal to

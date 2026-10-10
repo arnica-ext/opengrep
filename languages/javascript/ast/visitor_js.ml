@@ -363,7 +363,6 @@ let (mk_visitor : visitor_in -> visitor_out) =
     | FuncDef def -> v_function_definition def
     | ClassDef def -> v_class_definition def
     | VarDef def -> v_variable_definition def
-    | ModuleDef body -> v_option v_stmt body
     | DefTodo (v1, v2) ->
         v_todo_category v1;
         v_list v_any v2
@@ -399,10 +398,7 @@ let (mk_visitor : visitor_in -> visitor_out) =
     | ParamClassic v1 ->
         let v1 = v_parameter v1 in
         ()
-    | ParamPattern { pp_pattern; pp_type; pp_default } ->
-        v_pattern pp_pattern;
-        Option.iter v_type_ pp_type;
-        Option.iter v_expr pp_default
+    | ParamPattern v1 -> v_pattern v1
     | ParamEllipsis v1 ->
         let v1 = v_tok v1 in
         ()
@@ -498,7 +494,7 @@ let (mk_visitor : visitor_in -> visitor_out) =
         | None -> ());
         v_tok v4;
         v_filename v5
-    | Import (t, _role, _binding, v1, v2) ->
+    | Import (t, v1, v2) ->
         let t = v_tok t in
         let v1 =
           v_list
@@ -513,11 +509,7 @@ let (mk_visitor : visitor_in -> visitor_out) =
         let t = v_tok t in
         let v1 = v_name v1 in
         ()
-    | ImportAlias (t, v1, v2) ->
-        v_tok t;
-        v_name v1;
-        v_list v_name v2
-    | ModuleAlias (t, _binding, v1, v2) ->
+    | ModuleAlias (t, v1, v2) ->
         let t = v_tok t in
         let v1 = v_name v1 and v2 = v_filename v2 in
         ()

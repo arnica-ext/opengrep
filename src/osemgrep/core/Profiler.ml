@@ -64,8 +64,10 @@ let record profiler ~name fn =
   in
   Common.protect ~finally fn
 
-let elapsed profiler ~name =
-  match Hashtbl.find_opt profiler name with
-  | Some (Recorded time) -> Some time
-  | Some (Start start_time) -> Some (Unix.gettimeofday () -. start_time)
-  | None -> None
+let dump profiler =
+  Hashtbl.fold
+    (fun name value acc ->
+      match value with
+      | Recorded time -> (name, time) :: acc
+      | _ -> acc)
+    profiler []

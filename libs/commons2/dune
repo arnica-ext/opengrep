@@ -5,7 +5,7 @@
  (libraries
     TCB
     commons
-    saturn
+    kcas_data
  )
  (preprocess
    (pps

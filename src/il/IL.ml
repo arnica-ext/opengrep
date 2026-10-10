@@ -82,23 +82,17 @@ module G = AST_generic
 (*****************************************************************************)
 
 (* the classic *)
-(* WARNING: the [ord] derived here (and on the IL types below) is
-   TOKEN-SENSITIVE — it compares positions, so two otherwise-identical
-   names/exprs at different source locations sort as distinct.  That is NOT
-   what taint identity wants: for taint sets/keys use the hand-written,
-   token-INSENSITIVE [IL_helpers.compare_exp] / [compare_lval] / etc.
-   Reserve these derived comparators for position-aware uses only. *)
-type tok = G.tok [@@deriving show, ord]
-type 'a wrap = 'a G.wrap [@@deriving show, ord]
+type tok = G.tok [@@deriving show]
+type 'a wrap = 'a G.wrap [@@deriving show]
 
 (* useful mainly for empty containers *)
-type 'a bracket = tok * 'a * tok [@@deriving show, ord]
+type 'a bracket = tok * 'a * tok [@@deriving show]
 
 (*****************************************************************************)
 (* Names *)
 (*****************************************************************************)
 
-type ident = G.ident [@@deriving show, eq, ord]
+type ident = G.ident [@@deriving show, eq]
 
 (* 'sid' below is the result of name resolution and variable disambiguation
  * using a gensym (see Naming_AST.ml). A name is guaranteed to be
@@ -111,11 +105,7 @@ type ident = G.ident [@@deriving show, eq, ord]
 type name = { ident : ident; sid : G.sid; id_info : G.id_info }
 [@@deriving show,eq]
 
-(* [SId.to_string], not the derived [show]: this string keys the constant
-   propagation environment on every variable access, and the derived
-   printer goes through [Format]. *)
-let str_of_name name =
-  Common.spf "%s:%s" (fst name.ident) (G.SId.to_string name.sid)
+let str_of_name name = Common.spf "%s:%s" (fst name.ident) (G.SId.show name.sid)
 
 let compare_name name1 name2 =
   let { ident = str1, _tok1; sid = sid1; id_info = _ } = name1 in
@@ -156,7 +146,7 @@ type fixme_kind =
   | ToDo (* some construct that we still don't support *)
   | Sgrep_construct (* some Sgrep construct shows up in the code, e.g. `...' *)
   | Impossible (* something we thought impossible happened *)
-[@@deriving show, ord]
+[@@deriving show]
 
 (*****************************************************************************)
 (* Mapping back to Generic *)
@@ -191,19 +181,17 @@ let any_of_orig = function
 (*****************************************************************************)
 
 type name_param = { pname : name; pdefault : G.expr option }
-[@@deriving show { with_path = false }, ord]
+[@@deriving show { with_path = false }]
 
 type param =
   | Param of name_param
-  | ParamReceiver of name_param  (** Go/Java method receiver (maps to BThis) *)
   | ParamRest of name_param
-  | ParamKwd of name_param  (** takes a named argument only: Ruby 'sep:' *)
-  | ParamPattern of name_param * G.pattern
+  | ParamPattern of G.pattern
   | ParamFixme
-[@@deriving show { with_path = false }, ord]
+[@@deriving show { with_path = false }]
 
 type 'a argument = Unnamed of 'a | Named of ident * 'a
-[@@deriving ord, eq, show { with_path = false }]
+[@@deriving show { with_path = false }]
 
 (*****************************************************************************)
 (* Parent iterator *)
@@ -234,12 +222,11 @@ class virtual ['self] iter_parent =
     method visit_param env param =
       match param with
       | Param { pname; pdefault = _ }
-      | ParamReceiver { pname; pdefault = _ }
-      | ParamRest { pname; pdefault = _ }
-      | ParamKwd { pname; pdefault = _ }
-      | ParamPattern ({ pname; pdefault = _ }, _) ->
+      | ParamRest { pname; pdefault = _ } ->
           self#visit_name env pname
-      | ParamFixme -> ()
+      | ParamPattern _
+      | ParamFixme ->
+          ()
 
     method visit_argument
         : 'a. ('env -> 'a -> unit) -> 'env -> 'a argument -> unit =
@@ -313,14 +300,6 @@ and offset_kind =
    *)
   | Dot of name
   | Index of exp
-  (* [Slice n] is a "view" of the base value from index [n] to the end —
-   * the trailing-rest of a list/tuple. Emitted for body-level rest
-   * destructure (Clojure [a & rest], Elixir [h | t], JS [a, ...r]).
-   * Composition with subsequent indexed reads is additive: reading
-   * element [k] of [Slice n] resolves to the base's index [n + k]. The
-   * engine collapses [Index k :: Slice n :: rest] to [Index (n+k) :: rest]
-   * and [Slice b :: Slice a :: rest] to [Slice (a+b) :: rest]. *)
-  | Slice of int
 
 (* transpile at some point? *)
 and var_special = This | Super | Self | Parent
@@ -500,7 +479,7 @@ and node_kind =
   | NOther of other_stmt
   | NTodo of stmt
 [@@deriving
-  show { with_path = false }, ord,
+  show { with_path = false },
     visitors { variety = "iter"; ancestors = [ "iter_parent" ] }]
 
 (* For now there is just one kind of edge.
@@ -535,29 +514,6 @@ type any = L of lval | E of exp | I of instr | S of stmt | Ss of stmt list
 
 let ident_str_of_name name = fst name.ident
 let str_of_label ((n, _), _) = n
-
-(* Rewrite a [name] so that its token carries an absolute file path,
-   mirroring what [Function_id.make_absolute] does for Function_ids.
-   No-op when [project_root] is [None], the token is fake, or the
-   path is already absolute. *)
-let absolutify_name (project_root : Fpath.t option) (n : name) : name =
-  match project_root with
-  | Some root ->
-    let name_str, tok = n.ident in
-    if Tok.is_fake tok then n
-    else
-      let file = Tok.file_of_tok tok in
-      if Fpath.is_abs file then n
-      else
-        let abs_file = Fpath.(root // file) |> Fpath.normalize in
-        let new_tok =
-          Tok.fix_location
-            (fun (loc : Tok.location) ->
-              { loc with pos = { loc.pos with Pos.file = abs_file } })
-            tok
-        in
-        { n with ident = (name_str, new_tok) }
-  | None -> n
 
 let rec equal_base base1 base2 =
   match (base1, base2) with

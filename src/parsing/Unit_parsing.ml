@@ -119,16 +119,13 @@ let pack_parsing_tests_for_lang ?(error_tolerance = Strict) lang =
   let pattern = spf "%s/**/*" !!dir in
   let files = Common2.glob pattern in
   if files =*= [] then
-    (* No test files found; return an empty suite rather than crashing *)
-    []
-  else begin
-    List.iter check_ext files;
-    let tests = parsing_tests_for_lang error_tolerance files lang in
-    (match subcategory with
-    | None -> tests
-    | Some cat -> Testo.categorize cat tests)
-    |> Testo.categorize slang
-  end
+    failwith (spf "Empty set of parsing tests for %s at %s" slang pattern);
+  List.iter check_ext files;
+  let tests = parsing_tests_for_lang error_tolerance files lang in
+  (match subcategory with
+  | None -> tests
+  | Some cat -> Testo.categorize cat tests)
+  |> Testo.categorize slang
 
 (* Note that here we also use tree-sitter to parse; certain files were not
  * parsing with pfff but parses here
@@ -193,95 +190,6 @@ let parsing_rules_tests () =
                       (spf "error %s while parsing %s" (Rule_error.show err)
                          !!file))))
 
-(* Opengrep does not support supply-chain rules: a rule matching on the
- * project's dependencies is skipped, and the other rules of its file load.
- *)
-let supply_chain_rules_tests () =
-  let dir = tests_path / "rule_formats" in
-  let rule_ids (rules : Rule.rules) : string list =
-    rules
-    |> List_.map (fun (rule : Rule.t) -> Rule_ID.to_string (fst rule.Rule.id))
-  in
-  let test_skipped (file : string) ~(loaded : string list) ~(skipped : string)
-      () : unit =
-    let file = dir / file in
-    match Parse_rule.parse_and_filter_invalid_rules file with
-    | Error err ->
-        failwith (spf "error %s while parsing %s" (Rule_error.show err) !!file)
-    | Ok (rules, invalid_rules) -> (
-        Alcotest.(check (list string))
-          "the rules that load" loaded (rule_ids rules);
-        match invalid_rules with
-        | [ ((Rule_error.UnsupportedSupplyChainRule key, rule_id, _tok) as
-             invalid_rule) ] ->
-            Alcotest.(check string)
-              "the skipped rule" skipped
-              (Rule_ID.to_string rule_id);
-            Alcotest.(check string)
-              "the unsupported key" "r2c-internal-project-depends-on" key;
-            (* the type the JSON errors carry *)
-            Alcotest.(check string)
-              "the reported error type" {|"Unsupported supply-chain rule"|}
-              (Semgrep_output_v1_j.string_of_error_type
-                 (E.error_of_invalid_rule invalid_rule).typ)
-        | _ ->
-            failwith (spf "expected one skipped supply-chain rule in %s" !!file))
-  in
-  Testo.categorize "Supply-chain rules"
-    [
-      t "a rule matching on dependencies is skipped"
-        (test_skipped "depends_on_with_other_rule.yaml" ~loaded:[ "plain-rule" ]
-           ~skipped:"depends-on-requests");
-      t "a rule with only a dependency formula is skipped"
-        (test_skipped "sca_version_no_space.yaml" ~loaded:[]
-           ~skipped:"some-rule");
-    ]
-
-(* A 'pattern' in a rule whose own 'languages' is regex-only would be read
- * as a regex with no error, so it is rejected. The accepted cases, where a
- * language is in effect, are in tests/rules/metavar_pattern_lang_regex.yaml
- * and tests/rules/regex_rule_metavar_pattern_lang.yaml.
- *)
-let regex_only_rules_tests () =
-  let test_rejected (rule : string) () : unit =
-    UTmp.with_temp_file ~contents:rule ~suffix:".yaml" (fun file ->
-        match Parse_rule.parse file with
-        | Error { Rule_error.kind = InvalidRule (InvalidOther _, _, _); _ } ->
-            ()
-        | Error err ->
-            failwith
-              (spf "unexpected error for a regex-only rule: %s"
-                 (Rule_error.show err))
-        | Ok _ -> failwith "the regex-only rule should have been rejected")
-  in
-  Testo.categorize "Regex-only rules"
-    [
-      t "a 'pattern' at the top level is rejected"
-        (test_rejected
-           {|
-rules:
-  - id: toplevel-regex-pattern
-    languages: [regex]
-    severity: INFO
-    message: found
-    pattern: secret
-|});
-      t "a 'pattern' nested without a language is rejected"
-        (test_rejected
-           {|
-rules:
-  - id: regex-rule-nested-nolang
-    languages: [regex]
-    severity: INFO
-    message: found
-    patterns:
-      - pattern-regex: foo\((?P<X>.*)\)
-      - metavariable-pattern:
-          metavariable: $X
-          pattern: secret
-|});
-    ]
-
 let parsing_rules_with_atd_tests () =
   let dir = tests_path / "rules_v2" in
   let tests1 =
@@ -307,19 +215,14 @@ let make_tests langs_with_tolerance =
       lang_parsing_tests langs_with_tolerance;
       parsing_error_tests ();
       parsing_rules_tests ();
-      supply_chain_rules_tests ();
-      regex_only_rules_tests ();
       parsing_rules_with_atd_tests ();
     ]
 
 let langs_with_error_tolerance =
   [
     (* languages with only a tree-sitter parser *)
-    (Lang.Apex, Strict);
     (Lang.Bash, Strict);
-    (Lang.Elixir, Strict);
     (Lang.Csharp, Strict);
-    (Lang.Crystal, Strict);
     (Lang.Dockerfile, Strict);
     (Lang.Lua, Strict);
     (Lang.Lua, Todo);
@@ -337,17 +240,11 @@ let langs_with_error_tolerance =
     (Lang.Julia, Strict);
     (Lang.Jsonnet, Strict);
     (Lang.Dart, Strict);
-    (Lang.Json, Strict);
-    (* TODO: Move_on_sui has non-.move files in its test dir (TODO/) *)
-    (* (Lang.Move_on_sui, Strict); *)
-    (Lang.Ql, Strict);
     (* here we have both a Pfff and tree-sitter parser *)
     (Lang.Java, Strict);
     (Lang.Go, Strict);
     (Lang.Ruby, Strict);
     (Lang.Js, Strict);
-    (Lang.Ts, Partial_parsing);
-    (Lang.Python, Strict);
     (Lang.C, Strict);
     (Lang.Cpp, Strict);
     (Lang.Php, Strict);

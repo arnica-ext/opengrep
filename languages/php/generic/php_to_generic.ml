@@ -55,24 +55,15 @@ let wrap _of_a (v1, v2) =
 let bracket of_a (t1, x, t2) = (info t1, of_a x, info t2)
 let ident v = wrap string v
 let var v = wrap string v
-
-(* a variable bound to an enclosing scope's by a directive such as
- * [global $x;] or a closure's [use ($x)] *)
-let use_outer_decl (tok : Tok.t) (id : G.ident) : G.stmt =
-  let ent = G.basic_entity ~case_insensitive:false id in
-  G.DefStmt (ent, G.UseOuterDecl tok) |> G.s
 let qualified_ident v = list ident v
 
 (* Note, Funtions and Classes are case insensitive, variables are case
  * sensitive. *)
-let name_of_qualified_ident ~case_insensitive (n : name) =
-  let xs = qualified_ident n.n_parts in
-  match n.n_root with
-  | None -> H.name_of_ids ~case_insensitive xs
-  | Some (root : tok) ->
-      H.name_of_ids ~case_insensitive ~name_top:(info root) xs
+let name_of_qualified_ident ~case_insensitive xs =
+  let xs = qualified_ident xs in
+  H.name_of_ids ~case_insensitive xs
 
-
+let name v = qualified_ident v
 let fixOp x = x
 
 let binaryOp (x, t) =
@@ -105,7 +96,6 @@ let ptype (x, t) =
   (* TODO: TyArray of gen? *)
   | ArrayTy -> G.ty_builtin ("array", t)
   | ObjectTy -> G.ty_builtin ("object", t)
-  | VoidTy -> G.ty_builtin ("void", t)
 
 let list_expr_to_opt xs =
   match xs with
@@ -180,19 +170,13 @@ let rec stmt_aux = function
       [ G.DirectiveStmt (G.Package (t, v1) |> G.d) |> G.s ]
       @ v2
       @ [ G.DirectiveStmt (G.PackageEnd t2 |> G.d) |> G.s ]
-  | NamespaceUse (t, kind, v1, v2) -> (
-      let v1 = qualified_ident v1.n_parts in
-      let d_attrs =
-        match kind with
-        | Use_class -> []
-        | Use_function -> [ G.KeywordAttr (G.Callable, t) ]
-        | Use_constant -> [ G.KeywordAttr (G.Const, t) ]
-      in
+  | NamespaceUse (t, v1, v2) -> (
+      let v1 = qualified_ident v1 in
       match v2 with
       | Some x ->
           [
             G.DirectiveStmt
-              { G.d = G.ImportAs (t, G.DottedName v1, Some (alias x)); d_attrs }
+              (G.ImportAs (t, G.DottedName v1, Some (alias x)) |> G.d)
             |> G.s;
           ]
       (* A use declaration such as `use A\B\C;` brings `C` into scope as `C` *)
@@ -201,10 +185,9 @@ let rec stmt_aux = function
           | name :: path ->
               [
                 G.DirectiveStmt
-                  { G.d =
-                      G.ImportFrom
-                        (t, G.DottedName (List.rev path), [ (name, None) ]);
-                    d_attrs }
+                  (G.ImportFrom
+                     (t, G.DottedName (List.rev path), [ (name, None) ])
+                  |> G.d)
                 |> G.s;
               ]
           | [] -> raise Impossible))
@@ -220,11 +203,9 @@ let rec stmt_aux = function
       v1
       |> List_.map (fun e ->
              match e with
-             (* [global $x;] — the tree-sitter converter emits UseOuterDecl
-              * for this too; naming plants the outer binding in the
-              * function scope so later [$x = ...] rebinds the global. *)
-             | Id { n_root = None; n_parts = [ id ] } -> use_outer_decl t id
-             | Var v -> use_outer_decl t (var v)
+             | Id [ id ] ->
+                 let ent = G.basic_entity ~case_insensitive:false id in
+                 G.DefStmt (ent, G.UseOuterDecl t) |> G.s
              | _ ->
                  let e = expr e in
                  G.OtherStmt (G.OS_GlobalComplex, [ G.E e ]) |> G.s)
@@ -245,7 +226,7 @@ and opt_expr_to_label_ident = function
               let e = expr e in
               G.LDynamic e
           | Some i -> G.LInt (i, tok))
-      | Id { n_root = None; n_parts = [ label ] } -> G.LId label
+      | Id [ label ] -> G.LId label
       | _ ->
           let e = expr e in
           G.LDynamic e)
@@ -259,8 +240,8 @@ and case = function
   | CaseEllipsis tok -> G.CaseEllipsis tok
 
 and catch (t, v1, v2, v3) =
-  let v1 = hint_type v1 and v2 = option var v2 and v3 = stmt v3 in
-  let exn = G.CatchParam (G.param_of_type v1 ?pname:v2) in
+  let v1 = hint_type v1 and v2 = var v2 and v3 = stmt v3 in
+  let exn = G.CatchParam (G.param_of_type v1 ~pname:v2) in
   (t, exn, v3)
 
 (* a list of finally??? php ... *)
@@ -302,7 +283,7 @@ and expr e : G.expr =
   | Array_get (v1, (t1, None, _)) ->
       let v1 = expr v1 in
       G.OtherExpr (("ArrayAppend", t1), [ G.E v1 ]) |> G.e
-  | Obj_get (v1, t, Id { n_root = None; n_parts = [ v2 ] }) ->
+  | Obj_get (v1, t, Id [ v2 ]) ->
       let v1 = expr v1 and v2 = ident v2 in
       G.DotAccess (v1, t, G.FN (G.Id (v2, G.empty_id_info ()))) |> G.e
   | Obj_get (v1, _tdot, Ellipsis tdots) ->
@@ -311,7 +292,7 @@ and expr e : G.expr =
   | Obj_get (v1, t, v2) ->
       let v1 = expr v1 and v2 = expr v2 in
       G.DotAccess (v1, t, G.FDynamic v2) |> G.e
-  | Class_get (v1, t, Id { n_root = None; n_parts = [ v2 ] }) ->
+  | Class_get (v1, t, Id [ v2 ]) ->
       let v1 = expr v1 and v2 = ident v2 in
       G.DotAccess (v1, t, G.FN (G.Id (v2, G.empty_id_info ()))) |> G.e
   | Class_get (v1, t, v2) ->
@@ -384,11 +365,10 @@ and expr e : G.expr =
       let callable_arg =
         match callable_expr with
         (* strlen(...) → Closure::fromCallable('strlen') *)
-        | Id { n_root = None; n_parts = [ name ] } ->
+        | Id [ name ] ->
             G.Arg (G.L (G.String (fb name)) |> G.e)
         (* $obj->method(...) → Closure::fromCallable([$obj, 'method']) *)
-        | Obj_get (obj, _arrow,
-                   Id { n_root = None; n_parts = [ method_name ] }) ->
+        | Obj_get (obj, _arrow, Id [ method_name ]) ->
             let obj_expr = expr obj in
             let method_str =
               G.L (G.String (fb method_name)) |> G.e
@@ -396,8 +376,7 @@ and expr e : G.expr =
             G.Arg
               (G.Container (G.Array, fb [ obj_expr; method_str ]) |> G.e)
         (* Foo::bar(...) → Closure::fromCallable([Foo::class, 'bar']) *)
-        | Class_get (class_ref, _colons,
-                     Id { n_root = None; n_parts = [ method_name ] }) ->
+        | Class_get (class_ref, _colons, Id [ method_name ]) ->
             let class_expr = expr class_ref in
             let method_str =
               G.L (G.String (fb  method_name)) |> G.e
@@ -440,29 +419,6 @@ and expr e : G.expr =
           |> G.e
       | Right x ->
           G.Call (G.IdSpecial x |> G.e, fb [ G.Arg v1; G.Arg v3 ]) |> G.e)
-  (* PHP 8.5: '$x |> f(...)' means 'f($x)'. Desugar it into that call so that
-   * rules written against the call, and the dataflow that follows it, both
-   * work; then tag it so a rule can still tell a piped call from a direct one
-   * (same approach as Elixir_to_generic.map_pipeline). *)
-  | Pipe (v1, t, v2) ->
-      let arg = expr v1 in
-      let callee =
-        match v2 with
-        (* the right-hand side is normally first-class callable syntax; pipe
-         * to the callable itself rather than to its Closure::fromCallable
-         * desugaring *)
-        | FirstClassCallable (callable_expr, _) -> expr callable_expr
-        (* In a pattern, 'f(...)' parses as a call whose only argument is an
-         * ellipsis rather than as FirstClassCallable (see parser_php.mly), so
-         * '$X |> f(...)' would otherwise desugar to a call of f(...)'s result
-         * and never match piped code. Real code cannot produce this shape,
-         * since an ellipsis argument only exists in patterns. *)
-        | Call (callable_expr, (_, [ Arg (Ellipsis _) ], _)) ->
-            expr callable_expr
-        | _ -> expr v2
-      in
-      let desugared = G.Call (callee, fb [ G.Arg arg ]) |> G.e in
-      G.OtherExpr (("PipelineCall", t), [ G.E desugared ]) |> G.e
   | Unop ((v1, t), v2) ->
       let v1 = unaryOp v1 and v2 = expr v2 in
       G.Call (G.IdSpecial (G.Op v1, t) |> G.e, fb [ G.Arg v2 ]) |> G.e
@@ -497,38 +453,29 @@ and expr e : G.expr =
        m_modifiers = _;
        f_name = _;
        l_uses;
-       (* G.Lambda has no attribute slot, so an attribute on a closure is
-        * dropped here, as its modifiers and '&' already are. Matching this
-        * on [] instead would send every attributed closure to the error
-        * below and fail the whole file. *)
-       f_attrs = _;
+       f_attrs = [];
        f_params = ps;
        f_return_type = rett;
        f_body = body;
       } ->
+          let _lusesTODO =
+            list
+              (fun (v1, v2) ->
+                let _v1 = bool v1 and _v2 = var v2 in
+                ())
+              l_uses
+          in
           let lambdakind =
             match lambdakind with
             | AnonLambda -> G.LambdaKind
             | ShortLambda -> G.Arrow
             | _ -> error tok "unsupported lambda variant"
           in
-          (* [function () use ($x, &$y) { ... }]: the captured variables
-           * are the enclosing scope's, declared at the head of the body
-           * as a [use] directive for naming to bind them there. *)
-          let uses =
-            l_uses
-            |> List_.map (fun ((_is_ref : bool), (v : var)) ->
-                   use_outer_decl (Tok.fake_tok t "use") (var v))
-          in
-          let body =
-            match (uses, stmt body) with
-            | [], body -> body
-            | _, { G.s = G.Block (l, stmts, r); _ } ->
-                G.Block (l, uses @ stmts, r) |> G.s
-            | _, body -> G.Block (Tok.unsafe_fake_bracket (uses @ [ body ])) |> G.s
-          in
+
+          let body = stmt body in
           let ps = parameters ps in
           let rett = option hint_type rett in
+          (* TODO: transform l_uses in UseOuterDecl preceding body *)
           G.Lambda
             {
               G.fparams = fb ps;
@@ -536,7 +483,8 @@ and expr e : G.expr =
               fbody = G.FBStmt body;
               fkind = (lambdakind, t);
             }
-          |> G.e)
+          |> G.e
+      | _ -> error tok "TODO: Lambda")
   | Match (tok, e, matches) ->
       let e = expr e in
       let matches = List_.map match_ matches in
@@ -570,7 +518,6 @@ and special (spec, tok) =
   | This -> G.IdSpecial (G.This, tok) |> G.e
   | Self -> G.IdSpecial (G.Self, tok) |> G.e
   | Parent -> G.IdSpecial (G.Parent, tok) |> G.e
-  | LateStatic -> G.IdSpecial (G.LateStatic, tok) |> G.e
   | FuncLike Empty -> G.N (G.Id (("empty", tok), G.empty_id_info ())) |> G.e
   | FuncLike Eval -> G.IdSpecial (G.Eval, tok) |> G.e
   | FuncLike Exit -> G.N (G.Id (("exit", tok), G.empty_id_info ())) |> G.e
@@ -585,6 +532,7 @@ and array_value v = expr v
 
 and hint_type = function
   | Hint v1 ->
+      let v1 = name v1 in
       G.TyN (name_of_qualified_ident ~case_insensitive:true v1) |> G.t
   | HintArray t -> G.ty_builtin ("array", t)
   | HintQuestion (t, v1) ->
@@ -673,33 +621,18 @@ and parameter x =
   | ParamClassic x -> parameter_classic x
   | ParamEllipsis t -> G.ParamEllipsis t
 
-and parameter_classic
-    {
-      p_type;
-      p_ref;
-      p_name;
-      p_default;
-      p_attrs;
-      p_modifiers;
-      p_variadic;
-      (* hooks on a promoted parameter are surfaced on the class field that
-       * the promotion declares (see promoted_field in ast_php_build.ml), so
-       * there is nothing to add on the parameter itself *)
-      p_hooks = _;
-    } =
+and parameter_classic { p_type; p_ref; p_name; p_default; p_attrs; p_variadic }
+    =
   let p_type = option hint_type p_type in
   let p_name = var p_name in
   let p_default = option expr p_default in
   let p_attrs = list attribute p_attrs in
-  (* constructor property promotion: keep the modifiers so patterns can
-   * distinguish e.g. 'private readonly' from 'public' *)
-  let p_modifiers = list modifier_to_attr p_modifiers in
   let pclassic =
     {
       G.pname = Some p_name;
       ptype = p_type;
       pdefault = p_default;
-      pattrs = p_modifiers @ p_attrs;
+      pattrs = p_attrs;
       pinfo = G.empty_id_info ();
     }
   in
@@ -732,12 +665,11 @@ and attribute v =
   | _ -> raise Impossible
 
 (* see ast_php_build.ml *)
-and constant_def { cst_name; cst_body; cst_tok = tok; cst_modifiers; cst_attrs } =
+and constant_def { cst_name; cst_body; cst_tok = tok; cst_modifiers } =
   let id = ident cst_name in
   let body = expr cst_body in
   let modifiers = list modifier_to_attr cst_modifiers in
-  let attrs = list attribute cst_attrs in
-  let attr = (G.KeywordAttr (G.Const, tok) :: modifiers) @ attrs in
+  let attr = G.KeywordAttr (G.Const, tok) :: modifiers in
   let ent = G.basic_entity id ~case_insensitive:false ~attrs:attr in
   (ent, { G.vinit = Some body; vtype = None; vtok = G.no_sc })
 
@@ -824,31 +756,20 @@ and class_var
       cv_value = cvalue;
       cv_modifiers = cmodifiers;
       cv_hooks = chooks;
-      cv_attrs = cattrs;
     } =
   let id = var cname in
   let typ = option hint_type ctype in
   let value = option expr cvalue in
   let modifiers = list modifier_to_attr cmodifiers in
-  let attrs = list attribute cattrs in
-  let ent =
-    G.basic_entity id ~case_insensitive:false ~attrs:(modifiers @ attrs)
-  in
+  let ent = G.basic_entity id ~case_insensitive:false ~attrs:modifiers in
   let def = { G.vtype = typ; vinit = value; vtok = G.no_sc } in
   let hooks = list property_hook chooks in
   (ent, def, hooks)
 
-and property_hook { ph_attrs; ph_modifiers; ph_ref; ph_kind; ph_params; ph_body } =
+and property_hook { ph_kind; ph_params; ph_body } =
   let attr, tok, name_str = match ph_kind with
     | PhGet tok -> (G.KeywordAttr (G.Getter, tok), tok, "get")
     | PhSet tok -> (G.KeywordAttr (G.Setter, tok), tok, "set")
-  in
-  (* keep 'final' and the '&' of '&get' so patterns can match on them *)
-  let modifiers = list modifier_to_attr ph_modifiers in
-  let ref_attr =
-    match ph_ref with
-    | None -> []
-    | Some tok -> [ G.OtherAttribute (("&", tok), []) ]
   in
   let params = list parameter ph_params in
   let body = match ph_body with
@@ -861,10 +782,7 @@ and property_hook { ph_attrs; ph_modifiers; ph_ref; ph_kind; ph_params; ph_body 
     frettype = None;
     fbody = body;
   } in
-  let ent =
-    G.basic_entity (name_str, tok) ~case_insensitive:false
-      ~attrs:((attr :: modifiers) @ ref_attr @ list attribute ph_attrs)
-  in
+  let ent = G.basic_entity (name_str, tok) ~case_insensitive:false ~attrs:[attr] in
   (ent, G.FuncDef fdef)
 
 and method_def v = func_def v

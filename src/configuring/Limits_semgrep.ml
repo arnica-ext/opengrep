@@ -46,10 +46,6 @@ let svalue_prop_MAX_VISIT_SYM_IN_CYCLE_CHECK = 1000
  * So e.g. we limit the amount of time that Pro will spend inferring taint signatures.
  * Note that 'Time_limit.set_timeout' cannot be nested. *)
 let taint_FIXPOINT_TIMEOUT = 0.2
-
-(* Maximum call chain depth followed by interfile taint when neither the
- * scan nor the rule sets one; negative is unbounded. *)
-let taint_INTERFILE_DEPTH = 3
 (* this replaces the taint FIXPOINT_TIMEOUT in the config file, in a fixpoint if a node
  * is visted more often than this the assumption is that it is a cycle and so the
  * fixpoint stops *)
@@ -73,81 +69,11 @@ let taint_MAX_OBJ_FIELDS = 10
  *)
 let taint_MAX_TAINT_SET_SIZE = 25
 
-(** Bounds the length of the offsets we can track per arg/poly-taint.
- *
- * [4] keeps field-sensitivity for nested destructuring / callback /
- * library-access patterns (Clojure, Elixir, Python, Ruby all have
- * cross-function tests that need it).
- *
- * Poly-taint set WIDTH grows combinatorially with this bound, though
- * (each extra level multiplies reachable fields × indexes), so on a
- * language with deep struct nesting over a large codebase it makes the
- * interfile fixpoint explode — grafana Go crawled for minutes at [4].
- * [Taint_shape.max_poly_offset] lowers such languages to
- * [taint_MAX_POLY_OFFSET_FLAT]. *)
-let taint_MAX_POLY_OFFSET = 4
-let taint_MAX_POLY_OFFSET_FLAT = 1
+(** Bounds the length of the offsets we can track per arg/poly-taint. *)
+let taint_MAX_POLY_OFFSET = 1
 
 (** Maximum depth for shape equality comparison to prevent infinite recursion
  * in pathological patterns like obj[key] = [obj[key], item] that create
  * unbounded recursive structures. When both shapes exceed this depth, we
  * consider them equal (widening approximation) to force fixpoint convergence. *)
 let taint_MAX_SHAPE_DEPTH = 50
-
-(** Maximum nesting of [Fun] shapes stored in a signature database (see
- * [Taint_shape.bound_fun_shape]).
- *
- * A call on an unknown callee, such as a parameter's method, is stored in
- * the signature as an effect with the shapes of its arguments. When an
- * argument is a function of the same SCC, its shape is that function's
- * signature, and that signature contains the same call effect. Each
- * fixpoint round then stores the previous round's signature inside the new
- * one, so the signature never stabilises and its size doubles or more per
- * round. A [Fun] shape nested deeper than this collapses to [Bot]: the
- * callback's own effects are kept, a callback it passes on to another
- * unknown callee is dropped. *)
-let taint_MAX_SIG_FUN_DEPTH = 2
-
-(** Maximum number of outer fixpoint passes for the self-sig convergence
- * loop in [Dataflow_tainting.fixpoint_aux]. Each pass re-runs the
- * inner dataflow fixpoint while a direct self-recursive call has
- * produced new effects; the loop stops once the effects set is stable
- * or this cap is reached. Only Clojure multi-arity self-recursion
- * currently triggers the loop. *)
-let taint_MAX_SELF_SIG_PASSES = 5
-
-(** Maximum number of characters of a guard cond that [Effect_guard.show]
- * renders into a log line; a longer cond is rendered as its first this-many
- * characters followed by "...". Guard conds from deep cross-call forwarding are
- * shared DAGs that unfold to 2^depth characters, so rendering one in full via
- * [IL_pp.pp_exp] under debug logging is exponential. *)
-let taint_MAX_GUARD_LOG_CHARS = 200
-
-(** Maximum number of distinct nodes in a guard-cond atom. An atom growing
- * past this (via cross-call substitution of computed actuals) is dropped
- * from its clause — a sound weakening: the clause's guard applies more
- * often, so widening can add findings but never drop them. Length atoms
- * ([length(x) <cmp> n], the shape arity dispatch compiles to) are a few
- * nodes and never approach this. *)
-let taint_MAX_GUARD_COND_NODES = 512
-
-(** Maximum number of clauses in a guard cond (the cond is in disjunctive
- * normal form; clause count grows by clause-set union at taint-set joins
- * and multiplies when two disjunctive guards are conjoined). Past the cap,
- * each clause is widened to its length literals — arity dispatch survives:
- * [or(and(len==1, P), and(len==2, Q))] widens to [or(len==1, len==2)] — and
- * a cond still over the cap widens to [true]. Sound in the same direction
- * as the atom cap. Lowering this trades guard precision for speed; near
- * zero it degenerates to arity-only guards. *)
-let taint_MAX_GUARD_CLAUSES = 64
-
-(*****************************************************************************)
-(* Project index (interfile call graph) *)
-(*****************************************************************************)
-
-(* Iteration caps on the projidx type-augmentation fixpoints; the passes are
- * monotone, the caps only bound how deep return-type / field-type chains
- * propagate. See 'src/project_index/Main.ml'. *)
-let projidx_RETURN_TYPES_MAX_ITERS = 4
-let projidx_OBJECT_MAPPINGS_MAX_ITERS = 5
-let projidx_CALL_GRAPH_MAX_PASSES = 5

@@ -1,6 +1,0 @@
---- begin input files ---
-rules/basic_fix.yaml
-targets/test2.py
---- end input files ---
-1/1: ✓ All tests passed
-No tests for fixes found.

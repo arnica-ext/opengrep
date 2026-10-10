@@ -48,7 +48,6 @@ type t = Language.t =
   | Circom
   | Clojure
   | Cpp
-  | Crystal
   | Csharp
   | Dart
   | Dockerfile
@@ -88,6 +87,15 @@ type t = Language.t =
   | Xml
   | Yaml
 [@@deriving show { with_path = false }, eq, hash, yojson]
+
+let has_tag tag_name =
+  let tbl = Hashtbl.create 50 in
+  Language.list
+  |> List.iter (fun (x : Language.info) ->
+         if List.mem tag_name x.tags then Hashtbl.add tbl x.id ());
+  fun lang -> Hashtbl.mem tbl lang
+
+let is_proprietary = has_tag "is_proprietary"
 
 let is_js lang =
   match lang with
@@ -132,6 +140,7 @@ let keys = Common2.hkeys lang_map
 let supported_langs : string = String.concat ", " keys
 
 (* TODO: move file identification to lang.json *)
+(* TODO: Solidity *)
 let langs_of_filename filename =
   let typ = File_type.file_type_of_file filename in
   match typ with
@@ -143,7 +152,6 @@ let langs_of_filename filename =
   | FT.PL (FT.C "c") -> [ C ]
   | FT.PL (FT.C "h") -> [ C; Cpp ]
   | FT.PL (FT.Cplusplus _) -> [ Cpp ]
-  | FT.PL FT.Crystal -> [ Crystal ]
   | FT.PL (FT.OCaml ("ml" | "mli")) -> [ Ocaml ]
   | FT.PL FT.Java -> [ Java ]
   | FT.PL FT.Go -> [ Go ]
@@ -159,7 +167,7 @@ let langs_of_filename filename =
   | FT.PL (FT.Web FT.Hack) -> [ Hack ]
   | FT.PL FT.Kotlin -> [ Kotlin ]
   | FT.PL FT.Lua -> [ Lua ]
-  | FT.PL (FT.Script ("bash" | "sh")) -> [ Bash ]
+  | FT.PL (FT.Script "bash") -> [ Bash ]
   | FT.PL FT.Rust -> [ Rust ]
   | FT.PL FT.Move -> [ Move_on_sui; Move_on_aptos ]
   | FT.PL FT.R -> [ R ]
@@ -169,7 +177,6 @@ let langs_of_filename filename =
   | FT.PL FT.Elixir -> [ Elixir ]
   | FT.PL FT.Apex -> [ Apex ]
   | FT.PL FT.Dart -> [ Dart  ]
-  | FT.PL FT.Solidity -> [ Solidity ]
   | FT.PL (FT.Lisp Clojure) -> [ Clojure ]
   | _ -> []
 
@@ -193,6 +200,7 @@ let to_capitalized_alnum lang = show lang
    Exclusive file extensions for the language. See mli.
 *)
 let ext_of_lang lang = (info lang).exts
+let excluded_exts_of_lang lang = (info lang).excluded_exts
 let shebangs_of_lang lang = (info lang).shebangs
 
 let unsupported_language_message lang =

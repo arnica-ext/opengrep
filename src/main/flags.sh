@@ -26,7 +26,7 @@
 #     archive (`.a`).
 #
 #   - Other cases should not typically require changes. If you have made
-#     non-standard changes to the Alpine build (e.g., building a
+#     non-standard changes to the Dockerfile or Alpine build (e.g., building a
 #     library from source), Alpine may require tweaks.
 
 set -eu
@@ -35,15 +35,6 @@ OS="$1"
 TREE_SITTER_LANGS="$2"
 
 >&2 echo "Generating linking flags for OS ${OS} (!!!in case of linking errors, adjust src/main/flags.sh!!!)"
-
-# Earlier libpcre2 releases (e.g. 10.34, Debian stable in 2024) cause
-# matching test failures; 10.43 is the oldest version known to pass.
-if command -v pkg-config > /dev/null 2>&1; then
-    if ! pkg-config --atleast-version=10.43 libpcre2-8; then
-        >&2 echo "error: libpcre2 >= 10.43 is required, found $(pkg-config --modversion libpcre2-8 2>/dev/null || echo none)"
-        exit 1
-    fi
-fi
 
 # Force the use of static linking in these scenarios:
 #
@@ -75,14 +66,9 @@ else
             # collector.
             # old: was just '--copt -static --copy -no-pie' before we depended
             # on libcurl
-            #
-            # -Wl,-z,stack-size=8388608: Set default pthread stack size to 8MB.
-            # musl libc defaults to only 128KB which causes stack overflow in
-            # PCRE's recursive pattern matching (used by aliengrep).
-            # See: https://wiki.musl-libc.org/functional-differences-from-glibc.html
             FLAGS=()
             CCLIB=("-lidn2" "-lunistring" "-lpsl" "-lssl" "-lcrypto" "-lz")
-            CCOPT=("-static" "-no-pie" "-Wl,-z,stack-size=8388608")
+            CCOPT=("-static" "-no-pie")
         else
             # On non-Alpine Linux distros (e.g., Ubuntu), we just dynamically
             # link for dev. Note that Alpine is used for our Docker builds.
@@ -161,7 +147,9 @@ else
             "-lmirage_crypto_ec_stubs"
             "-lmirage_crypto_rng_unix_stubs"
             "-lmirage_crypto_stubs"
+            "-lmtime_clock_stubs"
             "-lmurmur3_stubs"
+            "-lpcre_stubs"
             "-lpcre2_stubs"
             "-lptime_clock_stubs"
             "-lstdc++"
@@ -175,6 +163,7 @@ else
             "-lzarith"
             "$(pkg-config gmp --variable libdir)/libgmp.a"
             "$(pkg-config tree-sitter --variable libdir)/libtree-sitter.a"
+            "$(pkg-config libpcre --variable libdir)/libpcre.a"
             "$(pkg-config libpcre2-8 --variable libdir)/libpcre2-8.a"
             "$(brew --prefix zstd)/lib/libzstd.a"
             # "-lpthread"
