@@ -13,7 +13,17 @@ if [[ -z "$VERSION" ]]; then
   exit 1
 fi
 
-EXTRA_ARGS=()
+# Keep the engine/product version numeric while isolating each fork release's
+# extracted files from upstream binaries and other Arnica releases.
+BUILD_VERSION=$(cat "$(dirname "${BASH_SOURCE[0]}")/../ARNICA_VERSION")
+if [[ "$BUILD_VERSION" != "$VERSION"-arnica-patch-* ]]; then
+  echo "ARNICA_VERSION must match the engine version $VERSION" >&2
+  exit 1
+fi
+
+EXTRA_ARGS=(
+  --python-flag=-P
+)
 
 # On linux we only compile to --onefile if forced using FORCE_ONEFILE.
 # In that case, we fix the tempdir to a reasonable cache directory, for
@@ -21,7 +31,7 @@ EXTRA_ARGS=()
 if [[ "$FORCE_ONEFILE" == "true" || "$(uname)" == "Darwin" || "$(uname -s)" =~ ^(CYGWIN|MINGW|MSYS) ]]; then
   EXTRA_ARGS+=(
     --onefile
-    --onefile-tempdir-spec="{CACHE_DIR}/opengrep/$VERSION"
+    --onefile-tempdir-spec="{CACHE_DIR}/opengrep/$BUILD_VERSION"
   )
 fi
 

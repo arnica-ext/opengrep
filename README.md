@@ -29,12 +29,16 @@ Apex · Bash · C · C++ · C# · Clojure · Dart · Dockerfile · Elixir · Go 
 
 ## Installation
 
-You can install Opengrep using our official install script.
+This fork publishes Arnica builds under tags such as
+`v1.15.0-arnica-patch-0.0.1`. `ARNICA_VERSION` records the release tag;
+`opengrep --version` continues to report the underlying engine version, `1.15.0`.
 
 ### Quick Install (Recommended)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/opengrep/opengrep/main/install.sh | bash
+# Available after this tag's release has been published:
+curl -fsSL https://raw.githubusercontent.com/arnica-ext/opengrep/v1.15.0-arnica-patch-0.0.1/install.sh \
+  | sudo bash -s -- -b /usr/local/bin v1.15.0-arnica-patch-0.0.1
 ```
 
 If you've cloned the repo and `install.sh` is in the root directory, you can run:
@@ -43,10 +47,21 @@ If you've cloned the repo and `install.sh` is in the root directory, you can run
 ./install.sh
 ```
 
-which will install the latest version of Opengrep.
+which will install the latest published release from `arnica-ext/opengrep`
+under `~/.opengrep/cli`. The installer verifies the release's SHA-256 checksum.
+Add `--verify-signatures` to require Cosign verification as well.
 
 You can also install manually:
-* Binaries available in the [release page](https://github.com/opengrep/opengrep/releases).
+* Binaries available in the [fork's release page](https://github.com/arnica-ext/opengrep/releases).
+
+### Preparing an Arnica release
+
+After merging, run the `rolling-release` workflow on `main`, supplying the exact
+tag in `ARNICA_VERSION`. The workflow builds and tests the release artifacts,
+signs the binaries, and prepares a draft release with `SHA256SUMS`. Review the
+artifacts before publishing the draft. Release notes are not generated automatically.
+For reproducible application builds, pin the installer to the release commit and
+record the selected binary's SHA-256 checksum.
 
 ## Getting started
 

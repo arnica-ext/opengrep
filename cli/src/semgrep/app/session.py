@@ -13,6 +13,7 @@ from attrs import field
 
 from semgrep import __VERSION__
 from semgrep import tracing
+from semgrep.util import with_program_path
 
 
 @define
@@ -42,21 +43,23 @@ class UserAgent:
         try:
             # nosem: use-git-check-output-helper
             remote_url = subprocess.check_output(
-                ["git", "remote", "get-url", "origin"],
+                with_program_path(["git", "remote", "get-url", "origin"]),
                 cwd=Path(__file__).parent,
                 stderr=subprocess.DEVNULL,
                 encoding="utf-8",
             ).strip()
             # nosem: use-git-check-output-helper
             sha = subprocess.check_output(
-                [
-                    "git",
-                    "describe",
-                    # a --match value never matches will give us SHA instead of most recent tag
-                    "--match=nah_dont_actually_match",
-                    "--always",
-                    "--dirty",
-                ],
+                with_program_path(
+                    [
+                        "git",
+                        "describe",
+                        # a --match value never matches will give us SHA instead of most recent tag
+                        "--match=nah_dont_actually_match",
+                        "--always",
+                        "--dirty",
+                    ]
+                ),
                 cwd=Path(__file__).parent,
                 stderr=subprocess.DEVNULL,
                 encoding="utf-8",

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash 
-# Opengrep installation script
+# Arnica OpenGrep installation script
 
 set -euo pipefail
 
@@ -11,7 +11,7 @@ fi
 
 print_usage() {
     echo "Usage:"
-    echo "  $SCRIPT_NAME [-v <version>] [--verify-signatures]"
+    echo "  $SCRIPT_NAME [-b <directory>] [-v <version> | <version>] [--verify-signatures]"
     echo "      Install the latest or specified version (default: latest)"
     echo
     echo "  $SCRIPT_NAME -l"
@@ -22,6 +22,7 @@ print_usage() {
     echo
     echo "Options:"
     printf "  %-22s %s\n" "-v <version>" "Specify version to install (optional)"
+    printf "  %-22s %s\n" "-b <directory>" "Copy the binary to this directory (e.g. /usr/local/bin)"
     printf "  %-22s %s\n" "--verify-signatures" "Require Cosign verification of signature"
     printf "  %-22s %s\n" "-l" "List latest 3 versions (no install)"
     printf "  %-22s %s\n" "-h" "Display help (no install)"
@@ -41,7 +42,7 @@ check_has_curl() {
 # Function to get available versions - already checked when running main
 get_available_versions() {
     check_has_curl
-    curl -s https://api.github.com/repos/opengrep/opengrep/releases |
+    curl -fsSL https://api.github.com/repos/arnica-ext/opengrep/releases |
         grep '"tag_name":' |
         sed -E 's/.*"([^"]+)".*/\1/'
 }
@@ -51,7 +52,7 @@ validate_version() {
     local VERSION="$1"
     local AVAILABLE_VERSIONS
     AVAILABLE_VERSIONS=$(get_available_versions)
-    if echo "$AVAILABLE_VERSIONS" | grep -q "^$VERSION$"; then
+    if echo "$AVAILABLE_VERSIONS" | grep -Fxq "$VERSION"; then
         return 0
     else
         echo "Error: Version $VERSION not found"
@@ -69,7 +70,7 @@ validate_signature() {
         if cosign verify-blob \
             --cert "$P/opengrep.cert" \
             --signature "${P}/opengrep.sig" \
-            --certificate-identity-regexp "https://github.com/opengrep/opengrep.+" \
+            --certificate-identity-regexp '^https://github\.com/arnica-ext/opengrep/\.github/workflows/rolling-release\.yml@refs/(heads|tags)/.+' \
             --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
             "${P}/opengrep"; then
             echo "Signature valid."
@@ -85,6 +86,26 @@ validate_signature() {
     fi
 }
 
+validate_checksum() {
+    local P="$1"
+    local EXPECTED ACTUAL
+    curl --fail --silent --show-error --location "${RELEASE_URL}/SHA256SUMS" > "${P}/SHA256SUMS"
+    EXPECTED=$(awk -v name="$DIST" '$2 == name {print $1}' "${P}/SHA256SUMS")
+    if command -v sha256sum > /dev/null 2>&1; then
+        ACTUAL=$(sha256sum "${P}/opengrep")
+    elif command -v shasum > /dev/null 2>&1; then
+        ACTUAL=$(shasum -a 256 "${P}/opengrep")
+    else
+        echo "Error: sha256sum or shasum is required." >&2
+        exit 1
+    fi
+    ACTUAL=${ACTUAL%% *}
+    if [[ ! "$EXPECTED" =~ ^[0-9a-f]{64}$ ]] || [[ "$ACTUAL" != "$EXPECTED" ]]; then
+        echo "Error: Checksum verification failed for $DIST." >&2
+        exit 1
+    fi
+}
+
 # carefully cleanup the expected files; we don't want a programming error to run
 # rm -rf on any directory that is not intended...
 cleanup_on_failure() {
@@ -93,6 +114,7 @@ cleanup_on_failure() {
     rm -f "${P}/opengrep" || true
     rm -f "${P}/opengrep.sig" || true
     rm -f "${P}/opengrep.cert" || true
+    rm -f "${P}/SHA256SUMS" || true
     rmdir "${P}" || true
     exit 1
 }
@@ -100,7 +122,7 @@ cleanup_on_failure() {
 main() {
     local VERSION="$1"
     local VERIFY_SIGNATURES="$2"
-    PREFIX="${HOME}/.opengrep/cli"
+    PREFIX="${OPENGREP_INSTALL_ROOT:-${HOME}/.opengrep/cli}"
     INST="${PREFIX}/${VERSION}"
     LATEST="${PREFIX}/latest"
 
@@ -138,17 +160,19 @@ main() {
         exit 1
     fi
 
-    URL="https://github.com/opengrep/opengrep/releases/download/${VERSION}/${DIST}"
+    RELEASE_URL="https://github.com/arnica-ext/opengrep/releases/download/${VERSION}"
+    URL="${RELEASE_URL}/${DIST}"
 
     # check if binary already exists
     if [ -f "${INST}/opengrep" ]; then
         echo "Destination binary ${INST}/opengrep already exists."
+        validate_checksum "$INST"
+        if $VERIFY_SIGNATURES; then
+            validate_signature "$INST"
+        fi
         rm -f "${LATEST}" || exit 1
         ln -s "${INST}" "${LATEST}" || exit 1
         echo "Updated symlink from ${LATEST}/opengrep to point to ${INST}/opengrep."
-        if $VERIFY_SIGNATURES; then
-            echo "Signature verification skipped for existing installation."
-        fi
     else
         echo
         echo "*** Installing Opengrep ${VERSION} for ${OS} (${ARCH}) ***"
@@ -163,6 +187,7 @@ main() {
         fi
 
         curl --fail --location --progress-bar "${URL}" > "${INST}/opengrep"
+        validate_checksum "$INST"
 
         local SIG_EXISTS=true
 
@@ -230,6 +255,13 @@ main() {
         echo "with a symlink from ${LATEST}/opengrep"
     fi
 
+    if [[ -n "$BINDIR" ]]; then
+        mkdir -p "$BINDIR"
+        install -m 755 "${INST}/opengrep" "${BINDIR}/opengrep"
+        echo "Installed ${BINDIR}/opengrep ($VERSION)."
+        return
+    fi
+
     LOCALBIN="${HOME}/.local/bin"
 
     # Only need to create the symlink from .local/bin once if not created before.
@@ -278,6 +310,7 @@ HELP=false
 LIST=false
 VERIFY_SIGNATURES=false
 VERSION=""
+BINDIR=""
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -294,6 +327,10 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         -v)
+            if [[ -n "$VERSION" ]]; then
+                echo "Error: Specify only one version." >&2
+                exit 1
+            fi
             if [[ -z "${2-}" ]] || ! [[ -n "$2" && "$2" != -* ]]; then
                 echo "Error: -v requires a version argument."
                 exit 1
@@ -301,6 +338,22 @@ while [[ $# -gt 0 ]]; do
                 VERSION="$2"
                 shift 2
             fi
+            ;;
+        -b)
+            if [[ -z "${2-}" || "$2" == -* ]]; then
+                echo "Error: -b requires an installation directory." >&2
+                exit 1
+            fi
+            BINDIR="$2"
+            shift 2
+            ;;
+        v[0-9]*)
+            if [[ -n "$VERSION" ]]; then
+                echo "Error: Specify only one version." >&2
+                exit 1
+            fi
+            VERSION="$1"
+            shift
             ;;
         *)
             echo "Error: Unknown option: $1."
@@ -310,7 +363,7 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-if { { $VERIFY_SIGNATURES || [[ -n "$VERSION" ]] || $LIST; } && $HELP; } || { { $VERIFY_SIGNATURES || [[ -n "$VERSION" ]] || $HELP; } && $LIST; }; then
+if { { $VERIFY_SIGNATURES || [[ -n "$VERSION" || -n "$BINDIR" ]] || $LIST; } && $HELP; } || { { $VERIFY_SIGNATURES || [[ -n "$VERSION" || -n "$BINDIR" ]] || $HELP; } && $LIST; }; then
     echo "Error: incorrect arguments:"
     print_usage
     exit 1

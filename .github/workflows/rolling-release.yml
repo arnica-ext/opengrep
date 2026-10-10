@@ -8,20 +8,22 @@ on:
         type: string
 
 permissions:
-  contents: write
-  id-token: write  # for Cosign keyless
+  contents: read
 
 jobs:
   validate-inputs:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # ratchet:actions/checkout@v4
+        with:
+          persist-credentials: false
       - name: Validate tag input
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
         run: |
-          echo "${{ inputs.tag }}" | grep -P '^(v\d+\.\d+\.\d+(-\S+)?|[^v\d].*)$' || {
-            echo "Tag must follow semantic versioning (e.g. v1.2.3 or v1.2.3-beta)."
-            echo "Provided tag: '${{ inputs.tag }}'"
-            exit 1
-          }
+          test "$GITHUB_REPOSITORY" = arnica-ext/opengrep
+          test "$RELEASE_TAG" = "$(cat ARNICA_VERSION)"
+          echo "$RELEASE_TAG" | grep -Ex 'v[0-9]+\.[0-9]+\.[0-9]+-arnica-patch-[0-9]+\.[0-9]+\.[0-9]+'
 
   build-linux-x86:
     needs: validate-inputs
@@ -81,6 +83,9 @@ jobs:
 
   release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write  # for Cosign keyless
 
     needs:
       - build-linux-x86 # redundant
@@ -169,7 +174,9 @@ jobs:
             artifacts/opengrep_osx_binary_arm64/opengrep_osx_arm64
             artifacts/opengrep_osx_binary_x86/opengrep_osx_x86
             artifacts/opengrep_windows_binary_x86/opengrep_windows_x86.exe)
+            : > artifacts/SHA256SUMS
             for bin in "${files_to_sign[@]}"; do
+            (cd "$(dirname "$bin")" && sha256sum "$(basename "$bin")") >> artifacts/SHA256SUMS
             echo "Signing $bin..."
             cosign sign-blob \
               --yes \
@@ -182,11 +189,14 @@ jobs:
         uses: softprops/action-gh-release@c95fe1489396fe8a9eb87c0abf8aa5b2ef267fda # v2
         with:
           tag_name: ${{ inputs.tag }}
-          name: Release from `${{ github.ref_name }}`
+          target_commitish: ${{ github.sha }}
+          name: ${{ inputs.tag }}
           draft: true
-          prerelease: true
-          generate_release_notes: true
+          prerelease: false
+          generate_release_notes: false
+          body: ''
           files: |
+            artifacts/SHA256SUMS
             artifacts/opengrep-core_linux_x86.tar.gz
             artifacts/opengrep-core_linux_aarch64.tar.gz
             artifacts/opengrep-core_osx_x86.tar.gz
