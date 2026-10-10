@@ -1841,7 +1841,9 @@ and primary_expression (env : env) (x : CST.primary_expression) : expr =
                         let lhs_g_expr = G.e (G.N param_g_name) in
                         let injected_receiver =
                           if in_pattern env then G.Ellipsis (G.fake "...") |> G.e
-                          else copy_for_injection receiver_g_expr
+                          else
+                            let copy = copy_for_injection receiver_g_expr in
+                            { copy with e_original = Some (G.E receiver_g_expr) }
                         in
                         let assign_g_expr = G.e (G.Assign (lhs_g_expr, (G.fake "="), injected_receiver)) in
                         let new_assign_g_stmt = G.s (G.ExprStmt (assign_g_expr, (G.fake ";"))) in

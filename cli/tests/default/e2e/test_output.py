@@ -12,6 +12,7 @@ from tests.conftest import mask_variable_text
 from tests.conftest import RULES_PATH
 from tests.conftest import TARGETS_PATH
 from tests.fixtures import RunSemgrep
+from tests.semgrep_runner import USE_OSEMGREP
 
 from semgrep.constants import OutputFormat
 
@@ -532,3 +533,535 @@ def test_file_count_multifile(run_semgrep_in_tmp: RunSemgrep, snapshot, target_d
         options=[],
     )
     snapshot.assert_match(stderr, "result.out")
+
+
+@pytest.mark.parametrize("extension", ["js", "ts"])
+@pytest.mark.kinda_slow
+def test_destructured_parameter_defaults(run_semgrep_in_tmp: RunSemgrep, extension):
+    stdout, _ = run_semgrep_in_tmp(
+        "rules/destructured_parameter_defaults.yaml",
+        target_name=f"destructured_parameter_defaults.{extension}",
+        output_format=OutputFormat.JSON,
+        options=["--no-rewrite-rule-ids"],
+        clean_fingerprint=False,
+    )
+    output = json.loads(stdout)
+    assert output["errors"] == []
+    actual = [
+        {
+            "function": result["extra"]["metavars"]["$F"]["abstract_content"],
+            "capture": result["extra"]["metavars"]["$PARAM"]["abstract_content"],
+            "fingerprint": result["extra"]["fingerprint"],
+        }
+        for result in output["results"]
+    ]
+    # Captured from released 1.15.0; list equality also checks occurrence counts.
+    expected_name = (
+        "destructured_parameter_defaults.native.json"
+        if USE_OSEMGREP
+        else "destructured_parameter_defaults.json"
+    )
+    expected = json.loads((TARGETS_PATH / expected_name).read_text())[extension]
+    assert actual == expected
+
+
+@pytest.mark.kinda_slow
+def test_legacy_fingerprints(run_semgrep_in_tmp: RunSemgrep):
+    stdout, _ = run_semgrep_in_tmp(
+        "rules/legacy_fingerprints.yaml",
+        target_name="legacy_fingerprints",
+        strict=False,
+        output_format=OutputFormat.JSON,
+        options=["--no-rewrite-rule-ids"],
+        clean_fingerprint=False,
+    )
+    output = json.loads(stdout)
+    assert [(error["path"], error["type"][0]) for error in output["errors"]] == [
+        ("targets/legacy_fingerprints/capture.dockerfile", "PartialParsing")
+    ]
+    actual = [
+        {
+            "rule": result["check_id"],
+            "path": result["path"],
+            "line": result["start"]["line"],
+            "fingerprint": result["extra"]["fingerprint"],
+            "captures": {
+                name: value["abstract_content"]
+                for name, value in result["extra"]["metavars"].items()
+            },
+        }
+        for result in output["results"]
+    ]
+    # Released 1.15.0 output, including duplicate suffixes and symbolic modes.
+    expected_name = "expected.native.json" if USE_OSEMGREP else "expected.json"
+    expected = json.loads(
+        (TARGETS_PATH / "legacy_fingerprints" / expected_name).read_text()
+    )
+    assert actual == expected
+
+
+@pytest.mark.parametrize(
+    "fixture",
+    [
+        "legacy_parser_fingerprints",
+        "legacy_ruby_calls",
+        "legacy_default_findings",
+        "legacy_capture_languages",
+        "legacy_symbolic_eligibility",
+        "legacy_review_regressions",
+        "legacy_elixir_captures",
+        "legacy_elixir_taint",
+        "legacy_elixir_nested",
+        "legacy_elixir_review_regressions",
+    ],
+)
+@pytest.mark.slow
+def test_legacy_syntax_fingerprints(run_semgrep_in_tmp: RunSemgrep, fixture):
+    stdout, _ = run_semgrep_in_tmp(
+        f"rules/{fixture}.yaml",
+        target_name=fixture,
+        strict=False,
+        output_format=OutputFormat.JSON,
+        options=["--no-rewrite-rule-ids"],
+        clean_fingerprint=False,
+    )
+    output = json.loads(stdout)
+    actual = [
+        {
+            "rule": result["check_id"],
+            "path": result["path"],
+            "start": result["start"],
+            "end": result["end"],
+            "fingerprint": result["extra"]["fingerprint"],
+            "captures": {
+                name: value["abstract_content"]
+                for name, value in result["extra"]["metavars"].items()
+            },
+        }
+        for result in output["results"]
+    ]
+    expected_name = "expected.native.json" if USE_OSEMGREP else "expected.json"
+    expected = json.loads((TARGETS_PATH / fixture / expected_name).read_text())
+    if fixture == "legacy_review_regressions" or fixture.startswith("legacy_elixir_"):
+        for row, result in zip(actual, output["results"]):
+            row["message"] = result["extra"]["message"]
+    if fixture == "legacy_parser_fingerprints":
+        assert sorted(error["path"] for error in output["errors"]) == (
+            expected["parse_error_paths"]
+        )
+        assert all(error["type"][0] == "PartialParsing" for error in output["errors"])
+        expected = expected["results"]
+    else:
+        assert output["errors"] == []
+    assert actual == expected
+
+
+@pytest.mark.parametrize("reverse_rules", [False, True])
+@pytest.mark.kinda_slow
+def test_elixir_compatibility_preserves_security(
+    run_semgrep_in_tmp: RunSemgrep, tmp_path, reverse_rules
+):
+    config = json.loads((RULES_PATH / "legacy_elixir_security.yaml").read_text())
+    if reverse_rules:
+        config["rules"].reverse()
+    rule_file = tmp_path / "elixir-security.json"
+    rule_file.write_text(json.dumps(config))
+    stdout, _ = run_semgrep_in_tmp(
+        rule_file,
+        target_name="legacy_elixir_security/filters.ex",
+        output_format=OutputFormat.JSON,
+        options=["--no-rewrite-rule-ids"],
+    )
+    output = json.loads(stdout)
+    assert output["errors"] == []
+    assert sorted(result["check_id"] for result in output["results"]) == [
+        "legacy-sanitizer",
+        "legacy-text",
+        "modern-text",
+        "original-label-filter",
+        "taint-control",
+        "taint-legacy-sink",
+        "taint-modern-sink",
+    ]
+
+
+@pytest.mark.parametrize("cli_mode", ["legacy", "experimental"])
+@pytest.mark.kinda_slow
+def test_elixir_nested_shared_syntax(run_semgrep_in_tmp: RunSemgrep, cli_mode):
+    options = [
+        f"--{cli_mode}",
+        "--no-rewrite-rule-ids",
+        "--max-memory",
+        "512",
+        "--timeout",
+        "10",
+        "--jobs",
+        "1",
+    ]
+    if cli_mode == "experimental":
+        options.extend(["--project-root", "."])
+    stdout, _ = run_semgrep_in_tmp(
+        "rules/legacy_elixir_shared.yaml",
+        target_name="legacy_elixir_shared",
+        output_format=OutputFormat.JSON,
+        options=options,
+        clean_fingerprint=False,
+    )
+    output = json.loads(stdout)
+    assert output["errors"] == []
+    actual = [
+        {
+            "rule": result["check_id"],
+            "path": result["path"],
+            "start": result["start"],
+            "end": result["end"],
+            "message": result["extra"]["message"],
+            "metavars": result["extra"]["metavars"],
+        }
+        for result in output["results"]
+    ]
+    # Released 1.15 captures and locations; CLI fingerprint formats differ.
+    expected = json.loads(
+        (TARGETS_PATH / "legacy_elixir_shared/expected.json").read_text()
+    )
+    assert actual == expected["findings"]
+    assert [result["extra"]["fingerprint"] for result in output["results"]] == (
+        expected["fingerprints"][cli_mode]
+    )
+
+
+@pytest.mark.parametrize("cli_mode", ["legacy", "experimental"])
+@pytest.mark.parametrize("error_on_findings", [False, True])
+@pytest.mark.parametrize("subcommand", [None, "scan"])
+@pytest.mark.kinda_slow
+def test_nested_legacy_errors_preserve_findings(
+    run_semgrep_in_tmp: RunSemgrep, cli_mode, error_on_findings, subcommand
+):
+    options = [f"--{cli_mode}", "--no-rewrite-rule-ids"]
+    if cli_mode == "experimental":
+        options.extend(["--project-root", "."])
+    if error_on_findings:
+        options.append("--error")
+    stdout, _ = run_semgrep_in_tmp(
+        "rules/nested_legacy_errors.yaml",
+        subcommand=subcommand,
+        target_name="nested_legacy_errors",
+        strict=False,
+        assert_exit_code=1 if error_on_findings else 0,
+        options=options,
+        clean_fingerprint=False,
+    )
+    output = json.loads(stdout)
+    expected = json.loads(
+        (TARGETS_PATH / "nested_legacy_errors/expected.json").read_text()
+    )
+    assert output["results"] == expected[cli_mode]
+    errors = output["errors"]
+    assert len(errors) == 4
+    assert all(error["level"] == "warn" for error in errors)
+    assert all(
+        error["path"]
+        in [
+            "targets/nested_legacy_errors/bad.yaml",
+            "targets/nested_legacy_errors/direct.ex",
+        ]
+        for error in errors
+    )
+    partial_errors = [error for error in errors if isinstance(error["type"], list)]
+    assert len(partial_errors) == 3
+    assert (
+        next(
+            error["type"][1][0]
+            for error in partial_errors
+            if error["path"].endswith("direct.ex")
+        )
+        == expected["direct_error_span"]
+    )
+    for error in partial_errors:
+        kind, spans = error["type"]
+        assert kind == "PartialParsing"
+        assert len(spans) == 1
+        assert spans[0]["path"] == error["path"]
+        assert spans[0]["start"]["offset"] < spans[0]["end"]["offset"]
+        assert error["spans"] == [
+            {"file": span["path"], "start": span["start"], "end": span["end"]}
+            for span in spans
+        ]
+    assert any(error["type"] == "Internal matching error" for error in errors)
+
+
+@pytest.mark.parametrize("cli_mode", ["legacy", "experimental"])
+@pytest.mark.kinda_slow
+def test_nested_legacy_only_error_is_fatal(run_semgrep_in_tmp: RunSemgrep, cli_mode):
+    options = [f"--{cli_mode}", "--no-rewrite-rule-ids"]
+    if cli_mode == "experimental":
+        options.extend(["--project-root", "."])
+    stdout, _ = run_semgrep_in_tmp(
+        "rules/nested_legacy_only_error.yaml",
+        target_name="nested_legacy_only_error.yaml",
+        strict=False,
+        assert_exit_code=2,
+        options=options,
+    )
+    output = json.loads(stdout)
+    assert output["results"] == []
+    assert len(output["errors"]) == 1
+    assert output["errors"][0]["type"] == "Fatal error"
+    assert "Legacy fingerprint matching failed" in output["errors"][0]["message"]
+
+
+@pytest.mark.kinda_slow
+def test_elixir_modern_propagators(run_semgrep_in_tmp: RunSemgrep):
+    stdout, _ = run_semgrep_in_tmp(
+        "rules/legacy_elixir_propagators.yaml",
+        target_name="legacy_elixir_security/propagators.ex",
+        output_format=OutputFormat.JSON,
+        options=["--no-rewrite-rule-ids"],
+    )
+    output = json.loads(stdout)
+    assert output["errors"] == []
+    assert [
+        (result["check_id"], result["extra"]["metavars"]["$X"]["abstract_content"])
+        for result in output["results"]
+    ] == [("modern-propagator", "User{}"), ("modern-propagator", "b")]
+
+
+@pytest.mark.kinda_slow
+def test_elixir_modern_struct_taint(run_semgrep_in_tmp: RunSemgrep):
+    stdout, _ = run_semgrep_in_tmp(
+        "rules/legacy_elixir_struct_params.yaml",
+        target_name="legacy_elixir_security/struct_params.ex",
+        output_format=OutputFormat.JSON,
+    )
+    output = json.loads(stdout)
+    assert output["errors"] == []
+    assert [result["start"]["line"] for result in output["results"]] == [
+        6,
+        12,
+        18,
+        23,
+        29,
+        34,
+        40,
+    ]
+
+
+@pytest.mark.kinda_slow
+def test_elixir_pipeline_analysis(run_semgrep_in_tmp: RunSemgrep):
+    stdout, _ = run_semgrep_in_tmp(
+        "rules/legacy_elixir_pipeline_security.yaml",
+        target_name="legacy_elixir_review_regressions/pipelines.ex",
+        output_format=OutputFormat.JSON,
+        options=["--no-rewrite-rule-ids"],
+    )
+    output = json.loads(stdout)
+    assert output["errors"] == []
+    assert [(r["check_id"], r["start"]["line"]) for r in output["results"]] == [
+        ("direct-call", 8),
+        ("direct-call", 14),
+        ("pipeline-taint", 17),
+    ]
+
+
+@pytest.mark.parametrize("legacy_cli", [False, True])
+@pytest.mark.parametrize("warning_name", [None, "a-warning.ex", "z-warning.ex"])
+@pytest.mark.parametrize("error_on_findings", [False, True])
+@pytest.mark.parametrize("with_finding", [False, True])
+@pytest.mark.slow
+def test_legacy_propagation_failure_is_fatal(
+    run_semgrep_in_tmp: RunSemgrep,
+    tmp_path,
+    legacy_cli,
+    warning_name,
+    error_on_findings,
+    with_finding,
+):
+    targets = tmp_path / "compatibility-targets"
+    targets.mkdir()
+    (targets / "limit.ex").write_text(
+        "defmodule Large do\ndef f() do\n"
+        + "n()\n" * 100010
+        + 'sink("unsafe")\nend\nend\n'
+    )
+    if with_finding:
+        (targets / "control.ex").write_text('sink("unsafe")\n')
+    if warning_name:
+        (targets / warning_name).write_text(")\n# sink\n")
+    rules = tmp_path / "compatibility-rules.json"
+    rules.write_text(
+        json.dumps(
+            {
+                "rules": [
+                    {
+                        "id": "sink",
+                        "languages": ["elixir"],
+                        "pattern": "sink(...)",
+                        "message": "Sink",
+                        "severity": "WARNING",
+                    }
+                ]
+            }
+        )
+    )
+    options = [
+        "--jobs",
+        "1",
+        "--timeout",
+        "0",
+        "--legacy" if legacy_cli else "--experimental",
+    ]
+    if error_on_findings:
+        options.append("--error")
+    stdout, _ = run_semgrep_in_tmp(
+        rules,
+        target_name=targets.name,
+        assume_targets_dir=False,
+        strict=False,
+        assert_exit_code=2,
+        output_format=OutputFormat.JSON,
+        options=options,
+    )
+    output = json.loads(stdout)
+    assert [Path(r["path"]).name for r in output["results"]] == (
+        ["control.ex"] if with_finding else []
+    )
+    fatal = [error for error in output["errors"] if error["level"] == "error"]
+    assert len(fatal) == 1
+    assert fatal[0]["type"] == "Fatal error"
+    assert Path(fatal[0]["path"]).name == "limit.ex"
+    if warning_name:
+        assert any(
+            error["level"] == "warn" and Path(error["path"]).name == warning_name
+            for error in output["errors"]
+        )
+
+
+@pytest.mark.kinda_slow
+def test_legacy_kotlin_large_capture_fingerprint(run_semgrep_in_tmp: RunSemgrep):
+    stdout, _ = run_semgrep_in_tmp(
+        "rules/legacy_fingerprints.yaml",
+        target_name="legacy_kotlin_large_capture.kt",
+        output_format=OutputFormat.JSON,
+        options=["--no-rewrite-rule-ids"],
+        clean_fingerprint=False,
+    )
+    output = json.loads(stdout)
+    assert output["errors"] == []
+    assert len(output["results"]) == 1
+    result = output["results"][0]
+    assert result["extra"]["fingerprint"] == (
+        "b764b0fb63237071f9176ab3c878dc247f8e42c4e886c666303a3798ec99ebbbb011"
+        "cff287f25b28314b1a17153b298dfadf350df8a6e38b2319cba6834b7fd6_0"
+    )
+    assert len(result["extra"]["metavars"]["$X"]["abstract_content"]) == 343988
+
+
+@pytest.mark.slow
+def test_legacy_kotlin_reporting_is_bounded(run_semgrep_in_tmp: RunSemgrep):
+    stdout, stderr = run_semgrep_in_tmp(
+        "rules/legacy_fingerprints.yaml",
+        target_name="legacy_kotlin_chain.kt",
+        output_format=OutputFormat.JSON,
+        options=["--no-rewrite-rule-ids"],
+        strict=False,
+        assert_exit_code=2,
+    )
+    message = "Legacy fingerprint capture exceeds 20,000,000 token visits"
+    if USE_OSEMGREP:
+        assert stdout == ""
+        assert message in stderr
+    else:
+        output = json.loads(stdout)
+        assert output["results"] == []
+        assert len(output["errors"]) == 1
+        assert message in output["errors"][0]["message"]
+
+
+@pytest.mark.slow
+def test_rule_stack_overflow_preserves_other_findings(run_semgrep_in_tmp: RunSemgrep):
+    stdout, _ = run_semgrep_in_tmp(
+        "rules/stack_overflow.yaml",
+        target_name="stack_overflow.c",
+        output_format=OutputFormat.JSON,
+        options=["--no-rewrite-rule-ids", "--timeout", "30"],
+        strict=False,
+    )
+    output = json.loads(stdout)
+    assert [(r["check_id"], r["start"]["line"]) for r in output["results"]] == [
+        ("string-copy", 9)
+    ]
+    assert sorted((e["type"], e["rule_id"]) for e in output["errors"]) == [
+        ("Stack overflow", "recursive-capture"),
+        ("Stack overflow", "recursive-taint-capture"),
+    ]
+
+
+@pytest.mark.kinda_slow
+def test_csharp_indexer_alias_matching(run_semgrep_in_tmp: RunSemgrep):
+    stdout, _ = run_semgrep_in_tmp(
+        "rules/csharp_modern_indexer.yaml",
+        target_name="legacy_review_regressions/aliases.cs",
+        output_format=OutputFormat.JSON,
+    )
+    output = json.loads(stdout)
+    assert output["errors"] == []
+    assert [result["start"]["line"] for result in output["results"]] == [4, 5, 6]
+
+
+@pytest.mark.kinda_slow
+def test_nested_legacy_capture_locations(run_semgrep_in_tmp: RunSemgrep):
+    stdout, _ = run_semgrep_in_tmp(
+        "rules/nested_legacy_provenance.yaml",
+        target_name="nested_legacy_provenance.py",
+        output_format=OutputFormat.JSON,
+        options=["--no-rewrite-rule-ids"],
+    )
+    output = json.loads(stdout)
+    assert output["errors"] == []
+    assert sorted(
+        (result["check_id"], result["extra"]["message"]) for result in output["results"]
+    ) == sorted(
+        (rule, f"Capture sink(a) {capture}")
+        for rule in ["double", "single"]
+        for capture in ["$INNER", "a", "wrap(source())"]
+    )
+    source = (TARGETS_PATH / "nested_legacy_provenance.py").read_bytes()
+    for result in output["results"]:
+        for capture in result["extra"]["metavars"].values():
+            start = capture["start"]["offset"]
+            end = capture["end"]["offset"]
+            assert source[start:end].decode() == capture["abstract_content"]
+
+
+@pytest.mark.kinda_slow
+def test_symbolic_propagation_keeps_modern_matches(run_semgrep_in_tmp: RunSemgrep):
+    stdout, _ = run_semgrep_in_tmp(
+        "rules/symbolic_modern_matches.yaml",
+        target_name="symbolic_modern_matches.py",
+        output_format=OutputFormat.JSON,
+        options=["--no-rewrite-rule-ids"],
+    )
+    output = json.loads(stdout)
+    assert output["errors"] == []
+    actual = [
+        (
+            result["check_id"],
+            result["start"]["line"],
+            {
+                name: value["abstract_content"]
+                for name, value in result["extra"]["metavars"].items()
+            },
+        )
+        for result in output["results"]
+    ]
+    expected = [
+        ("nested", 2, {"$X": "x"}),
+        ("nested", 2, {"$X": "x", "$Y": "[a]"}),
+        ("regex", 2, {"$X": "x"}),
+        ("nested", 8, {"$X": "make(a)"}),
+        ("nested", 8, {"$X": "make(a)", "$Y": "a"}),
+        ("regex", 8, {"$X": "make(a)"}),
+    ]
+    assert collections.Counter(json.dumps(row, sort_keys=True) for row in actual) == (
+        collections.Counter(json.dumps(row, sort_keys=True) for row in expected)
+    )

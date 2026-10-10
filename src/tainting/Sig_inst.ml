@@ -1029,6 +1029,7 @@ let rec substitute_in_sig (inst_var : inst_var) (inst_trace : inst_trace)
         { taints_with_precondition = items, precondition;
           sink;
           merged_env;
+          merged_metavar_langs;
           guards } ->
         let items =
           items
@@ -1052,6 +1053,7 @@ let rec substitute_in_sig (inst_var : inst_var) (inst_trace : inst_trace)
                taints_with_precondition = (items, precondition);
                sink;
                merged_env;
+               merged_metavar_langs;
                guards = walk_guard guards;
              })
     | Effect.ToSinkInCall
@@ -1700,7 +1702,8 @@ let rec instantiate_function_signature ~(lang : Lang.t)
           ]
         else []
     | Effect.ToSink
-        { taints_with_precondition = taints, requires; sink; merged_env; _ } ->
+        { taints_with_precondition = taints, requires; sink; merged_env;
+          merged_metavar_langs; _ } ->
         Log.debug (fun m ->
             m "INST_SINK: entering %d input taints"
               (List.length taints));
@@ -1795,6 +1798,7 @@ let rec instantiate_function_signature ~(lang : Lang.t)
                 taints_with_precondition = (taints, requires);
                 sink;
                 merged_env;
+                merged_metavar_langs;
                 guards = out_guards;
               };
           ]

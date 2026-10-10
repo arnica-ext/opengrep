@@ -1,9 +1,12 @@
 (* See Core_match.ml for more info *)
 
-type range_loc = Tok.location * Tok.location
-[@@deriving show, eq, ord]
+type range_loc = Tok.location * Tok.location [@@deriving show, eq, ord]
+type metavar_langs = (Metavariable.mvar * Lang.t option) list [@@deriving show]
 
 type t = {
+  (* Actual parser language, including rules applied to extensionless targets. *)
+  target_lang : Lang.t option; [@equal fun _a _b -> true]
+  metavar_langs : metavar_langs; [@equal fun _a _b -> true]
   (* rule (or mini rule) responsible for the pattern match found *)
   rule_id : rule_id;
   engine_of_match : Engine_kind.engine_of_finding;
@@ -71,3 +74,8 @@ val to_proprietary : t -> t
 (* Remove matches that are strictly inside another match *)
 val no_submatches : t list -> t list
 val range : t -> Range.t
+val metavar_lang : t -> Metavariable.mvar -> Lang.t option
+
+(* Merges retain the selected mvalue; its language must follow the same value. *)
+val metavar_langs_for_bindings :
+  Metavariable.bindings -> t list -> metavar_langs

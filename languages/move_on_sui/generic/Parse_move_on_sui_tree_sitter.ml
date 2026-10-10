@@ -1207,7 +1207,7 @@ let rec transpile_let_bind (env : env) (left : G.pattern) (right : G.expr) :
       let typed_right = G.Cast (inner_type, sc, right) |> G.e in
       transpile_let_bind env inner typed_right
   | G.PatWildcard _ -> []
-  | G.PatRecord (_, fields, _) ->
+  | G.PatRecord { pr_fields = _, fields, _; _ } ->
       let fields =
         fields
         |> List_.map (fun (field, pat) ->
@@ -1407,7 +1407,7 @@ let rec map_bind (env : env) (x : CST.bind) : G.pattern =
             let lbrace, fields, rbrace = map_bind_fields env x in
             G.PatDisj
               ( G.PatType (type_arg_kind |> G.t),
-                G.PatRecord (lbrace, fields, rbrace) )
+                G.record_pattern (lbrace, fields, rbrace) )
         | None -> G.PatType (type_arg_kind |> G.t)
       in
       full_pattern

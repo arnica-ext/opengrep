@@ -1,0 +1,23 @@
+{
+  "rules": [
+    {
+      "id": "nested-pipeline",
+      "languages": [
+        "elixir"
+      ],
+      "message": "Capture $INNER",
+      "severity": "WARNING",
+      "patterns": [
+        {
+          "pattern": "sink($X)"
+        },
+        {
+          "metavariable-pattern": {
+            "metavariable": "$X",
+            "pattern": "wrap($INNER)"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,161 @@
+[
+  {
+    "rule": "nested-comparison",
+    "path": "targets/legacy_elixir_nested/nested.yaml",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 4,
+      "col": 17,
+      "offset": 48
+    },
+    "fingerprint": "a4ae00712d6a07d486b6b8ca1c1f211cd599bb4fcb62278eaa0b90c63794e82634fb3ca35cd5ffb487bfec59fe948fbfb519cebba6f05679011a7a8f402816d4_1",
+    "captures": {
+      "$CODE": "\n  a = %User{}\n  sink(a)\n  sink(%User{})\n",
+      "$X": "User{}"
+    },
+    "message": "Capture  sink( $NAME"
+  },
+  {
+    "rule": "nested-comparison",
+    "path": "targets/legacy_elixir_nested/nested.yaml",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 4,
+      "col": 17,
+      "offset": 48
+    },
+    "fingerprint": "953e8eeedcc63d01eacb8e3bd0099cdd9081c78b4695f61b7069c854e72562442426734e7963f041196cc13285b37bb1fb9faad9a78f93a67954a462d095067c_0",
+    "captures": {
+      "$CODE": "\n  a = %User{}\n  sink(a)\n  sink(%User{})\n"
+    },
+    "message": "Capture $X $NAME"
+  },
+  {
+    "rule": "nested-comparison",
+    "path": "targets/legacy_elixir_nested/nested.yaml",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 4,
+      "col": 17,
+      "offset": 48
+    },
+    "fingerprint": "a4ae00712d6a07d486b6b8ca1c1f211cd599bb4fcb62278eaa0b90c63794e82634fb3ca35cd5ffb487bfec59fe948fbfb519cebba6f05679011a7a8f402816d4_0",
+    "captures": {
+      "$CODE": "\n  a = %User{}\n  sink(a)\n  sink(%User{})\n",
+      "$X": "User{}"
+    },
+    "message": "Capture = %Use $NAME"
+  },
+  {
+    "rule": "nested-regex",
+    "path": "targets/legacy_elixir_nested/nested.yaml",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 4,
+      "col": 17,
+      "offset": 48
+    },
+    "fingerprint": "07df2063858ea28a3893bce32597ee518e881554673c08c8f72d283225bde7d13b6de9495062a98b4e6ddc557edeb2abdf88496c8e796752649ade6340dce8bf_1",
+    "captures": {
+      "$CODE": "\n  a = %User{}\n  sink(a)\n  sink(%User{})\n",
+      "$X": "User{}"
+    },
+    "message": "Capture  sink( $NAME"
+  },
+  {
+    "rule": "nested-regex",
+    "path": "targets/legacy_elixir_nested/nested.yaml",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 4,
+      "col": 17,
+      "offset": 48
+    },
+    "fingerprint": "5d9584d5d032e5fbeb6966308247a01b214f448e1d74c52b250b2a3cdb5385788a8a5b73bf72e4a22ed6bb1d70d803e29255211b2c5613b656822de07ed66573_0",
+    "captures": {
+      "$CODE": "\n  a = %User{}\n  sink(a)\n  sink(%User{})\n"
+    },
+    "message": "Capture $X $NAME"
+  },
+  {
+    "rule": "nested-regex",
+    "path": "targets/legacy_elixir_nested/nested.yaml",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 4,
+      "col": 17,
+      "offset": 48
+    },
+    "fingerprint": "07df2063858ea28a3893bce32597ee518e881554673c08c8f72d283225bde7d13b6de9495062a98b4e6ddc557edeb2abdf88496c8e796752649ade6340dce8bf_0",
+    "captures": {
+      "$CODE": "\n  a = %User{}\n  sink(a)\n  sink(%User{})\n",
+      "$X": "User{}"
+    },
+    "message": "Capture = %Use $NAME"
+  },
+  {
+    "rule": "nested-regex-capture",
+    "path": "targets/legacy_elixir_nested/nested.yaml",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 4,
+      "col": 17,
+      "offset": 48
+    },
+    "fingerprint": "e0ea4c9d7a61ba4eae5ffc62b235179290a9a01137e7a43a3b948aec1c5db0205504bf51dc9a2126db2e17d75643882bfb0ddab562a11dded3356e5bdcd9ac38_0",
+    "captures": {
+      "$1": "User",
+      "$CODE": "\n  a = %User{}\n  sink(a)\n  sink(%User{})\n",
+      "$NAME": "User",
+      "$X": "User{}"
+    },
+    "message": "Capture  sink(  sin"
+  },
+  {
+    "rule": "nested-regex-capture",
+    "path": "targets/legacy_elixir_nested/nested.yaml",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 4,
+      "col": 17,
+      "offset": 48
+    },
+    "fingerprint": "a7e2b05334f804e137c6762e4957d4567b640ac3919ee987744d579454e878df792530fff6b17e1e247c217893219403f29e50791e7127059b917e1d29594d75_0",
+    "captures": {
+      "$CODE": "\n  a = %User{}\n  sink(a)\n  sink(%User{})\n"
+    },
+    "message": "Capture $X $NAME"
+  }
+]

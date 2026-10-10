@@ -1,0 +1,279 @@
+rules:
+  - id: ruby-ast
+    message: Capture $X $OUTER $INNER
+    severity: WARNING
+    languages:
+      - ruby
+    paths:
+      include:
+        - array.rb
+    pattern: sink($X)
+  - id: ruby-regex-false
+    message: Capture $X $OUTER $INNER
+    severity: WARNING
+    languages:
+      - ruby
+    paths:
+      include:
+        - array.rb
+    patterns:
+      - pattern-inside: sink($X)
+      - pattern-regex: sink
+  - id: ruby-regex-true
+    message: Capture $X $OUTER $INNER
+    severity: WARNING
+    languages:
+      - ruby
+    paths:
+      include:
+        - array.rb
+    patterns:
+      - pattern-regex: sink
+      - pattern-inside: sink($X)
+  - id: ruby-equal-ranges
+    message: Capture $X $OUTER $INNER
+    severity: WARNING
+    languages:
+      - ruby
+    paths:
+      include:
+        - array.rb
+    patterns:
+      - pattern: sink($X)
+      - pattern-regex: .*
+  - id: csharp-ast
+    message: Capture $X $OUTER $INNER
+    severity: WARNING
+    languages:
+      - csharp
+    paths:
+      include:
+        - array.cs
+    pattern: eval($X)
+  - id: csharp-regex-false
+    message: Capture $X $OUTER $INNER
+    severity: WARNING
+    languages:
+      - csharp
+    paths:
+      include:
+        - array.cs
+    patterns:
+      - pattern-inside: eval($X)
+      - pattern-regex: eval
+  - id: csharp-regex-true
+    message: Capture $X $OUTER $INNER
+    severity: WARNING
+    languages:
+      - csharp
+    paths:
+      include:
+        - array.cs
+    patterns:
+      - pattern-regex: eval
+      - pattern-inside: eval($X)
+  - id: csharp-equal-ranges
+    message: Capture $X $OUTER $INNER
+    severity: WARNING
+    languages:
+      - csharp
+    paths:
+      include:
+        - array.cs
+    patterns:
+      - pattern: eval($X)
+      - pattern-regex: .*
+  - id: elixir-ast
+    message: Capture $X $OUTER $INNER
+    severity: WARNING
+    languages:
+      - elixir
+    paths:
+      include:
+        - pipeline.ex
+    pattern: sink($X)
+  - id: elixir-regex-false
+    message: Capture $X $OUTER $INNER
+    severity: WARNING
+    languages:
+      - elixir
+    paths:
+      include:
+        - pipeline.ex
+    patterns:
+      - pattern-inside: sink($X)
+      - pattern-regex: sink
+  - id: elixir-regex-true
+    message: Capture $X $OUTER $INNER
+    severity: WARNING
+    languages:
+      - elixir
+    paths:
+      include:
+        - pipeline.ex
+    patterns:
+      - pattern-regex: sink
+      - pattern-inside: sink($X)
+  - id: elixir-equal-ranges
+    message: Capture $X $OUTER $INNER
+    severity: WARNING
+    languages:
+      - elixir
+    paths:
+      include:
+        - pipeline.ex
+    patterns:
+      - pattern: sink($X)
+      - pattern-regex: .*
+  - id: same-language
+    message: Capture $X $OUTER $INNER
+    severity: WARNING
+    languages:
+      - ruby
+    paths:
+      include:
+        - array.rb
+    patterns:
+      - pattern: sink($X)
+      - metavariable-pattern:
+          metavariable: $X
+          pattern: params[$Y]
+      - focus-metavariable: $X
+  - id: mixed
+    message: Capture $X $OUTER $INNER
+    severity: WARNING
+    languages:
+      - ruby
+    paths:
+      include:
+        - mixed.rb
+    patterns:
+      - pattern: pair($OUTER, $CODE)
+      - metavariable-pattern:
+          metavariable: $CODE
+          language: csharp
+          pattern: eval($INNER)
+      - focus-metavariable: $INNER
+  - id: nested-twice
+    message: Capture $X $OUTER $INNER
+    severity: WARNING
+    languages:
+      - yaml
+    paths:
+      include:
+        - nested.yaml
+    patterns:
+      - pattern: 'code: $TEXT'
+      - metavariable-pattern:
+          metavariable: $TEXT
+          language: ruby
+          patterns:
+            - pattern: pair($OUTER, $CODE)
+            - metavariable-pattern:
+                metavariable: $CODE
+                language: csharp
+                pattern: eval($INNER)
+            - focus-metavariable: $INNER
+      - focus-metavariable: $INNER
+  - id: regex-capture
+    message: Capture $X $OUTER $INNER
+    severity: WARNING
+    languages:
+      - ruby
+    paths:
+      include:
+        - array.rb
+    patterns:
+      - pattern: sink($X)
+      - metavariable-regex:
+          metavariable: $X
+          regex: (?P<NAME>params)
+      - focus-metavariable: $NAME
+  - id: taint-false-sink
+    message: Capture $X $OUTER $INNER
+    severity: WARNING
+    languages:
+      - ruby
+    paths:
+      include:
+        - taint.rb
+    mode: taint
+    options:
+      taint_unify_mvars: false
+      taint_focus_on: sink
+    pattern-sources:
+      - patterns:
+          - pattern: source($CODE)
+          - metavariable-pattern:
+              metavariable: $CODE
+              language: csharp
+              pattern: eval($INNER)
+          - focus-metavariable: $CODE
+    pattern-sinks:
+      - pattern: sink($VALUE, $OUTER)
+  - id: taint-false-source
+    message: Capture $X $OUTER $INNER
+    severity: WARNING
+    languages:
+      - ruby
+    paths:
+      include:
+        - taint.rb
+    mode: taint
+    options:
+      taint_unify_mvars: false
+      taint_focus_on: source
+    pattern-sources:
+      - patterns:
+          - pattern: source($CODE)
+          - metavariable-pattern:
+              metavariable: $CODE
+              language: csharp
+              pattern: eval($INNER)
+          - focus-metavariable: $CODE
+    pattern-sinks:
+      - pattern: sink($VALUE, $OUTER)
+  - id: taint-true-sink
+    message: Capture $X $OUTER $INNER
+    severity: WARNING
+    languages:
+      - ruby
+    paths:
+      include:
+        - taint.rb
+    mode: taint
+    options:
+      taint_unify_mvars: true
+      taint_focus_on: sink
+    pattern-sources:
+      - patterns:
+          - pattern: source($CODE)
+          - metavariable-pattern:
+              metavariable: $CODE
+              language: csharp
+              pattern: eval($INNER)
+          - focus-metavariable: $CODE
+    pattern-sinks:
+      - pattern: sink($VALUE, $OUTER)
+  - id: taint-true-source
+    message: Capture $X $OUTER $INNER
+    severity: WARNING
+    languages:
+      - ruby
+    paths:
+      include:
+        - taint.rb
+    mode: taint
+    options:
+      taint_unify_mvars: true
+      taint_focus_on: source
+    pattern-sources:
+      - patterns:
+          - pattern: source($CODE)
+          - metavariable-pattern:
+              metavariable: $CODE
+              language: csharp
+              pattern: eval($INNER)
+          - focus-metavariable: $CODE
+    pattern-sinks:
+      - pattern: sink($VALUE, $OUTER)

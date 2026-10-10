@@ -83,7 +83,20 @@ let merge_adjacent_lefts xs =
 
 let expr_of_quoted (quoted : quoted_generic) : G.expr =
   let l, xs, r = quoted in
-  G.interpolated (l, xs |> List_.map either_to_either3 |> merge_adjacent_lefts, r)
+  let result =
+    G.interpolated (l, xs |> List_.map either_to_either3 |> merge_adjacent_lefts, r)
+  in
+  let original =
+    G.interpolated
+      ( l,
+        List_.map
+          (function
+            | Left x -> Left3 x
+            | Right (l, e, r) -> Right3 (l, Some e, r))
+          xs,
+        r )
+  in
+  { result with e_original = Some (G.E original) }
 
 (* Normalise keyword text produced by tree-sitter. The token span for
  * [body:] in [%{body: v}] is captured as ["body: "] or ["body:"] —
@@ -318,21 +331,19 @@ let find_max_placeholder (e : G.expr) : int =
   visitor#visit_expr () e;
   !max_found
 
-(** Replace placeholder references with parameter names.
-     Recursively replaces in all subexpressions. *)
-let replace_placeholders (e : G.expr) : G.expr =
+(** Replace placeholder references with parameter names. Recursively replaces in
+    all subexpressions. *)
+let replace_placeholders e =
   let mapper =
     object
-      inherit [_] AST_generic.map as super
+      inherit [_] H.map_with_originals as super
 
-      method! visit_expr env expr =
-        match expr.G.e with
+      method! visit_expr_kind env kind =
+        match kind with
         | G.OtherExpr
             (("PlaceHolder", _), [ G.E { e = G.L (G.Int (Some n, tk)); _ } ]) ->
-            let param_name = Printf.sprintf "&%Ld" n in
-            let param_id = (param_name, tk) in
-            G.N (G.Id (param_id, G.empty_id_info ())) |> G.e
-        | _ -> super#visit_expr env expr
+            G.N (G.Id ((Printf.sprintf "&%Ld" n, tk), G.empty_id_info ()))
+        | _ -> super#visit_expr_kind env kind
     end
   in
   mapper#visit_expr () e
@@ -513,11 +524,20 @@ and map_stmt env (v : stmt) : G.stmt =
   | Throw (tthrow, e) ->
       let e = map_expr env e in
       G.Throw (tthrow, e, G.sc) |> G.s
-  | Case (tcase, e, (_tdo, clauses, _tend)) ->
+  | Case (tcase, e, (tdo, clauses, tend)) ->
       let e = map_expr env e in
       let xs = map_clauses env clauses in
       let cases = xs |> List_.map case_and_body_of_case_clause in
-      G.Switch (tcase, Some (G.Cond e), cases) |> G.s
+      let result = G.Switch (tcase, Some (G.Cond e), cases) |> G.s in
+      let original =
+        G.Call
+          ( G.N (H.name_of_id ("case", tcase)) |> G.e,
+            fb
+              (G.Arg e
+              :: args_of_do_block_opt (Some (tdo, (Right xs, []), tend))) )
+        |> G.e
+      in
+      { result with s_original = Some (G.E original) }
   | For (tfor, clauses, (tdo, body, tend)) ->
       let comp_clauses = List_.map (fun (clause : for_clause) ->
         match clause with
@@ -845,6 +865,20 @@ and map_pipeline env (v1 : expr) (tk : tok) (v3 : expr) : G.expr =
         let e2 = map_expr env v3 in
         G.Call (e2, fb [ G.Arg e1 ]) |> G.e
   in
+  let original =
+    match desugared.e with
+    | G.Call (fn, (l, G.Arg left :: rest, r)) ->
+        let right =
+          match v3 with
+          | Call _ -> G.Call (fn, (l, rest, r)) |> G.e
+          | _ -> fn
+        in
+        G.Call
+          (G.N (H.name_of_id ("|>", tk)) |> G.e, fb [ G.Arg left; G.Arg right ])
+        |> G.e
+    | _ -> raise Common.Impossible
+  in
+  let desugared = { desugared with e_original = Some (G.E original) } in
   G.OtherExpr (("PipelineCall", tk), [ G.E desugared ]) |> G.e
 
 and map_match env v1 v2 =
@@ -913,12 +947,18 @@ and map_expr env v : G.expr =
       let dict_body = G.Container (G.Dict, (dict_l, xs, r)) |> G.e in
       match v2 with
       | None -> dict_body
-      | Some name_expr -> (
-          match H.name_of_dot_access name_expr with
-          | Some n -> G.Constructor (n, fb [ dict_body ]) |> G.e
-          | None ->
-              (* Fallback for dynamic struct names that can't be statically resolved *)
-              G.Call (name_expr, fb [ G.arg dict_body ]) |> G.e))
+      | Some name_expr ->
+          let result =
+            match H.name_of_dot_access name_expr with
+            | Some n -> G.Constructor (n, fb [ dict_body ]) |> G.e
+            | None ->
+                (* Dynamic struct names cannot be statically resolved. *)
+                G.Call (name_expr, fb [ G.arg dict_body ]) |> G.e
+          in
+          let original =
+            G.Call (name_expr, (l, List_.map G.arg xs, r)) |> G.e
+          in
+          { result with e_original = Some (G.E original) })
   | Alias v ->
       (* TODO: split alias in components, and then use name_of_ids *)
       let v = map_alias env v in

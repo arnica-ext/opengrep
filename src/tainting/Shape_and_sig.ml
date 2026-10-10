@@ -371,6 +371,7 @@ and Effect : sig
     merged_env : Metavariable.bindings;
         (** The metavariable environment that results of merging the environment
             from * matching the source and the one from matching the sink. *)
+    merged_metavar_langs : Core_match.metavar_langs;
     guards : Effect_guard.t;
         (** Engine-emitted arity/shape/branch guard. Evaluated at signature
             instantiation against the caller's actual arguments; if it folds
@@ -512,6 +513,7 @@ end = struct
     taints_with_precondition : taint_to_sink_item list * R.precondition;
     sink : sink;
     merged_env : Metavariable.bindings;
+    merged_metavar_langs : Core_match.metavar_langs;
     guards : Effect_guard.t;
   }
 
@@ -565,12 +567,14 @@ end = struct
         taints_with_precondition = ttsis1, pre1;
         sink = sink1;
         merged_env = env1;
+        merged_metavar_langs = _;
         guards = _;
       }
       {
         taints_with_precondition = ttsis2, pre2;
         sink = sink2;
         merged_env = env2;
+        merged_metavar_langs = _;
         guards = _;
       } =
     match compare_sink sink1 sink2 with

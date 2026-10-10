@@ -471,7 +471,16 @@ and eval_str _env ~code v =
 (* Env builders *)
 (*****************************************************************************)
 
-let text_of_binding mvar mval =
+let rec legacy_source_any = function
+  | G.E { e_original = Some original; _ } -> legacy_source_any original
+  | any -> any
+
+let binding_range ?(legacy = false) mval =
+  let any = MV.mvalue_to_any mval in
+  let any = if legacy then legacy_source_any any else any in
+  AST_generic_helpers.range_of_any_opt any
+
+let text_of_binding ?(legacy = false) mvar mval =
   match mval with
   | MV.Text (text, _, _) ->
       (* Note that `text` may be produced by constant folding, in which
@@ -500,7 +509,7 @@ let text_of_binding mvar mval =
   | MV.Id ((s, _tok), None) when not (s =~ "^__builtin.*") -> Some s
   | _ -> (
       let any = MV.mvalue_to_any mval in
-      match AST_generic_helpers.range_of_any_opt any with
+      match binding_range ~legacy mval with
       | None ->
           (* TODO: Report a warning to the user? *)
           Log.warn (fun m ->
@@ -512,53 +521,56 @@ let text_of_binding mvar mval =
           let range = Range.range_of_token_locations min max in
           Some (Range.content_at_range file range))
 
-let string_of_binding mvar mval =
-  let* x = text_of_binding mvar mval in
+let string_of_binding ~legacy_metavars mvar mval =
+  let legacy = List.mem mvar legacy_metavars in
+  let* x = text_of_binding ~legacy mvar mval in
   Some (mvar, (AST x : value))
 
-let bindings_to_env (config : Rule_options.t) ~file bindings =
+let bindings_to_env ?(legacy_metavars = []) (config : Rule_options.t) ~file
+    bindings =
   let constant_propagation = config.constant_propagation in
   let mvars =
     bindings
     |> List_.filter_map (fun (mvar, mval) ->
-           let try_bind_to_exp e =
-             try
-               Some
-                 ( mvar,
-                   eval
-                     { mvars = Hashtbl.create 0; constant_propagation; file }
-                     e )
-             with
-             | NotHandled _
-             | NotInEnv _ ->
-                 (* These are expressions like `x` or `os.getenv("FOO")` that cannot
-                  * be evaluated. Previously we just filtered out all these cases, but
-                  * in some cases it's interesting to make comparisons based on the
-                  * string representation of these expressions. For example, given
-                  * $X and $Y binding to two code variables we may want to check
-                  * whether both code variables have the same name (even if they are
-                  *  in fact different variables). So, if we can obtain such a
-                  * string representation, we add it to the environment here. *)
-                 string_of_binding mvar mval
-           in
-           match mval with
-           (* this way we can leverage the constant propagation analysis
-              * in metavariable-comparison: too! This simplifies some rules.
-           *)
-           | MV.Id (i, Some id_info) ->
-               try_bind_to_exp (G.e (G.N (G.Id (i, id_info))))
-           | MV.E e -> try_bind_to_exp e
-           | MV.Text (s, _, _) -> Some (mvar, String s)
-           | x -> string_of_binding mvar x)
+        let try_bind_to_exp e =
+          try
+            Some
+              ( mvar,
+                eval { mvars = Hashtbl.create 0; constant_propagation; file } e
+              )
+          with
+          | NotHandled _
+          | NotInEnv _ ->
+              (* These are expressions like `x` or `os.getenv("FOO")` that cannot
+               * be evaluated. Previously we just filtered out all these cases, but
+               * in some cases it's interesting to make comparisons based on the
+               * string representation of these expressions. For example, given
+               * $X and $Y binding to two code variables we may want to check
+               * whether both code variables have the same name (even if they are
+               *  in fact different variables). So, if we can obtain such a
+               * string representation, we add it to the environment here. *)
+              string_of_binding ~legacy_metavars mvar mval
+        in
+        match mval with
+        (* this way we can leverage the constant propagation analysis
+         * in metavariable-comparison: too! This simplifies some rules.
+         *)
+        | MV.Id (i, Some id_info) ->
+            try_bind_to_exp (G.e (G.N (G.Id (i, id_info))))
+        | MV.E e -> try_bind_to_exp e
+        | MV.Text (s, _, _) -> Some (mvar, String s)
+        | x -> string_of_binding ~legacy_metavars mvar x)
     |> Hashtbl_.hash_of_list
   in
 
   { mvars; constant_propagation; file }
 
-let bindings_to_env_just_strings (config : Rule_options.t) ~file xs =
+let bindings_to_env_just_strings ?(legacy_metavars = [])
+    (config : Rule_options.t) ~file xs =
   let mvars =
     xs
-    |> List_.filter_map (fun (mvar, mval) -> string_of_binding mvar mval)
+    |> List_.filter_map (fun (mvar, mval) ->
+        string_of_binding ~legacy_metavars mvar mval)
     |> Hashtbl_.hash_of_list
   in
 

@@ -1,0 +1,18 @@
+rules:
+  - id: legacy-only-error
+    languages: [yaml]
+    message: Nested
+    severity: WARNING
+    patterns:
+      - pattern: 'code: $OUTER'
+      - metavariable-pattern:
+          metavariable: $OUTER
+          language: elixir
+          patterns:
+            - pattern: sink($X)
+            - metavariable-regex:
+                metavariable: $X
+                regex: ^User
+            - metavariable-pattern:
+                metavariable: $MISSING
+                pattern: foo(...)

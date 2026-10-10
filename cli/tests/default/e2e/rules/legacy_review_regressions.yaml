@@ -1,0 +1,228 @@
+rules:
+- id: ruby-false-false
+  languages:
+  - ruby
+  message: Capture $X
+  severity: WARNING
+  options:
+    symbolic_propagation: false
+  pattern: sink($X)
+- id: ruby-false-true
+  languages:
+  - ruby
+  message: Capture value($X)
+  severity: WARNING
+  options:
+    symbolic_propagation: false
+  pattern: sink($X)
+- id: ruby-true-false
+  languages:
+  - ruby
+  message: Capture $X
+  severity: WARNING
+  options:
+    symbolic_propagation: true
+  pattern: sink($X)
+- id: ruby-true-true
+  languages:
+  - ruby
+  message: Capture value($X)
+  severity: WARNING
+  options:
+    symbolic_propagation: true
+  pattern: sink($X)
+- id: plain
+  languages:
+  - python
+  message: Capture $X
+  severity: WARNING
+  paths:
+    include:
+    - filters.py
+  options:
+    symbolic_propagation: true
+  patterns:
+  - pattern: sink($X)
+- id: focus
+  languages:
+  - python
+  message: Capture $X
+  severity: WARNING
+  paths:
+    include:
+    - filters.py
+  options:
+    symbolic_propagation: true
+  patterns:
+  - pattern: sink($X)
+  - focus-metavariable: $X
+- id: regex-alias
+  languages:
+  - python
+  message: Capture $X
+  severity: WARNING
+  paths:
+    include:
+    - filters.py
+  options:
+    symbolic_propagation: true
+  patterns:
+  - pattern: sink($X)
+  - metavariable-regex:
+      metavariable: $X
+      regex: ^a$
+- id: regex-value
+  languages:
+  - python
+  message: Capture $X
+  severity: WARNING
+  paths:
+    include:
+    - filters.py
+  options:
+    symbolic_propagation: true
+  patterns:
+  - pattern: sink($X)
+  - metavariable-regex:
+      metavariable: $X
+      regex: ^wrap
+- id: nested-alias
+  languages:
+  - python
+  message: Capture $X
+  severity: WARNING
+  paths:
+    include:
+    - filters.py
+  options:
+    symbolic_propagation: true
+  patterns:
+  - pattern: sink($X)
+  - metavariable-pattern:
+      metavariable: $X
+      pattern: a
+- id: nested-value
+  languages:
+  - python
+  message: Capture $X
+  severity: WARNING
+  paths:
+    include:
+    - filters.py
+  options:
+    symbolic_propagation: true
+  patterns:
+  - pattern: sink($X)
+  - metavariable-pattern:
+      metavariable: $X
+      pattern: wrap(...)
+- id: repeated
+  languages:
+  - python
+  message: Capture $X $Y
+  severity: WARNING
+  paths:
+    include:
+    - filters.py
+  options:
+    symbolic_propagation: true
+  pattern: sink($X, $X)
+- id: independent
+  languages:
+  - python
+  message: Capture $X $Y
+  severity: WARNING
+  paths:
+    include:
+    - filters.py
+  options:
+    symbolic_propagation: true
+  pattern: sink($X, $Y)
+- id: embedded-message
+  languages:
+  - python
+  message: Capture $INNER
+  severity: WARNING
+  options:
+    symbolic_propagation: true
+  patterns:
+  - pattern: code($SRC)
+  - metavariable-pattern:
+      metavariable: $SRC
+      language: python
+      pattern: sink($INNER)
+- id: embedded-constant
+  languages:
+  - python
+  message: Capture
+  severity: WARNING
+  options:
+    symbolic_propagation: true
+  patterns:
+  - pattern: code($SRC)
+  - metavariable-pattern:
+      metavariable: $SRC
+      language: python
+      pattern: sink($INNER)
+- id: compare-alias
+  languages:
+  - python
+  message: Capture $X
+  severity: WARNING
+  paths:
+    include:
+    - filters.py
+  options:
+    symbolic_propagation: true
+  patterns:
+  - pattern: sink($X)
+  - metavariable-comparison:
+      metavariable: $X
+      comparison: str($X) == 'a'
+- id: compare-value
+  languages:
+  - python
+  message: Capture $X
+  severity: WARNING
+  paths:
+    include:
+    - filters.py
+  options:
+    symbolic_propagation: true
+  patterns:
+  - pattern: sink($X)
+  - metavariable-comparison:
+      metavariable: $X
+      comparison: str($X) == 'wrap(source())'
+- id: csharp-false-false
+  languages:
+  - csharp
+  message: Capture $X
+  severity: WARNING
+  options:
+    symbolic_propagation: false
+  pattern: sink($X)
+- id: csharp-false-true
+  languages:
+  - csharp
+  message: Capture value($X)
+  severity: WARNING
+  options:
+    symbolic_propagation: false
+  pattern: sink($X)
+- id: csharp-true-false
+  languages:
+  - csharp
+  message: Capture $X
+  severity: WARNING
+  options:
+    symbolic_propagation: true
+  pattern: sink($X)
+- id: csharp-true-true
+  languages:
+  - csharp
+  message: Capture value($X)
+  severity: WARNING
+  options:
+    symbolic_propagation: true
+  pattern: sink($X)

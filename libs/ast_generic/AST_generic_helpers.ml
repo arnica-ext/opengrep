@@ -33,6 +33,13 @@ module Log = Log_ast_generic.Log
 
 let str_of_ident = fst
 
+(* Ruby bracket access used to contain a synthetic [] method callee. *)
+let ruby_array_access_callee expr =
+  match expr.e with
+  | ArrayAccess (base, (lb, _, _)) ->
+      Some (DotAccess (base, lb, FN (Id (("[", lb), empty_id_info ()))) |> e)
+  | _ -> None
+
 let name_of_ids_with_opt_typeargs xs =
   match List.rev xs with
   | [] -> failwith "name_of_ids_with_opt_typeargs: empty ids"
@@ -191,6 +198,56 @@ let expr_to_stmt e =
   | StmtExpr stmt -> stmt
   | _ -> ExprStmt (e, sc) |> G.s
 
+(* coupling: you might want to update range_visitor if you update this *)
+class ['self] extract_info_visitor =
+  object (_self : 'self)
+    inherit ['self] AST_generic.iter_no_id_info as super
+    method! visit_tok globals tok = Stack_.push tok globals
+
+    method! visit_expr globals x =
+      match x.e with
+      (* Ignore the tokens from the expression str is aliased to *)
+      | Alias ((_str, t), _e) -> Stack_.push t globals
+      | _ -> super#visit_expr globals x
+  end
+
+let extract_info_visitor_instance = new extract_info_visitor
+
+let ii_of_any any =
+  let v = extract_info_visitor_instance in
+  let globals = ref [] in
+  v#visit_any globals any;
+  List.rev !globals
+[@@profiling]
+
+(* Saved tokens are deliberately invisible to the analysis visitors. *)
+class ['self] reporting_visitor =
+  object (self : 'self)
+    inherit ['self] extract_info_visitor as super
+
+    method! visit_expr tokens expr =
+      match expr.G.e_original with
+      | Some original -> self#visit_any tokens original
+      | None -> super#visit_expr tokens expr
+
+    method! visit_stmt tokens stmt =
+      match stmt.G.s_original with
+      | Some original -> self#visit_any tokens original
+      | None -> super#visit_stmt tokens stmt
+
+    method! visit_pattern tokens pattern =
+      match pattern with
+      | G.PatRecord { pr_original_tokens = Some original; _ } ->
+          List.iter (self#visit_tok tokens) original
+      | _ -> super#visit_pattern tokens pattern
+  end
+
+let ii_of_any_for_reporting any =
+  let visitor = new reporting_visitor in
+  let tokens = ref [] in
+  visitor#visit_any tokens any;
+  List.rev !tokens
+
 (* In Go/Swift a pattern can be a complex expressions. It is just
  * matched for equality with the thing it's matched against, so in that
  * case it should be a pattern like | _ when expr = x.
@@ -239,7 +296,7 @@ let rec expr_to_pattern e =
             | _ -> None)
           xs
       in
-      PatRecord (t1, fields, t2)
+      record_pattern (t1, fields, t2)
   (* Object/record literal used as a destructuring pattern (JS/TS
    * [{cb, data}] or [{cb: handler}]). Each field is a [DefStmt] whose
    * entity name is the field label and whose [vinit] (or the
@@ -263,10 +320,20 @@ let rec expr_to_pattern e =
                   _;
                 } ->
                 Some ([ id ], expr_to_pattern v_expr)
+            | F
+                {
+                  s =
+                    ExprStmt
+                      (({ e = LetPattern (PatId (id, _), _); _ } as binding), _);
+                  _;
+                } ->
+                Some ([ id ], OtherPat (("ExprToPattern", fake ""), [ E binding ]))
             | _ -> None)
           fields
       in
-      PatRecord (t1, pat_fields, t2)
+      record_pattern
+        ~original_tokens:(ii_of_any_for_reporting (E e))
+        (t1, pat_fields, t2)
   | Constructor (n, (_, args, _)) ->
       PatConstructor (n, args |> List_.map expr_to_pattern)
   | Ellipsis t -> PatEllipsis t
@@ -513,7 +580,17 @@ let abstract_for_comparison_visitor =
     method! visit_tok _env _i = Tok.Ab
 
     method! visit_id_info env ii =
-      super#visit_id_info env { ii with AST_generic.id_svalue = ref None }
+      super#visit_id_info env
+        { ii with
+          id_svalue = ref None;
+          id_legacy_svalue = ref None;
+        }
+
+    method! visit_expr env e = super#visit_expr env { e with e_original = None }
+    method! visit_stmt env s = super#visit_stmt env { s with s_original = None }
+
+    method! visit_record_pattern env p =
+      super#visit_record_pattern env { p with pr_original_tokens = None }
   end
 
 let abstract_for_comparison_any x =
@@ -586,27 +663,6 @@ let set_e_range l r e =
        * isolated examples, though. *)
       Log.warn (fun m -> m "set_e_range failed: missing token location");
       ()
-
-(* coupling: you might want to update range_visitor if you update this *)
-class ['self] extract_info_visitor =
-  object (_self : 'self)
-    inherit ['self] AST_generic.iter_no_id_info as super
-    method! visit_tok globals tok = Stack_.push tok globals
-
-    method! visit_expr globals x =
-      match x.e with
-      (* Ignore the tokens from the expression str is aliased to *)
-      | Alias ((_str, t), _e) -> Stack_.push t globals
-      | _ -> super#visit_expr globals x
-  end
-
-let extract_info_visitor_instance = new extract_info_visitor
-let ii_of_any any =
-  let v = extract_info_visitor_instance in
-  let globals = ref [] in
-  v#visit_any globals any;
-  List.rev !globals
-[@@profiling]
 
 let info_of_any any =
   match ii_of_any any with
@@ -810,32 +866,76 @@ let nearest_any_of_pos prog position =
 (* Fix token locations *)
 (*****************************************************************************)
 
-let fix_token_locations_visitor =
-  object (_self : 'self)
-    inherit [_] AST_generic.map_legacy as super
+module Exprs = Hashtbl.Make (struct
+  type t = G.expr
 
-    method! visit_id_info _fix ii =
-      (* The id_info contains locations that should not be modified, and they
-       * are likely outside the sub-AST of interest anyways. *)
-      ii
+  let equal = phys_equal
+  let hash = Stdlib.Hashtbl.hash
+end)
 
-    method! visit_expr fix e =
-      super#visit_expr fix
-        { e with e_range = Option.map (fun (x, y) -> (fix x, fix y)) e.e_range }
+module Stmts = Hashtbl.Make (struct
+  type t = G.stmt
 
-    method! visit_stmt fix s =
-      super#visit_stmt fix
-        { s with s_range = Option.map (fun (x, y) -> (fix x, fix y)) s.s_range }
+  let equal = phys_equal
+  let hash = Stdlib.Hashtbl.hash
+end)
 
-    method! visit_tok fix t = Tok.fix_location fix t
+class ['self] map_with_originals =
+  object (self : 'self)
+    inherit [_] G.map as super
+    val exprs = Exprs.create 32
+    val stmts = Stmts.create 32
+
+    method! visit_expr env expr =
+      match Exprs.find_opt exprs expr with
+      | Some mapped -> mapped
+      | None ->
+          let mapped = super#visit_expr env expr in
+          let mapped =
+            {
+              mapped with
+              G.e_original = Option.map (self#visit_any env) expr.G.e_original;
+            }
+          in
+          Exprs.add exprs expr mapped;
+          mapped
+
+    method! visit_stmt env stmt =
+      match Stmts.find_opt stmts stmt with
+      | Some mapped -> mapped
+      | None ->
+          let mapped = super#visit_stmt env stmt in
+          let mapped =
+            {
+              mapped with
+              G.s_original = Option.map (self#visit_any env) stmt.G.s_original;
+            }
+          in
+          Stmts.add stmts stmt mapped;
+          mapped
+
+    method! visit_record_pattern env record =
+      let mapped = super#visit_record_pattern env record in
+      {
+        mapped with
+        G.pr_original_tokens =
+          Option.map (List.map (self#visit_tok env)) record.G.pr_original_tokens;
+      }
   end
 
-(* Exposing just these methods because we want the .mli file for this module,
- * and it's impractical to write out the type of an autogenerated visitor. If we
- * need more, we could consider putting the visitor in a separate file without
- * an mli and allowing direct access to it. *)
-let fix_token_locations_any = fix_token_locations_visitor#visit_any
-let fix_token_locations_program = fix_token_locations_visitor#visit_program
+let fix_token_locations_visitor fix =
+  object
+    inherit [_] map_with_originals
+    method! visit_id_info () info = info
+    method! visit_location () loc = fix loc
+    method! visit_tok () tok = Tok.fix_location fix tok
+  end
+
+let fix_token_locations_any fix any =
+  (fix_token_locations_visitor fix)#visit_any () any
+
+let fix_token_locations_program fix program =
+  (fix_token_locations_visitor fix)#visit_program () program
 
 (*****************************************************************************)
 (* Add semicolons *)

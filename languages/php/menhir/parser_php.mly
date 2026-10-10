@@ -68,14 +68,12 @@ let mk_param s =
     p_ref = None;
     p_name = DName s;
     p_default = None;
-    p_modifiers = [];
+    p_modifier = None;
     p_variadic = None;
-    p_hooks = None;
   }
 
-let make_class_vars attrs single =
-  ClassVariables(attrs, NoModifiers(Tok.FakeTok("", None)), None, [Left(single)],
-                 Tok.FakeTok("", None))
+let make_class_vars single =
+  ClassVariables(NoModifiers(Tok.FakeTok("", None)),None, [Left(single)],Tok.FakeTok("", None))
 
 let mk_var (s, tok) =
   match s with
@@ -197,19 +195,10 @@ let str_of_info x = Tok.content_of_tok x
  TPLUS TMINUS TMUL TDIV TMOD TPOW
  T_NULL_COALLESCING
  TAND TOR "|" TXOR
-(* '&' that is not followed by a variable or by '...'. Split off from TAND
- * after lexing, the way php-src splits it in the lexer, so that 'X&Y' in a
- * parameter can be told apart from the by-reference 'X &$y'.
- * coupling: T_AMPERSAND_NOT_FOLLOWED_BY_VAR_OR_VARARG in Zend
- *)
- TAND_NOT_VAR
- (* PHP 8.5 pipe operator *)
- T_PIPE_GT "|>"
  TEQ
  (* now also used for types/generics, as in vector<int> *)
  TSMALLER "<" TGREATER ">"
  T_PLUS_EQUAL  T_MINUS_EQUAL  T_MUL_EQUAL  T_DIV_EQUAL
- T_POW_EQUAL T_NULL_COALESCE_EQUAL
  T_CONCAT_EQUAL  T_MOD_EQUAL
  T_AND_EQUAL T_OR_EQUAL T_XOR_EQUAL T_SL_EQUAL T_SR_EQUAL
  T_INC    T_DEC
@@ -218,8 +207,6 @@ let str_of_info x = Tok.content_of_tok x
  T_IS_SMALLER_OR_EQUAL    T_IS_GREATER_OR_EQUAL
  T_BOOL_CAST T_INT_CAST T_DOUBLE_CAST T_STRING_CAST T_ARRAY_CAST T_OBJECT_CAST
  T_UNSET_CAST
- (* PHP 8.5 *)
- T_VOID_CAST
  T_IS_IDENTICAL T_IS_NOT_IDENTICAL T_IS_EQUAL     T_IS_NOT_EQUAL
  T__AT "@"
  (* was declared implicitely because was using directly the character *)
@@ -283,23 +270,16 @@ let str_of_info x = Tok.content_of_tok x
  * using %right but by rewriting the rule regarding TEQ to be
  * 'simple_expr TEQ expr' and not 'expr TEQ expr' (like in parser_cpp.mly).
  *)
-%left     TEQ  T_PLUS_EQUAL T_MINUS_EQUAL T_MUL_EQUAL T_DIV_EQUAL T_CONCAT_EQUAL T_MOD_EQUAL T_AND_EQUAL T_OR_EQUAL T_XOR_EQUAL T_SL_EQUAL T_SR_EQUAL T_POW_EQUAL T_NULL_COALESCE_EQUAL
+%left     TEQ  T_PLUS_EQUAL T_MINUS_EQUAL T_MUL_EQUAL T_DIV_EQUAL T_CONCAT_EQUAL T_MOD_EQUAL T_AND_EQUAL T_OR_EQUAL T_XOR_EQUAL T_SL_EQUAL T_SR_EQUAL
 
 %left      TQUESTION TCOLON
-%right     T_NULL_COALLESCING
 %left      T_BOOLEAN_OR
 %left      T_BOOLEAN_AND
 %left      TOR
 %left      TXOR
-%left      TAND TAND_NOT_VAR
+%left      TAND
 %nonassoc  T_IS_EQUAL T_IS_NOT_EQUAL T_IS_IDENTICAL T_IS_NOT_IDENTICAL T_ROCKET
 %nonassoc  TSMALLER T_IS_SMALLER_OR_EQUAL TGREATER T_IS_GREATER_OR_EQUAL
-(* PHP 8.5 pipe operator: left-associative, binding tighter than the
- * comparisons above but looser than the arithmetic below, so that
- * '5 + 2 |> f(...)' is '(5 + 2) |> f(...)' and
- * '$s |> strlen(...) == 4' is '($s |> strlen(...)) == 4'.
- *)
-%left      T_PIPE_GT
 %left      T_SL T_SR
 %left      TPLUS TMINUS TDOT
 %left      TMUL TDIV TMOD
@@ -307,7 +287,7 @@ let str_of_info x = Tok.content_of_tok x
 
 %right     TBANG
 %nonassoc  T_INSTANCEOF
-%right     TTILDE T_INC T_DEC T_INT_CAST T_DOUBLE_CAST T_STRING_CAST T_ARRAY_CAST T_OBJECT_CAST T_BOOL_CAST T_UNSET_CAST T_VOID_CAST
+%right     TTILDE T_INC T_DEC T_INT_CAST T_DOUBLE_CAST T_STRING_CAST T_ARRAY_CAST T_OBJECT_CAST T_BOOL_CAST T_UNSET_CAST
 %right     T__AT
 %nonassoc  T_CLONE
 %left      T_ELSEIF
@@ -355,7 +335,7 @@ top_statement:
  | function_declaration       { [FuncDef $1] }
  | class_declaration          { [ClassDef $1] }
 
- | constant_declaration       { List.map (fun c -> ConstantDef c) $1 }
+ | constant_declaration       { [ConstantDef $1] }
  | type_declaration           { [TypeDef $1] }
  | namespace_declaration      { [$1] }
  | namespace_use_declaration  { $1 }
@@ -369,14 +349,9 @@ semgrep_pattern:
   * with regular functions. Thus, we force the visibility_modifier.
   * Without such modifier, the regular function_declaration should work for
   * a method_declaration anyway. *)
- | visibility_modifier member_modifier* method_declaration EOF {
-    let def = $3 in
-    let def = { def with f_modifiers = $1 :: $2 @ def.f_modifiers } in
-    Toplevel (FuncDef def)
-    }
- | class_modifier member_modifier* method_declaration EOF {
-    let def = $3 in
-    let def = { def with f_modifiers = $1 :: $2 @ def.f_modifiers } in
+ | visibility_modifier method_declaration EOF {
+    let def = $2 in
+    let def = { def with f_modifiers = $1::def.f_modifiers } in
     Toplevel (FuncDef def)
     }
 
@@ -424,13 +399,13 @@ statement:
  | T_RETURN expr_or_dots? ";"  { Return ($1, $2, $3)}
 
  | T_TRY   "{" inner_statement* "}"
-   T_CATCH "(" catch_type_list variable? ")"
+   T_CATCH "(" list_sep2(class_name, "|")  variable ")"
      "{" inner_statement* "}"
      additional_catch* finally_clause?
      { let try_block = ($2,$3,$4) in
        let catch_block = ($10, $11, $12) in
-       let catch = ($5, ($6, ($7, Option.map (fun v -> DName v) $8), $9),
-                    catch_block) in
+       let t = List_.hd_exn "unexpected empty list" $7 in (* TODO: return a list of types *)
+       let catch = ($5, ($6, (t, DName $8), $9), catch_block) in
        Try($1, try_block, [catch] @ $13, o2l $14)
      }
  | T_TRY "{" inner_statement* "}" finally_clause
@@ -476,7 +451,7 @@ for_expr:
  | listc(expr)   { $1 }
 
 (* can not factorize with a is_reference otherwise s/r conflict on LIST *)
-foreach_variable: ioption(tand_any) expr  { $1, $2 }
+foreach_variable: ioption(TAND) expr  { $1, $2 }
 
 foreach_pattern:
   | foreach_variable                      { ForeachVar $1 }
@@ -493,14 +468,9 @@ match_case_list:
   | match_case {[$1]}
 
 match_case:
-    | match_conds T_ARROW expr {MCase($1, $3)}
+    | expr T_ARROW expr {MCase([$1], $3)}
 
     | T_DEFAULT T_ARROW expr { MDefault($1, $3)}
-
-(* an arm may list several conditions, as in '1, 2 => "a"' *)
-match_conds:
-    | expr { [$1] }
-    | expr "," match_conds { $1 :: $3 }
 
 mellipse: "..." {MEllipsis $1} 
 
@@ -570,18 +540,11 @@ new_else_single:
 
 
 additional_catch:
- | T_CATCH "(" catch_type_list variable? ")" "{" inner_statement* "}"
+ | T_CATCH "(" class_name variable ")" "{" inner_statement* "}"
      { let catch_block = ($6, $7, $8) in
-       let catch =
-         ($1, ($2, ($3, Option.map (fun v -> DName v) $4), $5), catch_block) in
+       let catch = ($1, ($2, ($3, DName $4), $5), catch_block) in
        catch
      }
-
-(* PHP 7.1 multi-catch: 'catch (Exn1 | Exn2 $e)'. Same shape as a union type,
- * so a rule written for either exception matches the clause *)
-catch_type_list:
- | list_sep(class_name, "|")
-     { match $1 with | [Left v] -> v | xs -> HintUnion xs }
 
 finally_clause: T_FINALLY "{" inner_statement* "}"  { ($1, ($2, $3, $4)) }
 
@@ -611,26 +574,9 @@ use_filename:
 (*************************************************************************)
 
 (* PHP 5.3 *)
-(* PHP 8.5 allows attributes on constants, e.g. '#[\Deprecated] const X = 1;' *)
-constant_declaration: ioption(attributes) unticked_constant_declaration
-   { List.map (fun c -> { c with cst_attrs = $1 }) $2 }
-
-(* One statement may declare several constants, as class constants already
- * could. They share the 'const' keyword, the type and the ';', and each
- * carries its own '='.
- *)
-unticked_constant_declaration:
-  T_CONST ioption(type_php) constant_declaration_elems ";"
-   { $3 |> List.map (fun (name, eqtok, v) ->
-       { cst_toks = ($1, eqtok, $4); cst_name = name; cst_val = v;
-         cst_type = $2; cst_attrs = None }) }
-
-constant_declaration_elems:
- | constant_declaration_elem { [$1] }
- | constant_declaration_elem "," constant_declaration_elems { $1 :: $3 }
-
-constant_declaration_elem:
- | ident_constant_name TEQ static_scalar { (Name $1, $2, $3) }
+constant_declaration:
+  T_CONST ioption(type_php) ident_constant_name TEQ static_scalar ";"
+   { { cst_toks = ($1,$4,$6); cst_name = Name $3; cst_val = $5; cst_type = $2}}
 
 (*************************************************************************)
 (* Function declaration *)
@@ -666,21 +612,16 @@ parameter_list:
  (* php-facebook-ext: trailing comma *)
  | parameter "," parameter_list   { $1 :: (Right3 $2) :: $3 }
 
-(* the trailing hooks are for PHP 8.4 constructor property promotion, as in
- * '__construct(public string $n { set => strtolower($value); })'
- *)
-parameter: attributes? ctor_modifier* ioption(param_type_php) parameter_bis
-           property_hooks?
+parameter: attributes? ctor_modifier? ioption(type_php) parameter_bis
    { match $4 with
      | Left3 param ->
          let hint = match param.p_type with
               | Some(HintVariadic (tok, _)) -> Some(HintVariadic (tok, $3))
               | _ -> $3
          in
-         Left3 { param with p_modifiers = $2; p_attrs = $1; p_type = hint;
-                 p_hooks = $5; }
-      | _ -> match ($1, $2, $3, $5) with
-             | (None, [], None, None) -> $4
+         Left3 { param with p_modifier = $2; p_attrs = $1; p_type = hint; }
+      | _ -> match ($1, $2, $3) with
+             | (None, None, None) -> $4
              | _ -> raise Parsing.Parse_error
       }
 
@@ -711,30 +652,10 @@ variable:
  | T_METAVAR { $1 }
 
 
-(* constructor property promotion (PHP 8.0, was a php-facebook-ext) *)
-ctor_modifier:
- | visibility_modifier { $1 }
- (* PHP 8.1 readonly promoted properties *)
- | T_READONLY { Readonly, $1 }
- (* PHP 8.5 final promoted properties; 'final' alone also promotes, and the
-  * property is then public *)
- | T_FINAL { Final, $1 }
- | set_visibility_modifier { $1 }
+(* php-facebook-ext: implicit field via constructor parameter *)
+ctor_modifier: visibility_modifier { $1 }
 
-(* never in a parameter, so either spelling is unambiguous here. A pattern
- * names the function with a metavariable, as in 'function &$F()', which puts
- * a '$' after the '&'.
- *)
-is_reference: tand_any?  { $1 }
-
-(* php-src's 'ampersand': every use of '&' except a by-reference parameter
- * and an intersection type takes either spelling, because the target of a
- * reference need not start with '$' — '&self::$x' begins with a name.
- *)
-%inline
-tand_any:
- | TAND         { $1 }
- | TAND_NOT_VAR { $1 }
+is_reference: TAND?  { $1 }
 
 (* PHP 5.3 *)
 lexical_vars:
@@ -756,7 +677,7 @@ non_empty_lexical_var_list_bis:
  | non_empty_lexical_var_list_bis "," lexical_var
      { $1 @ [Right $2; Left $3] }
 
-lexical_var: tand_any? variable  { ($1, DName $2) }
+lexical_var: TAND? variable  { ($1, DName $2) }
 
 (*************************************************************************)
 (* Class declaration *)
@@ -795,42 +716,42 @@ unticked_class_declaration:
          c_enum_type = None;
        }
      }
+  (* in the following we assume that the cases of a statement appear before constants,  methods and use constructs.*)
    | T_ENUM ident_class_name implements_list
-    "{" member_declaration* "}"
-  { { c_type = Enum $1; c_name = $2; c_extends = None; c_tparams = None;
-  c_implements = $3; c_body =  ($4, $5, $6);
+    "{" enum_single* member_declaration* "}"
+  {let members = $5 @ $6 in  { c_type = Enum $1; c_name = $2; c_extends = None; c_tparams = None;
+  c_implements = $3; c_body =  ($4, members, $7);
          c_attrs = None;
          c_enum_type = None
        }
      }
   | T_ENUM ident_class_name ":" type_php implements_list
-    "{" member_declaration* "}"
-    {
+    "{" backed_enum_single* member_declaration* "}"
+    {let members = $7 @ $8 in
   { c_type = Enum $1; c_name = $2; c_extends = None; c_tparams = None;
-  c_implements = $5; c_body =  ($6, $7, $8);
+  c_implements = $5; c_body =  ($6, members, $9);
          c_attrs = None;
          c_enum_type  = Some { e_tok = $3; e_base = $4; e_constraint = None; }       }
      }
+
+  backed_enum_single:
+  | T_CASE ident TEQ static_scalar TSEMICOLON {make_class_vars (DName $2, Some ($3, $4), None) }
+  | "..." { Flag_parsing.sgrep_guard (DeclEllipsis $1) }
+
+
+
+enum_single:
+    | T_CASE ident TSEMICOLON { make_class_vars (DName $2, None, None)  }
+    | "..." { Flag_parsing.sgrep_guard (DeclEllipsis $1) }
 
 
 
 
 class_entry_type:
- | T_CLASS                         { ClassRegular $1 }
- | class_entry_modifier+ T_CLASS   { ClassModified ($1, $2) }
-
-(* Inlined, so that 'final readonly class' and a method pattern such as
- * 'final public function' share their states up to 'class' or 'function'.
- *)
-%inline class_entry_modifier:
- | class_modifier { $1 }
- | T_READONLY     { Readonly, $1 }
-
-(* PHP 8.3: an anonymous class can be readonly, and no other modifier is
- * allowed on it *)
-%inline anon_class_entry_type:
- | T_CLASS            { ClassRegular $1, $1 }
- | T_READONLY T_CLASS { ClassModified ([ (Readonly, $1) ], $2), $2 }
+ | T_CLASS                    { ClassRegular $1 }
+ | T_ABSTRACT T_CLASS         { ClassAbstract ($1, $2) }
+ | T_FINAL    T_CLASS         { ClassFinal ($1, $2) }
+ | T_READONLY T_CLASS         { ClassReadonly ($1, $2) }
 
 
 visibility_modifier:
@@ -838,9 +759,18 @@ visibility_modifier:
  | T_PROTECTED { Protected,($1) }
  | T_PRIVATE   { Private,($1) }
 
+(* PHP 8.1: class constants can have visibility and final modifiers *)
+const_modifier:
+ | visibility_modifier { $1 }
+ | T_FINAL { Final, $1 }
+
 class_modifier:
  | T_ABSTRACT { Abstract, $1 }
  | T_FINAL    { Final, $1 }
+
+variable_modifiers:
+ | T_VAR                  { NoModifiers $1 }
+ | member_modifier+       { VModifiers $1 }
 
 %inline member_modifier:
  | class_modifier { $1 }
@@ -848,10 +778,7 @@ class_modifier:
  | T_STATIC    { Static,($1) }
  | T_ASYNC     { Async,($1) }
  | T_READONLY  { Readonly,($1) }
- | set_visibility_modifier { $1 }
-
-(* PHP 8.4 asymmetric visibility *)
-%inline set_visibility_modifier:
+ (* PHP 8.4 asymmetric visibility *)
  | T_PRIVATE "(" T_IDENT ")"
      { let (s, _) = $3 in
        if s = "set" then PrivateSet, $1
@@ -878,47 +805,21 @@ implements_list:
 (* Member declaration *)
 (*----------------------------*)
 
-(* Constants, properties and methods all start with the same optional
- * attributes and modifiers, so they share that prefix here and are told apart
- * by what follows it. Giving each its own modifier rule instead would force
- * the parser to pick a member kind before it can know, which is ambiguous:
- * 'final public function f() {}' and 'public final const K = 1;' were then
- * rejected while the other order of the same modifiers was accepted.
- *
- * The modifiers a given member kind actually accepts are not checked here.
- *)
 member_declaration:
- | ioption(attributes) member_modifier*
+ (* class constants - PHP 8.1 allows final modifier *)
+ | const_modifier*
    T_CONST ioption(type_php) listc(class_constant_declaration)  ";"
-     { ClassConstants($1, $2, $3, $4, $5, $6) }
+     { ClassConstants($1, $2, $3, $4, $5) }
 
 (* class variables (aka properties) *)
- | ioption(attributes) member_modifier* ioption(prop_type_php)
-   listc(class_variable_simple) ";"
-     { ClassVariables($1, VModifiers $2, $3, $4, $5)  }
+ | variable_modifiers ioption(type_php) listc(class_variable_simple) ";"
+     { ClassVariables($1, $2, $3, $4)  }
  (* PHP 8.4: property with hooks - single variable, no semicolon *)
- | ioption(attributes) member_modifier* ioption(prop_type_php) class_variable_hooked
-     { ClassVariables($1, VModifiers $2, $3, [Left $4], Tok.FakeTok(";", None)) }
- (* the old 'var $x;' form *)
- | T_VAR ioption(type_php) listc(class_variable_simple) ";"
-     { ClassVariables(None, NoModifiers $1, $2, $3, $4)  }
- | T_VAR ioption(type_php) class_variable_hooked
-     { ClassVariables(None, NoModifiers $1, $2, [Left $3], Tok.FakeTok(";", None)) }
+ | variable_modifiers ioption(type_php) class_variable_hooked
+     { ClassVariables($1, $2, [Left $3], Tok.FakeTok(";", None))  }
 
 (* class methods *)
- | ioption(attributes) member_modifier* method_declaration
-     { Method { $3 with f_attrs = $1; f_modifiers = $2 } }
-
-(* enum cases; an alternative here rather than a list of its own preceding
- * the members, so that the parser does not have to commit to 'case' or to a
- * member on seeing the '#[' of an attribute, which it cannot yet tell apart.
- * A case is only meaningful in an enum, and a value only in a backed one;
- * neither is checked here.
- *)
- | ioption(attributes) T_CASE ident_semi_reserved ";"
-     { make_class_vars $1 (DName $3, None, None) }
- | ioption(attributes) T_CASE ident_semi_reserved TEQ static_scalar ";"
-     { make_class_vars $1 (DName $3, Some ($4, $5), None) }
+ | ioption(attributes) method_declaration { Method { $2 with f_attrs = $1 } }
 
 (* php 5.4 traits *)
  | T_USE class_name_list ";"
@@ -929,17 +830,16 @@ member_declaration:
  (* semgrep-ext: *)
  | "..." { Flag_parsing.sgrep_guard (DeclEllipsis $1) }
 
-(* the modifiers are supplied by the caller, see member_declaration *)
 method_declaration:
-  T_FUNCTION is_reference ident_method_name type_params_opt
+  member_modifier* T_FUNCTION is_reference ident_method_name type_params_opt
      "(" parameter_list ")"
      return_type?
      method_body
-     { validate_parameter_list $6;
-       let body, function_type = $9 in
-       ({ f_tok = $1; f_ref = $2; f_name = Name $3; f_tparams = $4;
-          f_params = ($5, $6, $7); f_return_type = $8;
-          f_body = body; f_type = function_type; f_modifiers = [];
+     { validate_parameter_list $7;
+       let body, function_type = $10 in
+       ({ f_tok = $2; f_ref = $3; f_name = Name $4; f_tparams = $5;
+          f_params = ($6, $7, $8); f_return_type = $9;
+          f_body = body; f_type = function_type; f_modifiers = $1;
           f_attrs = None;
         })
      }
@@ -963,21 +863,15 @@ property_hooks:
  | "{" property_hook* "}" { ($1, $2, $3) }
 
 property_hook:
- | ioption(attributes) hook_modifier* is_reference T_IDENT
-   property_hook_params? property_hook_body
-     { let (s, tok) = $4 in
+ | T_IDENT property_hook_params? property_hook_body
+     { let (s, tok) = $1 in
        let kind = match s with
          | "get" -> PhGet
          | "set" -> PhSet
          | _ -> raise (Parsing.Parse_error)
        in
-       { ph_attrs = $1; ph_modifiers = $2; ph_ref = $3; ph_kind = (kind, tok);
-         ph_params = $5; ph_body = $6 }
+       { ph_kind = (kind, tok); ph_params = $2; ph_body = $3 }
      }
-
-(* only 'final' is allowed on a hook *)
-hook_modifier:
- | T_FINAL { Final, $1 }
 
 property_hook_params:
  | "(" parameter_list ")" { ($1, $2, $3) }
@@ -985,8 +879,6 @@ property_hook_params:
 property_hook_body:
  | "{" inner_statement* "}" { PHBlock ($1, $2, $3) }
  | T_ARROW expr ";" { PHExpr ($1, $2, $3) }
- (* no body, as in interfaces and abstract classes *)
- | ";" { PHAbstract $1 }
 
 method_body:
  | "{" inner_statement* "}" { ($1, $2, $3), MethodRegular }
@@ -1065,14 +957,6 @@ primary_type_php:
  | class_name { $1 }
  | T_SELF     { Hint (Self $1, None) }
  | T_PARENT   { Hint (Parent $1, None) }
- (* 'true' and 'false' are types of their own, as in 'array|false'. They are
-  * not class_name because the lexer reads them as booleans; 'null' needs no
-  * case here since it stays an ordinary identifier.
-  * The name comes from the parsed value rather than the source text, so that
-  * 'FALSE' and 'false' give the same type, as T_ARRAY does for 'array'. *)
- | T_BOOL     { let (b, tok) = $1 in
-                let s = if b then "true" else "false" in
-                Hint (XName [QI (Name (s, tok))], None) }
  (* hack-ext: hack extensions *)
  | "?" type_php
      { HintQuestion ($1, $2)  }
@@ -1109,34 +993,21 @@ type_arg_list:
   | type_php                       { [Left $1]}
   | type_php "," type_arg_list     { (Left $1)::(Right $2):: $3 }
 
-(* 'static' is a type only in return position, so it is spelled out here
- * rather than in primary_type_php, where it would be ambiguous with the
- * 'static' modifier of a property or method.
- *)
-return_type:
- | ":" type_php     { $1, $2 }
- | ":" bare_intersection_php { $1, $2 }
- | ":" T_STATIC     { $1, Hint (LateStatic $2, None) }
- | ":" "?" T_STATIC { $1, HintQuestion ($2, Hint (LateStatic $3, None)) }
+return_type: ":" type_php                 { $1, $2 }
 
 (*************************************************************************)
 (* Attributes *)
 (*************************************************************************)
 (* PHP 8 extension (was using << >> in HPHP) *)
 attributes:
-| "#[" attribute_list "]" { ($1, $2, $3) }
+| "#[" listc(attribute) "]" { ($1, $2, $3) }
 | attributes attributes {match ($1, $2) with ((lp,xs1,_),(_,xs2,rp)) -> (lp,xs1@xs2,rp)}
 
 attribute:
- | qualified_class_name                                  { Attribute $1 }
- | qualified_class_name "(" attribute_argument_list ")"  { AttributeWithArgs ($1,($2,$3,$4)) }
+ | ident                                  { Attribute $1 }
+ | ident "(" attribute_argument_list ")"  { AttributeWithArgs ($1,($2,$3,$4)) }
 
-(* attribute arguments are static scalars, but may be named (PHP 8.0),
- * as in '#[\Deprecated(message: "...", since: "8.4")]'
- *)
-attribute_argument:
- | static_scalar                      { Arg $1 }
- | ident_semi_reserved ":" static_scalar  { ArgLabel (Name $1, $2, $3) }
+attribute_argument: static_scalar { $1 }
 
 (*************************************************************************)
 (* Expressions *)
@@ -1151,16 +1022,13 @@ expr:
   * force to have a 'simple_expr' on the left side.
   *)
  | simple_expr TEQ expr { Assign($1,$2, $3) }
- | simple_expr TEQ tand_any expr   { AssignRef($1,$2,$3, $4) }
+ | simple_expr TEQ TAND expr   { AssignRef($1,$2,$3, $4) }
 
  | simple_expr T_PLUS_EQUAL   expr { AssignOp($1,(AssignOpArith Plus,$2),$3) }
  | simple_expr T_MINUS_EQUAL  expr { AssignOp($1,(AssignOpArith Minus,$2),$3) }
  | simple_expr T_MUL_EQUAL    expr { AssignOp($1,(AssignOpArith Mul,$2),$3) }
  | simple_expr T_DIV_EQUAL    expr { AssignOp($1,(AssignOpArith Div,$2),$3) }
  | simple_expr T_MOD_EQUAL    expr { AssignOp($1,(AssignOpArith Mod,$2),$3) }
- | simple_expr T_POW_EQUAL    expr { AssignOp($1,(AssignOpArith Pow,$2),$3) }
- | simple_expr T_NULL_COALESCE_EQUAL expr
-     { AssignOp($1,(AssignOpArith Nullish,$2),$3) }
  | simple_expr T_AND_EQUAL    expr { AssignOp($1,(AssignOpArith And,$2),$3) }
  | simple_expr T_OR_EQUAL     expr { AssignOp($1,(AssignOpArith Or,$2),$3) }
  | simple_expr T_XOR_EQUAL    expr { AssignOp($1,(AssignOpArith Xor,$2),$3) }
@@ -1182,9 +1050,6 @@ expr:
  | expr T_LOGICAL_AND  expr { Binary($1,(Logical AndLog, $2),$3) }
  | expr T_LOGICAL_XOR  expr { Binary($1,(Logical XorLog, $2),$3) }
 
- (* PHP 8.5 pipe operator *)
- | expr "|>" expr { Pipe($1, $2, $3) }
-
  | expr TPLUS expr  { Binary($1,(Arith Plus ,$2),$3) }
  | expr TMINUS expr     { Binary($1,(Arith Minus,$2),$3) }
  | expr TMUL expr   { Binary($1,(Arith Mul,$2),$3) }
@@ -1192,7 +1057,7 @@ expr:
  | expr TMOD expr   { Binary($1,(Arith Mod,$2),$3) }
  | expr TPOW expr   { Binary($1,(Arith Pow,$2),$3) }
 
- | expr tand_any expr   { Binary($1,(Arith And,$2),$3) }
+ | expr TAND expr   { Binary($1,(Arith And,$2),$3) }
  | expr "|" expr    { Binary($1,(Arith Or,$2),$3) }
  | expr TXOR expr   { Binary($1,(Arith Xor,$2),$3) }
  | expr T_SL expr   { Binary($1,(Arith DecLeft,$2),$3) }
@@ -1233,8 +1098,6 @@ expr:
  | T_STRING_CAST expr   { Cast((StringTy,$1),$2) }
  | T_ARRAY_CAST  expr   { Cast((ArrayTy,$1),$2) }
  | T_OBJECT_CAST expr   { Cast((ObjectTy,$1),$2) }
- (* PHP 8.5: marks that not using the value is intentional *)
- | T_VOID_CAST   expr   { Cast((VoidTy,$1),$2) }
   | T_MATCH "(" expr_or_dots ")" match_cases
   { Match ($1,$3,$5)}
 
@@ -1248,7 +1111,20 @@ expr:
  | T_CLONE expr { Clone($1,$2) }
 
  (* PHP 5.3 Closures *)
- | closure_expr { $1 }
+ | async_opt T_FUNCTION is_reference "(" parameter_list ")"
+   lexical_vars return_type?
+   "{" inner_statement* "}"
+   { validate_parameter_list $5;
+     let params = ($4, $5, $6) in
+       let body = ($9, $10, $11) in
+       Lambda ($7, { f_tok = $2;f_ref = $3;f_params = params; f_body = body;
+                     f_tparams = None;
+                     f_name = Name("__lambda__", $2);
+                     f_return_type = $8; f_type = FunctionLambda;
+                     f_modifiers = $1;
+                     f_attrs = None;
+       })
+   }
  (* php-facebook-ext: lambda (short closure)s *)
  | lambda_expr { $1 }
  (* arrow functions, since PHP 7.4 *)
@@ -1257,11 +1133,11 @@ expr:
  (* php-facebook-ext: in hphp.y yield are at the statement level
   * and are restricted to a few forms.
   * TODO: can't use expr_or_dots here
+  * TODO: keep T_FROM in AST
   *)
- | T_YIELD                   { Yield ($1, None) }
- | T_YIELD expr              { Yield ($1, Some (ArrayExpr $2)) }
- | T_YIELD expr "=>" expr { Yield ($1, Some (ArrayArrowExpr ($2, $3, $4))) }
- | T_YIELD T_FROM expr       { YieldFrom ($1, $2, $3) }
+ | T_YIELD expr              { Yield ($1, ArrayExpr $2) }
+ | T_YIELD expr "=>" expr { Yield ($1, ArrayArrowExpr ($2, $3, $4)) }
+ | T_YIELD T_FROM expr              { Yield ($1, ArrayExpr $3) }
  | T_YIELD T_BREAK { YieldBreak ($1, $2) }
  (* php-facebook-ext: Just like yield, await is at the statement level *)
  | T_AWAIT expr { Await ($1, $2) }
@@ -1280,26 +1156,6 @@ expr:
  | T_LIST "(" assignment_list ")" TEQ expr
      { AssignList($1,($2,$3,$4),$5,$6) }
 
-(* PHP 5.3 closures. A nonterminal of its own, and defined after the last
- * production of 'expr' rather than among them, so that static_scalar can
- * reuse it: PHP 8.5 allows a closure in a constant expression.
- *)
-closure_expr:
- | ioption(attributes) async_opt T_FUNCTION is_reference "(" parameter_list ")"
-   lexical_vars return_type?
-   "{" inner_statement* "}"
-   { validate_parameter_list $6;
-     let params = ($5, $6, $7) in
-       let body = ($10, $11, $12) in
-       Lambda ($8, { f_tok = $3;f_ref = $4;f_params = params; f_body = body;
-                     f_tparams = None;
-                     f_name = Name("__lambda__", $3);
-                     f_return_type = $9; f_type = FunctionLambda;
-                     f_modifiers = $2;
-                     f_attrs = $1;
-       })
-   }
-
 (* inspired by parser_js.mly *)
 simple_expr:
  | new_expr { $1 }
@@ -1307,39 +1163,20 @@ simple_expr:
 
 new_expr:
  | member_expr { $1 }
- (* Without parentheses. The parenthesized form is a call_expr instead, so
-  * that PHP 8.4 can dereference it directly, as in 'new Foo()->bar()'.
-  * Note that 'new Foo->bar()' keeps its old meaning of 'new (Foo->bar)()'.
-  *)
- | T_NEW member_expr { New ($1, $2, None) }
+ | T_NEW member_expr arguments? { New ($1, $2, $3) }
+ | T_NEW T_CLASS arguments? extends_from implements_list
+   "{" member_declaration* "}"
+     { let class_ =
+         { c_type = ClassRegular $2; c_name = Name ("!ANON!", $2);
+           c_extends = $4; c_tparams = None;
+           c_implements = $5; c_body = $6, $7, $8;
+           c_attrs = None; c_enum_type = None; }
+       in
+       NewAnonClass ($1, $3, class_)
+     }
 
 call_expr:
  | member_expr arguments { Call ($1, $2) }
- (* PHP 8.4: 'new Foo()' is dereferencable, so it lives here rather than in
-  * new_expr; the postfix rules below then give '->', '::', '[' and '(' for
-  * free, as in 'new Foo()->bar()' or 'new Foo()::CONST'.
-  *)
- | T_NEW member_expr arguments { New ($1, $2, Some $3) }
- (* PHP 8.5 clone-with. It lives here rather than next to the prefix 'clone'
-  * so that the postfix rules apply to its result, as in
-  * 'clone($obj, ['p' => 1])->m()'.
-  *)
- | T_CLONE "(" expr "," expr ")" { CloneWith($1, ($2, ($3, $4, $5), $6)) }
- (* An anonymous class is dereferencable too, and unlike a named class it does
-  * not need the parentheses, since its own brackets come before the body:
-  * both 'new class {}->m()' and 'new class () {}->m()' are valid.
-  *)
- | T_NEW ioption(attributes) anon_class_entry_type arguments? extends_from implements_list
-   "{" member_declaration* "}"
-     { let c_type, tok = $3 in
-       let class_ =
-         { c_type; c_name = Name ("!ANON!", tok);
-           c_extends = $5; c_tparams = None;
-           c_implements = $6; c_body = $7, $8, $9;
-           c_attrs = $2; c_enum_type = None; }
-       in
-       NewAnonClass ($1, $4, class_)
-     }
  (* PHP 8.1: first-class callable syntax: strlen(...), $obj->method(...), etc.
   * In sgrep/pattern mode, ... means ellipsis (match any args).
   * In code mode, ... means first-class callable. *)
@@ -1359,16 +1196,6 @@ call_expr:
  (* semgrep-ext: *)
  | call_expr "->" "..."
     { Flag_parsing.sgrep_guard (ObjGet($1, $2, Ellipsis $3)) }
- (* '::' after a call, as in 'foo()::CONST' or 'new Foo()::CONST'.
-  * These mirror the member_expr rules below.
-  *)
- | call_expr "::" primary_expr { ClassGet($1, $2, $3) }
- | call_expr "::" keyword_as_ident_for_field
-    { ClassGet($1, $2, Id (XName [QI (Name $3)]))  }
- | call_expr "::" T_CLASS
-     { ClassGet($1, $2, Id (XName [QI (Name("class", $3))])) }
- | call_expr "::" "{" expr "}"
-     { ClassGet($1, $2, (BraceIdent ($3, $4, $5))) }
 
 member_expr:
  | primary_expr { $1 }
@@ -1448,7 +1275,7 @@ static_scalar:
  | static_scalar TPOW static_scalar   { Binary($1,(Arith Pow,$2),$3) }
  | static_scalar "." static_scalar    { Binary($1,(BinaryConcat,$2),$3) }
  (* Bitwise *)
- | static_scalar tand_any static_scalar   { Binary($1,(Arith And,$2),$3) }
+ | static_scalar TAND static_scalar   { Binary($1,(Arith And,$2),$3) }
  | static_scalar "|" static_scalar    { Binary($1,(Arith Or,$2),$3) }
  | static_scalar TXOR static_scalar   { Binary($1,(Arith Xor,$2),$3) }
  | static_scalar T_SL static_scalar   { Binary($1,(Arith DecLeft,$2),$3) }
@@ -1482,59 +1309,9 @@ static_scalar:
 static_scalar_primary:
  | constant { Sc (C $1) }
  | qualified_class_name { Id $1 }
- (* a heredoc or nowdoc is a constant expression, as in
-  * "const T = <<<EOT ... EOT;". PHP allows one that interpolates to be
-  * parsed here too and rejects it later, which is what encaps* does.
-  *)
- | T_START_HEREDOC encaps* T_END_HEREDOC { Sc (HereDoc ($1, $2, $3)) }
  | T_ARRAY "(" array_pair_list ")"  { ArrayLong($1,($2,$3,$4)) }
  | "[" array_pair_list "]"          { ArrayShort($1,$2,$3) }
  | "(" static_scalar ")"            { ParenExpr($1,$2,$3) }
- (* indexing is allowed in a constant expression, as in '"BAR"[0]' or
-  * '["a" => 1]["a"]' *)
- | static_scalar_primary "[" static_scalar "]"
-     { ArrayGet($1, ($2, Some $3, $4)) }
- (* PHP 8.5: a constant expression may be a closure or a first-class
-  * callable. PHP requires the closure to be static and forbids 'use', which
-  * is not enforced here. *)
- | closure_expr { $1 }
- | arrow_expr   { $1 }
- (* PHP 8.1: 'new' in initializers. The class name is a plain name rather than
-  * any constant expression, which keeps this conflict-free and covers what
-  * PHP itself allows here.
-  *)
- | T_NEW qualified_class_name arguments? { New ($1, Id $2, $3) }
- (* self/parent/static are keywords, so they are not qualified_class_name *)
- | T_NEW T_SELF arguments?   { New ($1, Id (Self $2), $3) }
- | T_NEW T_PARENT arguments? { New ($1, Id (Parent $2), $3) }
- | T_NEW T_STATIC arguments? { New ($1, Id (LateStatic $2), $3) }
- | T_NEW ioption(attributes) anon_class_entry_type arguments? extends_from implements_list
-   "{" member_declaration* "}"
-     { let c_type, tok = $3 in
-       let class_ =
-         { c_type; c_name = Name ("!ANON!", tok);
-           c_extends = $5; c_tparams = None;
-           c_implements = $6; c_body = $7, $8, $9;
-           c_attrs = $2; c_enum_type = None; }
-       in
-       NewAnonClass ($1, $4, class_)
-     }
- (* first-class callables; PHP only allows a function or a static method
-  * here, since the closure a constant expression yields has to be static *)
- | qualified_class_name "(" "..." ")"
-     { if Domain.DLS.get Flag_parsing.sgrep_mode
-       then Call (Id $1, ($2, [Left (Arg (Ellipsis $3))], $4))
-       else FirstClassCallable (Id $1, $2, $3, $4) }
- | qualified_class_name "::" ident "(" "..." ")"
-     { let callee = ClassGet(Id $1, $2, Id (XName [QI (Name $3)])) in
-       if Domain.DLS.get Flag_parsing.sgrep_mode
-       then Call (callee, ($4, [Left (Arg (Ellipsis $5))], $6))
-       else FirstClassCallable (callee, $4, $5, $6) }
- | T_SELF "::" ident "(" "..." ")"
-     { let callee = ClassGet(Id (Self $1), $2, Id (XName [QI (Name $3)])) in
-       if Domain.DLS.get Flag_parsing.sgrep_mode
-       then Call (callee, ($4, [Left (Arg (Ellipsis $5))], $6))
-       else FirstClassCallable (callee, $4, $5, $6) }
  (* Class constant access: self/parent must come before qualified_class_name *)
  | T_SELF "::" ident                 { ClassGet(Id (Self $1),$2,Id (XName [QI (Name $3)])) }
  | T_SELF "::" T_CLASS               { ClassGet(Id (Self $1),$2,Id (XName [QI (Name ("class",$3))])) }
@@ -1542,16 +1319,6 @@ static_scalar_primary:
  | T_PARENT "::" T_CLASS             { ClassGet(Id (Parent $1),$2,Id (XName [QI (Name ("class",$3))])) }
  | qualified_class_name "::" ident   { ClassGet(Id $1,$2,Id (XName [QI (Name $3)])) }
  | qualified_class_name "::" T_CLASS { ClassGet(Id $1,$2,Id (XName [QI (Name ("class",$3))])) }
- (* PHP 8.3: a property may be read in a constant expression, which is how an
-  * enum case's name or value is used there: 'Suit::Hearts->value'. The
-  * operand is any constant expression, as in '(new A)->prop'; PHP rejects
-  * the ones that are not objects when the constant is evaluated.
-  * '?->' lexes as the same token, so it is covered too.
-  *)
- | static_scalar_primary "->" ident
-     { ObjGet($1, $2, Id (XName [QI (Name $3)])) }
- | static_scalar_primary "->" "{" static_scalar "}"
-     { ObjGet($1, $2, BraceIdent ($3, $4, $5)) }
 
 (*----------------------------*)
 (* list/array *)
@@ -1559,23 +1326,15 @@ static_scalar_primary:
 
 assignment_list_element:
  | expr             { ListVar $1 }
- | tand_any expr        { ListRef ($1, $2) }
  | T_LIST "(" assignment_list ")"   { ListList ($1, ($2, $3, $4)) }
- (* keyed destructuring; the value may itself be a reference or a nested list *)
- | expr "=>" expr        { ListArrow ($1, $2, ListVar $3) }
- | expr "=>" tand_any expr   { ListArrow ($1, $2, ListRef ($3, $4)) }
- | expr "=>" T_LIST "(" assignment_list ")"
-     { ListArrow ($1, $2, ListList ($3, ($4, $5, $6))) }
  | (*empty*)            { ListEmpty }
 
 array_pair_list: array_pair_list_rev { List.rev $1 }
 array_pair:
  | expr_or_dots                    { (ArrayExpr $1) }
- | tand_any expr               { (ArrayRef ($1,$2)) }
- (* array unpacking *)
- | "..." expr              { (ArrayUnpack ($1,$2)) }
+ | TAND expr               { (ArrayRef ($1,$2)) }
  | expr "=>" expr          { (ArrayArrowExpr($1,$2,$3)) }
- | expr "=>" tand_any expr { (ArrayArrowRef($1,$2,$3,$4)) }
+ | expr "=>" TAND expr { (ArrayArrowRef($1,$2,$3,$4)) }
 
 (*----------------------------*)
 (* Calls *)
@@ -1592,10 +1351,9 @@ expr_or_dots:
 
 function_call_argument:
  | expr_or_dots             { (Arg ($1)) }
- | tand_any expr        { (ArgRef($1, $2)) }
+ | TAND expr        { (ArgRef($1, $2)) }
  | "..." expr       { (ArgUnpack($1, $2)) }
- (* named argument; the label may be any identifier, incl. keywords *)
- | ident_semi_reserved ":" expr_or_dots { (ArgLabel (Name $1,$2,$3)) }
+ | ident ":" expr { (ArgLabel (Name $1,$2,$3)) }
 
 (*----------------------------*)
 (* encaps *)
@@ -1672,14 +1430,12 @@ encaps_var_offset:
  *)
 
 arrow_expr:
- | ioption(attributes) async_opt T_FN is_reference "(" parameter_list ")"
-   return_type? T_ARROW expr
-   { validate_parameter_list $6;
-     let sl_tok = Some $9 in
-     let sl_body = SLExpr $10 in
-     let sl_params = SLParams ($5, $6, $7) in
-     ShortLambda { sl_params; sl_tok; sl_body; sl_modifiers = $2;
-                   sl_ref = $4; sl_return_type = $8; sl_attrs = $1; }
+ | T_FN "(" parameter_list ")" T_ARROW expr
+   { validate_parameter_list $3;
+     let sl_tok = Some $5 in
+     let sl_body = SLExpr $6 in
+     let sl_params = SLParams ($2, $3, $4) in
+     ShortLambda { sl_params; sl_tok; sl_body; sl_modifiers = []; }
    }
 
 lambda_expr:
@@ -1688,31 +1444,27 @@ lambda_expr:
      {
        let sl_tok, sl_body = $2 in
        let sl_params = SLSingleParam (mk_param $1) in
-       ShortLambda { sl_params; sl_tok; sl_body; sl_modifiers = [];
-                     sl_ref = None; sl_return_type = None; sl_attrs = None }
+       ShortLambda { sl_params; sl_tok; sl_body; sl_modifiers = [] }
      }
  | T_ASYNC T_VARIABLE lambda_body
      {
        let sl_tok, sl_body = $3 in
        let sl_params = SLSingleParam (mk_param $2) in
-       ShortLambda { sl_params; sl_tok; sl_body; sl_modifiers = [Async,($1)];
-                     sl_ref = None; sl_return_type = None; sl_attrs = None }
+       ShortLambda { sl_params; sl_tok; sl_body; sl_modifiers = [Async,($1)] }
      }
  | T_LAMBDA_OPAR parameter_list T_LAMBDA_CPAR return_type? lambda_body
      {
        validate_parameter_list $2;
        let sl_tok, sl_body = $5 in
        let sl_params = SLParams ($1, $2, $3) in
-       ShortLambda { sl_params; sl_tok; sl_body; sl_modifiers = [];
-                     sl_ref = None; sl_return_type = None; sl_attrs = None; }
+       ShortLambda { sl_params; sl_tok; sl_body; sl_modifiers = []; }
      }
  | T_ASYNC T_LAMBDA_OPAR parameter_list T_LAMBDA_CPAR return_type? lambda_body
      {
        validate_parameter_list $3;
        let sl_tok, sl_body = $6 in
        let sl_params = SLParams ($2, $3, $4) in
-       ShortLambda { sl_params; sl_tok; sl_body; sl_modifiers = [Async,($1)];
-                     sl_ref = None; sl_return_type = None; sl_attrs = None; }
+       ShortLambda { sl_params; sl_tok; sl_body; sl_modifiers = [Async,($1)]; }
      }
  | T_ASYNC "{" inner_statement* "}"
      {
@@ -1721,9 +1473,6 @@ lambda_expr:
                      sl_tok = None;
                      sl_body;
                      sl_modifiers = [Async,($1)];
-                     sl_ref = None;
-                     sl_return_type = None;
-                     sl_attrs = None;
                    }
      }
 
@@ -1789,87 +1538,14 @@ ident_class_name:
 
 (* used in method definitions *)
 ident_method_name:
- | ident_semi_reserved { $1 }
+ | ident { $1 }
+ (* I would like to put all keywords, but some generate s/r conflicts, so
+  * for now I add them on-demand
+  *)
+ | keyword_as_ident { $1 }
 
 (* used in constant definitions *)
 ident_constant_name: ident_method_name { $1 }
-
-(* any identifier, including every keyword PHP calls semi-reserved. Legal as a
- * named-argument label, an enum case name, a method name and a constant name.
- * coupling: semi_reserved in Zend's zend_language_parser.y
- *)
-ident_semi_reserved:
- | ident { $1 }
- | keyword_as_ident { $1 }
- | T_IF            { str_of_info $1, $1 }
- | T_ELSE          { str_of_info $1, $1 }
- | T_ELSEIF        { str_of_info $1, $1 }
- | T_ENDIF         { str_of_info $1, $1 }
- | T_DO            { str_of_info $1, $1 }
- | T_WHILE         { str_of_info $1, $1 }
- | T_ENDWHILE      { str_of_info $1, $1 }
- | T_ENDFOR        { str_of_info $1, $1 }
- | T_FOREACH       { str_of_info $1, $1 }
- | T_ENDFOREACH    { str_of_info $1, $1 }
- | T_MATCH         { str_of_info $1, $1 }
- | T_SWITCH        { str_of_info $1, $1 }
- | T_ENDSWITCH     { str_of_info $1, $1 }
- | T_CASE          { str_of_info $1, $1 }
- | T_BREAK         { str_of_info $1, $1 }
- | T_CONTINUE      { str_of_info $1, $1 }
- | T_RETURN        { str_of_info $1, $1 }
- | T_TRY           { str_of_info $1, $1 }
- | T_CATCH         { str_of_info $1, $1 }
- | T_FINALLY       { str_of_info $1, $1 }
- | T_THROW         { str_of_info $1, $1 }
- | T_EXIT          { str_of_info $1, $1 }
- | T_DECLARE       { str_of_info $1, $1 }
- | T_ENDDECLARE    { str_of_info $1, $1 }
- | T_USE           { str_of_info $1, $1 }
- | T_FUNCTION      { str_of_info $1, $1 }
- | T_FN            { str_of_info $1, $1 }
- | T_CONST         { str_of_info $1, $1 }
- | T_VAR           { str_of_info $1, $1 }
- | T_ECHO          { str_of_info $1, $1 }
- | T_PRINT         { str_of_info $1, $1 }
- | T_STATIC        { str_of_info $1, $1 }
- | T_ABSTRACT      { str_of_info $1, $1 }
- | T_FINAL         { str_of_info $1, $1 }
- | T_PRIVATE       { str_of_info $1, $1 }
- | T_PROTECTED     { str_of_info $1, $1 }
- | T_READONLY      { str_of_info $1, $1 }
- | T_UNSET         { str_of_info $1, $1 }
- | T_ISSET         { str_of_info $1, $1 }
- | T_EMPTY         { str_of_info $1, $1 }
- | T_CLASS         { str_of_info $1, $1 }
- | T_INTERFACE     { str_of_info $1, $1 }
- | T_EXTENDS       { str_of_info $1, $1 }
- | T_IMPLEMENTS    { str_of_info $1, $1 }
- | T_TRAIT         { str_of_info $1, $1 }
- | T_INSTEADOF     { str_of_info $1, $1 }
- | T_NAMESPACE     { str_of_info $1, $1 }
- | T_CLASS_C       { str_of_info $1, $1 }
- | T_METHOD_C      { str_of_info $1, $1 }
- | T_FUNC_C        { str_of_info $1, $1 }
- | T_LINE          { str_of_info $1, $1 }
- | T_FILE          { str_of_info $1, $1 }
- | T_DIR           { str_of_info $1, $1 }
- | T_TRAIT_C       { str_of_info $1, $1 }
- | T_NAMESPACE_C   { str_of_info $1, $1 }
- | T_LOGICAL_OR    { str_of_info $1, $1 }
- | T_LOGICAL_XOR   { str_of_info $1, $1 }
- | T_CLONE         { str_of_info $1, $1 }
- | T_INCLUDE_ONCE  { str_of_info $1, $1 }
- | T_REQUIRE       { str_of_info $1, $1 }
- | T_REQUIRE_ONCE  { str_of_info $1, $1 }
- | T_EVAL          { str_of_info $1, $1 }
- | T_AWAIT         { str_of_info $1, $1 }
- | T_YIELD         { str_of_info $1, $1 }
- | T_GOTO          { str_of_info $1, $1 }
- (* 'true' and 'false' are ordinary identifiers in a label position, but the
-  * lexer has already read them as booleans, so recover the word from the token
-  *)
- | T_BOOL          { let (_, tok) = $1 in str_of_info tok, tok }
 
 keyword_as_ident:
  | T_PARENT      { str_of_info $1, $1 }
@@ -1891,6 +1567,7 @@ keyword_as_ident_for_field:
  | T_LIST        { str_of_info $1, $1 }
  | T_LOGICAL_AND { str_of_info $1, $1 }
  | T_NEW         { str_of_info $1, $1 }
+ | T_FROM        { str_of_info $1, $1 }
  | T_GLOBAL       { str_of_info $1, $1 }
  | T_AS       { str_of_info $1, $1 }
  | T_FOR       { str_of_info $1, $1 }
@@ -1972,15 +1649,10 @@ class_name_no_array: qualified_class_name type_arguments { Hint ($1, $2) }
 (* xxx_list, xxx_opt *)
 (*************************************************************************)
 
-(* both lists accept a trailing comma, as every other PHP argument list does *)
-attribute_list:
- | listc(attribute)     { $1 }
- | listc(attribute) "," { $1 @ [Right $2] }
-
 attribute_argument_list:
- | (*empty*)                     { [] }
- | listc(attribute_argument)     { $1 }
- | listc(attribute_argument) "," { $1 @ [Right $2] }
+ | (*empty*) { [] }
+ | attribute_argument { [Left $1] }
+ | attribute_argument_list "," attribute_argument { $1@[Right $2; Left $3]}
 
 (* less: should we allow the "..." only for the end? *)
 non_empty_type_php_or_dots_list:
@@ -1994,44 +1666,9 @@ non_empty_type_php_list:
 union_type_php_list:
  | list_sep(primary_type_php, "|") { $1 }
 
-(* PHP 8.1 intersection types written without parentheses, as in 'X&Y'.
- * Only offered where a '&' cannot instead introduce a by-reference
- * parameter: in 'f(X &$p)' the parser cannot tell which is meant until after
- * the '&', so allowing it there would break by-reference parameters.
- * Mixing '|' and '&' still needs the parenthesized DNF form, which
- * primary_type_php already covers.
- *)
-prop_type_php:
- | type_php { $1 }
- | bare_intersection_php { $1 }
-
-(* a parameter's type, where 'X&Y' is now told apart from 'X &$y' by the
- * token the '&' was split into *)
-param_type_php:
- | type_php { $1 }
- | bare_intersection_param_php { $1 }
-
-(* no parentheses to record here, so the '&' stands in for them;
- * php_to_generic ignores those and folds on the real '&' tokens *)
-bare_intersection_php:
- | class_name tand_any intersection_type_php_list
-     { HintIntersection ($2, Left $1 :: Right $2 :: $3, $2) }
-
-(* the same, in the one position where a '&' could instead introduce a
- * by-reference parameter. Only here must every '&' be the spelling that is
- * not followed by a variable, which is also why 'A&$T $p' cannot be written
- * in a pattern: '&$T' reads as the by-reference parameter it looks like.
- *)
-bare_intersection_param_php:
- | class_name TAND_NOT_VAR intersection_type_php_list_param
-     { HintIntersection ($2, Left $1 :: Right $2 :: $3, $2) }
-
-intersection_type_php_list_param:
- | list_sep(class_name, TAND_NOT_VAR) { $1 }
-
 (* PHP 8.1/8.2: intersection types use & separator, must have 2+ types *)
 intersection_type_php_list:
- | list_sep(class_name, tand_any) { $1 }
+ | list_sep(class_name, TAND) { $1 }
 
 class_name_list: listc(class_name_no_array) { $1 }
 

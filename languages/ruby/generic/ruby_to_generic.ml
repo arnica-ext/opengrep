@@ -74,6 +74,7 @@ let concatenate_literal_fragments xs =
   concat [] xs
 
 let rec expr e =
+  let original = ref None in
   (match e with
   | Literal x -> literal x
   | Atom (tk, x) -> atom tk x
@@ -129,6 +130,10 @@ let rec expr e =
   | ArrayAccess (e, (lb, args, rb)) ->
       let e = expr e in
       let args = list argument args in
+      let callee =
+        G.DotAccess (e, lb, G.FN (G.Id (("[", lb), G.empty_id_info ()))) |> G.e
+      in
+      original := Some (G.E (G.Call (callee, (lb, args, rb)) |> G.e));
       let exprs = List.filter_map (function G.Arg e -> Some e | _ -> None) args in
       let index = G.Container (G.Array, (lb, exprs, rb)) |> G.e in
       G.ArrayAccess (e, (lb, index, rb))
@@ -234,6 +239,17 @@ let rec expr e =
       G.TypedMetavar (v1, v2, v3)
   | TodoExpr (s, tk) -> G.OtherExpr ((s, G.fake s), [ G.Tk tk ]))
   |> G.e
+  |> fun result ->
+  match e with
+  | Call (DotAccess _, (l, [], r), None)
+    when Tok.is_fake l && Tok.is_fake r -> (
+      match result.e with
+      | G.Call (callee, _) -> { result with e_original = Some (G.E callee) }
+      | _ -> result)
+  | Literal (String (Double (marker, _, _)))
+    when String.starts_with ~prefix:"<<" (Tok.content_of_tok marker) ->
+      { result with e_original = Some (G.Tk marker) }
+  | _ -> { result with e_original = !original }
 
 and argument arg : G.argument =
   match arg with

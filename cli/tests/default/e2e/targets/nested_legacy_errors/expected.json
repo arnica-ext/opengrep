@@ -1,0 +1,353 @@
+{
+  "legacy": [
+    {
+      "check_id": "yaml-control",
+      "path": "targets/nested_legacy_errors/bad.yaml",
+      "start": {
+        "line": 1,
+        "col": 1,
+        "offset": 0
+      },
+      "end": {
+        "line": 2,
+        "col": 17,
+        "offset": 24
+      },
+      "extra": {
+        "metavars": {
+          "$X": {
+            "start": {
+              "line": 1,
+              "col": 8,
+              "offset": 7
+            },
+            "end": {
+              "line": 2,
+              "col": 17,
+              "offset": 24
+            },
+            "abstract_content": "\n  sink(\"def (\")\n"
+          }
+        },
+        "message": "Control",
+        "metadata": {},
+        "severity": "WARNING",
+        "fingerprint": "605da1b2fe47290594509251f2c90a4931b7dd5ba834202aee47557c893812f28655bb32eece1bca0d50ca21ec1ecfdf74cb4500def7785525da80f93283b7b2_0",
+        "lines": "code: |\n  sink(\"def (\")",
+        "is_ignored": false,
+        "validation_state": "NO_VALIDATOR",
+        "engine_kind": "OSS"
+      }
+    },
+    {
+      "check_id": "yaml-control",
+      "path": "targets/nested_legacy_errors/bad.yaml",
+      "start": {
+        "line": 3,
+        "col": 1,
+        "offset": 24
+      },
+      "end": {
+        "line": 4,
+        "col": 23,
+        "offset": 57
+      },
+      "extra": {
+        "metavars": {
+          "$X": {
+            "start": {
+              "line": 3,
+              "col": 11,
+              "offset": 34
+            },
+            "end": {
+              "line": 4,
+              "col": 23,
+              "offset": 57
+            },
+            "abstract_content": "\n  wrap(sink(\"def (\"))\n"
+          }
+        },
+        "message": "Control",
+        "metadata": {},
+        "severity": "WARNING",
+        "fingerprint": "94de843880157e008f0d36862825b6f7cbe5eb363b91d0c9af8aacfc140493b243cf448e92dab462ed4b549e5bc17d25e369fe9bd6da5634919ab90db4e6b252_0",
+        "lines": "wrapped: |\n  wrap(sink(\"def (\"))",
+        "is_ignored": false,
+        "validation_state": "NO_VALIDATOR",
+        "engine_kind": "OSS"
+      }
+    },
+    {
+      "check_id": "yaml-control",
+      "path": "targets/nested_legacy_errors/bad.yaml",
+      "start": {
+        "line": 5,
+        "col": 1,
+        "offset": 57
+      },
+      "end": {
+        "line": 6,
+        "col": 17,
+        "offset": 84
+      },
+      "extra": {
+        "metavars": {
+          "$X": {
+            "start": {
+              "line": 5,
+              "col": 11,
+              "offset": 67
+            },
+            "end": {
+              "line": 6,
+              "col": 17,
+              "offset": 84
+            },
+            "abstract_content": "\n  sink(\"def (\")\n"
+          }
+        },
+        "message": "Control",
+        "metadata": {},
+        "severity": "WARNING",
+        "fingerprint": "605da1b2fe47290594509251f2c90a4931b7dd5ba834202aee47557c893812f28655bb32eece1bca0d50ca21ec1ecfdf74cb4500def7785525da80f93283b7b2_1",
+        "lines": "missing: |\n  sink(\"def (\")",
+        "is_ignored": false,
+        "validation_state": "NO_VALIDATOR",
+        "engine_kind": "OSS"
+      }
+    },
+    {
+      "check_id": "elixir-control",
+      "path": "targets/nested_legacy_errors/direct.ex",
+      "start": {
+        "line": 2,
+        "col": 3,
+        "offset": 11
+      },
+      "end": {
+        "line": 2,
+        "col": 16,
+        "offset": 24
+      },
+      "extra": {
+        "metavars": {},
+        "message": "Control",
+        "metadata": {},
+        "severity": "WARNING",
+        "fingerprint": "a8d3cc74dfc70a7508cbd7db90a5267e77f850f5c288becd87b60eb9eba658a9db5c7dec993240d5f5b075069adf20eb1927bc83709fa8342ff2eadaea2fe53b_0",
+        "lines": "  sink(\"def (\")",
+        "is_ignored": false,
+        "validation_state": "NO_VALIDATOR",
+        "engine_kind": "OSS"
+      }
+    },
+    {
+      "check_id": "yaml-control",
+      "path": "targets/nested_legacy_errors/healthy.yaml",
+      "start": {
+        "line": 1,
+        "col": 1,
+        "offset": 0
+      },
+      "end": {
+        "line": 1,
+        "col": 14,
+        "offset": 13
+      },
+      "extra": {
+        "metavars": {},
+        "message": "Control",
+        "metadata": {},
+        "severity": "WARNING",
+        "fingerprint": "75207f25ad8e1d633adaac9ff3bb4309c9376e48489f141b574b9f08325542451e9f55fa1d348a121f39bdd4bf89fdf2e413e4cec59c681c1ae58843cbebed4b_0",
+        "lines": "healthy: true",
+        "is_ignored": false,
+        "validation_state": "NO_VALIDATOR",
+        "engine_kind": "OSS"
+      }
+    }
+  ],
+  "direct_error_span": {
+    "path": "targets/nested_legacy_errors/direct.ex",
+    "start": {
+      "line": 2,
+      "col": 8,
+      "offset": 16
+    },
+    "end": {
+      "line": 2,
+      "col": 13,
+      "offset": 21
+    }
+  },
+  "experimental": [
+    {
+      "check_id": "yaml-control",
+      "path": "targets/nested_legacy_errors/bad.yaml",
+      "start": {
+        "line": 1,
+        "col": 1,
+        "offset": 0
+      },
+      "end": {
+        "line": 2,
+        "col": 17,
+        "offset": 24
+      },
+      "extra": {
+        "metavars": {
+          "$X": {
+            "start": {
+              "line": 1,
+              "col": 8,
+              "offset": 7
+            },
+            "end": {
+              "line": 2,
+              "col": 17,
+              "offset": 24
+            },
+            "abstract_content": "\n  sink(\"def (\")\n"
+          }
+        },
+        "message": "Control",
+        "metadata": {},
+        "severity": "WARNING",
+        "fingerprint": "605da1b2fe47290594509251f2c90a4931b7dd5ba834202aee47557c893812f28655bb32eece1bca0d50ca21ec1ecfdf74cb4500def7785525da80f93283b7b2_0",
+        "lines": "code: |\n  sink(\"def (\")",
+        "is_ignored": false,
+        "validation_state": "NO_VALIDATOR",
+        "engine_kind": "OSS"
+      }
+    },
+    {
+      "check_id": "yaml-control",
+      "path": "targets/nested_legacy_errors/bad.yaml",
+      "start": {
+        "line": 3,
+        "col": 1,
+        "offset": 24
+      },
+      "end": {
+        "line": 4,
+        "col": 23,
+        "offset": 57
+      },
+      "extra": {
+        "metavars": {
+          "$X": {
+            "start": {
+              "line": 3,
+              "col": 11,
+              "offset": 34
+            },
+            "end": {
+              "line": 4,
+              "col": 23,
+              "offset": 57
+            },
+            "abstract_content": "\n  wrap(sink(\"def (\"))\n"
+          }
+        },
+        "message": "Control",
+        "metadata": {},
+        "severity": "WARNING",
+        "fingerprint": "94de843880157e008f0d36862825b6f7cbe5eb363b91d0c9af8aacfc140493b243cf448e92dab462ed4b549e5bc17d25e369fe9bd6da5634919ab90db4e6b252_0",
+        "lines": "wrapped: |\n  wrap(sink(\"def (\"))",
+        "is_ignored": false,
+        "validation_state": "NO_VALIDATOR",
+        "engine_kind": "OSS"
+      }
+    },
+    {
+      "check_id": "yaml-control",
+      "path": "targets/nested_legacy_errors/bad.yaml",
+      "start": {
+        "line": 5,
+        "col": 1,
+        "offset": 57
+      },
+      "end": {
+        "line": 6,
+        "col": 17,
+        "offset": 84
+      },
+      "extra": {
+        "metavars": {
+          "$X": {
+            "start": {
+              "line": 5,
+              "col": 11,
+              "offset": 67
+            },
+            "end": {
+              "line": 6,
+              "col": 17,
+              "offset": 84
+            },
+            "abstract_content": "\n  sink(\"def (\")\n"
+          }
+        },
+        "message": "Control",
+        "metadata": {},
+        "severity": "WARNING",
+        "fingerprint": "605da1b2fe47290594509251f2c90a4931b7dd5ba834202aee47557c893812f28655bb32eece1bca0d50ca21ec1ecfdf74cb4500def7785525da80f93283b7b2_1",
+        "lines": "missing: |\n  sink(\"def (\")",
+        "is_ignored": false,
+        "validation_state": "NO_VALIDATOR",
+        "engine_kind": "OSS"
+      }
+    },
+    {
+      "check_id": "elixir-control",
+      "path": "targets/nested_legacy_errors/direct.ex",
+      "start": {
+        "line": 2,
+        "col": 3,
+        "offset": 11
+      },
+      "end": {
+        "line": 2,
+        "col": 16,
+        "offset": 24
+      },
+      "extra": {
+        "metavars": {},
+        "message": "Control",
+        "metadata": {},
+        "severity": "WARNING",
+        "fingerprint": "a8d3cc74dfc70a7508cbd7db90a5267e77f850f5c288becd87b60eb9eba658a9db5c7dec993240d5f5b075069adf20eb1927bc83709fa8342ff2eadaea2fe53b_0",
+        "lines": "  sink(\"def (\")",
+        "is_ignored": false,
+        "validation_state": "NO_VALIDATOR",
+        "engine_kind": "OSS"
+      }
+    },
+    {
+      "check_id": "yaml-control",
+      "path": "targets/nested_legacy_errors/healthy.yaml",
+      "start": {
+        "line": 1,
+        "col": 1,
+        "offset": 0
+      },
+      "end": {
+        "line": 1,
+        "col": 14,
+        "offset": 13
+      },
+      "extra": {
+        "metavars": {},
+        "message": "Control",
+        "metadata": {},
+        "severity": "WARNING",
+        "fingerprint": "75207f25ad8e1d633adaac9ff3bb4309c9376e48489f141b574b9f08325542451e9f55fa1d348a121f39bdd4bf89fdf2e413e4cec59c681c1ae58843cbebed4b_0",
+        "lines": "healthy: true",
+        "is_ignored": false,
+        "validation_state": "NO_VALIDATOR",
+        "engine_kind": "OSS"
+      }
+    }
+  ]
+}

@@ -1,0 +1,308 @@
+{
+  "rules": [
+    {
+      "id": "legacy-js",
+      "languages": [
+        "javascript"
+      ],
+      "message": "capture",
+      "severity": "WARNING",
+      "pattern": "function $F($X) { ... }"
+    },
+    {
+      "id": "legacy-rb",
+      "languages": [
+        "ruby"
+      ],
+      "message": "capture",
+      "severity": "WARNING",
+      "pattern": "sink($X)"
+    },
+    {
+      "id": "legacy-ex",
+      "languages": [
+        "elixir"
+      ],
+      "message": "capture",
+      "severity": "WARNING",
+      "pattern": "sink($X)"
+    },
+    {
+      "id": "legacy-cs",
+      "languages": [
+        "csharp"
+      ],
+      "message": "capture",
+      "severity": "WARNING",
+      "pattern": "sink($X)"
+    },
+    {
+      "id": "legacy-rs",
+      "languages": [
+        "rust"
+      ],
+      "message": "capture",
+      "severity": "WARNING",
+      "pattern": "sink($X)"
+    },
+    {
+      "id": "legacy-dart",
+      "languages": [
+        "dart"
+      ],
+      "message": "capture",
+      "severity": "WARNING",
+      "pattern": "sink($X)"
+    },
+    {
+      "id": "legacy-jl",
+      "languages": [
+        "julia"
+      ],
+      "message": "capture",
+      "severity": "WARNING",
+      "pattern": "sink($X)"
+    },
+    {
+      "id": "legacy-clj",
+      "languages": [
+        "clojure"
+      ],
+      "message": "capture",
+      "severity": "WARNING",
+      "pattern": "(sink $X)"
+    },
+    {
+      "id": "legacy-java",
+      "languages": [
+        "java"
+      ],
+      "message": "capture",
+      "severity": "WARNING",
+      "pattern": "sink($X)"
+    },
+    {
+      "id": "legacy-kt",
+      "languages": [
+        "kotlin"
+      ],
+      "message": "capture",
+      "severity": "WARNING",
+      "pattern": "sink($X)"
+    },
+    {
+      "id": "legacy-sol",
+      "languages": [
+        "solidity"
+      ],
+      "message": "capture",
+      "severity": "WARNING",
+      "pattern": "$X = source()"
+    },
+    {
+      "id": "legacy-py",
+      "languages": [
+        "python"
+      ],
+      "message": "capture",
+      "severity": "WARNING",
+      "pattern": "$APP.config.update(WTF_CSRF_ENABLED=False)",
+      "options": {
+        "symbolic_propagation": true
+      }
+    },
+    {
+      "id": "legacy-dockerfile",
+      "languages": [
+        "dockerfile"
+      ],
+      "message": "capture",
+      "severity": "WARNING",
+      "pattern": "$X"
+    },
+    {
+      "id": "legacy-ts",
+      "languages": [
+        "typescript"
+      ],
+      "message": "capture",
+      "severity": "WARNING",
+      "pattern": "function $F($X) { ... }"
+    },
+    {
+      "id": "legacy-ruby-bare-method",
+      "languages": [
+        "ruby"
+      ],
+      "message": "capture",
+      "severity": "WARNING",
+      "patterns": [
+        {
+          "pattern": "Digest::SHA1.hexdigest"
+        }
+      ]
+    },
+    {
+      "id": "legacy-rust-parameter",
+      "languages": [
+        "rust"
+      ],
+      "message": "capture",
+      "severity": "WARNING",
+      "pattern": "fn parameter($X) { ... }"
+    },
+    {
+      "id": "legacy-js-spread",
+      "languages": [
+        "javascript",
+        "typescript"
+      ],
+      "message": "capture",
+      "severity": "WARNING",
+      "pattern": "sink($X)"
+    },
+    {
+      "id": "symbolic-disabled",
+      "languages": [
+        "python"
+      ],
+      "message": "capture",
+      "severity": "WARNING",
+      "pattern": "$APP.config.update(WTF_CSRF_ENABLED=False)"
+    },
+    {
+      "id": "symbolic-root",
+      "languages": [
+        "python"
+      ],
+      "message": "capture",
+      "severity": "WARNING",
+      "pattern": "$X",
+      "options": {
+        "symbolic_propagation": true
+      }
+    },
+    {
+      "id": "symbolic-existing-value",
+      "languages": [
+        "swift"
+      ],
+      "message": "capture",
+      "severity": "WARNING",
+      "options": {
+        "symbolic_propagation": true
+      },
+      "patterns": [
+        {
+          "pattern": "sink($X)"
+        },
+        {
+          "metavariable-regex": {
+            "metavariable": "$X",
+            "regex": "^passphrase$"
+          }
+        }
+      ]
+    },
+    {
+      "id": "legacy-ruby-symbol",
+      "languages": [
+        "ruby"
+      ],
+      "message": "capture",
+      "severity": "WARNING",
+      "patterns": [
+        {
+          "pattern": ":$KEY => $VALUE"
+        },
+        {
+          "metavariable-regex": {
+            "metavariable": "$KEY",
+            "regex": "^secret$"
+          }
+        }
+      ]
+    },
+    {
+      "languages": [
+        "ruby"
+      ],
+      "severity": "WARNING",
+      "mode": "taint",
+      "pattern-sanitizers": [
+        {
+          "pattern-either": [
+            {
+              "pattern": "sanitize(...)"
+            },
+            {
+              "pattern": "strip_tags(...)"
+            }
+          ]
+        }
+      ],
+      "pattern-sources": [
+        {
+          "patterns": [
+            {
+              "pattern-either": [
+                {
+                  "pattern": "params"
+                },
+                {
+                  "pattern": "request"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "pattern-sinks": [
+        {
+          "patterns": [
+            {
+              "pattern-either": [
+                {
+                  "patterns": [
+                    {
+                      "pattern": "$HTMLSTR\n"
+                    },
+                    {
+                      "pattern-regex": "<\\w+.*"
+                    }
+                  ]
+                },
+                {
+                  "patterns": [
+                    {
+                      "pattern-either": [
+                        {
+                          "pattern": "Kernel::sprintf(\"$HTMLSTR\", ...)"
+                        },
+                        {
+                          "pattern": "\"$HTMLSTR\" + $EXPR\n"
+                        },
+                        {
+                          "pattern": "\"$HTMLSTR\" % $EXPR\n"
+                        }
+                      ]
+                    },
+                    {
+                      "metavariable-pattern": {
+                        "metavariable": "$HTMLSTR",
+                        "language": "generic",
+                        "pattern": "<$TAG ..."
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "id": "legacy-ruby-taint",
+      "message": "capture"
+    }
+  ]
+}

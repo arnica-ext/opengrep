@@ -1,0 +1,306 @@
+[
+  {
+    "rule": "bare",
+    "path": "targets/legacy_ruby_calls/calls.rb",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 1,
+      "col": 13,
+      "offset": 12
+    },
+    "fingerprint": "8eab9ce63dba136e7dae2113676dfe19539e917a900b37100c593ee3454bfa28aefc942e55f41857455e8aafb47706771306f56af2842a45c33c4d0ef2416e41_0",
+    "captures": {}
+  },
+  {
+    "rule": "bare",
+    "path": "targets/legacy_ruby_calls/calls.rb",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 13
+    },
+    "end": {
+      "line": 2,
+      "col": 13,
+      "offset": 25
+    },
+    "fingerprint": "8eab9ce63dba136e7dae2113676dfe19539e917a900b37100c593ee3454bfa28aefc942e55f41857455e8aafb47706771306f56af2842a45c33c4d0ef2416e41_1",
+    "captures": {}
+  },
+  {
+    "rule": "arguments",
+    "path": "targets/legacy_ruby_calls/calls.rb",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 13
+    },
+    "end": {
+      "line": 2,
+      "col": 15,
+      "offset": 27
+    },
+    "fingerprint": "642c57352fadc77c03d2a84bfb4d9558abc7087623db6df78af4925ae5074ce1f0fa82c74adfefb352f4e23760ffe26ea95f0e0c09eef7997667fa4075d3bf5f_0",
+    "captures": {}
+  },
+  {
+    "rule": "empty",
+    "path": "targets/legacy_ruby_calls/calls.rb",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 13
+    },
+    "end": {
+      "line": 2,
+      "col": 15,
+      "offset": 27
+    },
+    "fingerprint": "398b936469e21d21aae0c8ceaefe0202c3d84d32d19bbac9ed0d9b85f273cd7b7c34dc81b7226b0d0c88106ac1d6d90fafa668fcfcc2d2535f1662e47d01237f_0",
+    "captures": {}
+  },
+  {
+    "rule": "bare",
+    "path": "targets/legacy_ruby_calls/calls.rb",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 28
+    },
+    "end": {
+      "line": 3,
+      "col": 13,
+      "offset": 40
+    },
+    "fingerprint": "8eab9ce63dba136e7dae2113676dfe19539e917a900b37100c593ee3454bfa28aefc942e55f41857455e8aafb47706771306f56af2842a45c33c4d0ef2416e41_2",
+    "captures": {}
+  },
+  {
+    "rule": "arguments",
+    "path": "targets/legacy_ruby_calls/calls.rb",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 28
+    },
+    "end": {
+      "line": 3,
+      "col": 20,
+      "offset": 47
+    },
+    "fingerprint": "642c57352fadc77c03d2a84bfb4d9558abc7087623db6df78af4925ae5074ce1f0fa82c74adfefb352f4e23760ffe26ea95f0e0c09eef7997667fa4075d3bf5f_1",
+    "captures": {}
+  },
+  {
+    "rule": "arguments",
+    "path": "targets/legacy_ruby_calls/calls.rb",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 48
+    },
+    "end": {
+      "line": 4,
+      "col": 13,
+      "offset": 60
+    },
+    "fingerprint": "642c57352fadc77c03d2a84bfb4d9558abc7087623db6df78af4925ae5074ce1f0fa82c74adfefb352f4e23760ffe26ea95f0e0c09eef7997667fa4075d3bf5f_2",
+    "captures": {}
+  },
+  {
+    "rule": "bare",
+    "path": "targets/legacy_ruby_calls/calls.rb",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 48
+    },
+    "end": {
+      "line": 4,
+      "col": 13,
+      "offset": 60
+    },
+    "fingerprint": "8eab9ce63dba136e7dae2113676dfe19539e917a900b37100c593ee3454bfa28aefc942e55f41857455e8aafb47706771306f56af2842a45c33c4d0ef2416e41_3",
+    "captures": {}
+  },
+  {
+    "rule": "empty",
+    "path": "targets/legacy_ruby_calls/calls.rb",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 48
+    },
+    "end": {
+      "line": 4,
+      "col": 13,
+      "offset": 60
+    },
+    "fingerprint": "398b936469e21d21aae0c8ceaefe0202c3d84d32d19bbac9ed0d9b85f273cd7b7c34dc81b7226b0d0c88106ac1d6d90fafa668fcfcc2d2535f1662e47d01237f_1",
+    "captures": {}
+  },
+  {
+    "rule": "bare",
+    "path": "targets/legacy_ruby_calls/calls.rb",
+    "start": {
+      "line": 5,
+      "col": 1,
+      "offset": 77
+    },
+    "end": {
+      "line": 5,
+      "col": 13,
+      "offset": 89
+    },
+    "fingerprint": "8eab9ce63dba136e7dae2113676dfe19539e917a900b37100c593ee3454bfa28aefc942e55f41857455e8aafb47706771306f56af2842a45c33c4d0ef2416e41_4",
+    "captures": {}
+  },
+  {
+    "rule": "arguments",
+    "path": "targets/legacy_ruby_calls/calls.rb",
+    "start": {
+      "line": 5,
+      "col": 1,
+      "offset": 77
+    },
+    "end": {
+      "line": 5,
+      "col": 20,
+      "offset": 96
+    },
+    "fingerprint": "642c57352fadc77c03d2a84bfb4d9558abc7087623db6df78af4925ae5074ce1f0fa82c74adfefb352f4e23760ffe26ea95f0e0c09eef7997667fa4075d3bf5f_3",
+    "captures": {}
+  },
+  {
+    "rule": "arguments",
+    "path": "targets/legacy_ruby_calls/calls.rb",
+    "start": {
+      "line": 6,
+      "col": 1,
+      "offset": 113
+    },
+    "end": {
+      "line": 6,
+      "col": 13,
+      "offset": 125
+    },
+    "fingerprint": "642c57352fadc77c03d2a84bfb4d9558abc7087623db6df78af4925ae5074ce1f0fa82c74adfefb352f4e23760ffe26ea95f0e0c09eef7997667fa4075d3bf5f_4",
+    "captures": {}
+  },
+  {
+    "rule": "bare",
+    "path": "targets/legacy_ruby_calls/calls.rb",
+    "start": {
+      "line": 6,
+      "col": 1,
+      "offset": 113
+    },
+    "end": {
+      "line": 6,
+      "col": 13,
+      "offset": 125
+    },
+    "fingerprint": "8eab9ce63dba136e7dae2113676dfe19539e917a900b37100c593ee3454bfa28aefc942e55f41857455e8aafb47706771306f56af2842a45c33c4d0ef2416e41_5",
+    "captures": {}
+  },
+  {
+    "rule": "empty",
+    "path": "targets/legacy_ruby_calls/calls.rb",
+    "start": {
+      "line": 6,
+      "col": 1,
+      "offset": 113
+    },
+    "end": {
+      "line": 6,
+      "col": 13,
+      "offset": 125
+    },
+    "fingerprint": "398b936469e21d21aae0c8ceaefe0202c3d84d32d19bbac9ed0d9b85f273cd7b7c34dc81b7226b0d0c88106ac1d6d90fafa668fcfcc2d2535f1662e47d01237f_2",
+    "captures": {}
+  },
+  {
+    "rule": "model-attributes-attr-accessible",
+    "path": "targets/legacy_ruby_calls/models.rb",
+    "start": {
+      "line": 25,
+      "col": 7,
+      "offset": 766
+    },
+    "end": {
+      "line": 25,
+      "col": 11,
+      "offset": 770
+    },
+    "fingerprint": "6c92ab5833bcdb7d13e87140f7b81ff0a8b314e82902914cdf969e530de355262989c317ad640f97b6e3254f888d02803ca2c0f0134e1dde6e0c5103d7a685c3_0",
+    "captures": {
+      "$CLASS": "User",
+      "$TYPE": "ActiveRecord Base",
+      "$FUNC": "create"
+    }
+  },
+  {
+    "rule": "model-attributes-attr-accessible",
+    "path": "targets/legacy_ruby_calls/models.rb",
+    "start": {
+      "line": 47,
+      "col": 7,
+      "offset": 1263
+    },
+    "end": {
+      "line": 47,
+      "col": 17,
+      "offset": 1273
+    },
+    "fingerprint": "cd0b1a47acc02bb554a46742f1fb1c8fa02928a3e2e9147bef28994699afcae364d006902976540730be9f078406b832fb60c381b23324b3baeaafe848052fba_0",
+    "captures": {
+      "$CLASS": "TestObject",
+      "$TYPE": "Struct.new(:name)",
+      "$FUNC": "new"
+    }
+  },
+  {
+    "rule": "model-attributes-attr-accessible",
+    "path": "targets/legacy_ruby_calls/models.rb",
+    "start": {
+      "line": 53,
+      "col": 7,
+      "offset": 1397
+    },
+    "end": {
+      "line": 53,
+      "col": 31,
+      "offset": 1421
+    },
+    "fingerprint": "b1fce221218f6b3ffd45ae28c5cd08809827e96ec1c57506ea2e322728386acf623b3265a1f4e5d2efa269a68db90046a3e0677d458cfcfb55637875d83239bd_0",
+    "captures": {
+      "$CLASS": "UserWithPublicAttributes",
+      "$TYPE": "ActiveRecord Base",
+      "$FUNC": "new"
+    }
+  },
+  {
+    "rule": "model-attributes-attr-accessible",
+    "path": "targets/legacy_ruby_calls/models.rb",
+    "start": {
+      "line": 61,
+      "col": 7,
+      "offset": 1729
+    },
+    "end": {
+      "line": 61,
+      "col": 17,
+      "offset": 1739
+    },
+    "fingerprint": "57cb860a79f14a90000705a09837464430bad97e6814ff20a716017a4f8a27bf2549ba33ca3fc9c81c5646d3dd0ebaa70a452ed289e50b57cb6c9eebfa94e767_0",
+    "captures": {
+      "$CLASS": "SecureUser",
+      "$TYPE": "ActiveRecord Base",
+      "$FUNC": "new"
+    }
+  }
+]

@@ -63,9 +63,15 @@ SEMGREP_BASE_SCAN_COMMAND_STR: str = " ".join(SEMGREP_BASE_SCAN_COMMAND)
 ##############################################################################
 
 
-def mk_semgrep_base_command(subcommand: str, args: List[str]):
-    args = _OSEMGREP_EXTRA_ARGS + args if USE_OSEMGREP else args
-    return [_SEMGREP_PATH] + [subcommand] + args
+def mk_semgrep_base_command(subcommand: Optional[str], args: List[str]):
+    if USE_OSEMGREP and not {"--legacy", "--experimental", "--develop"}.intersection(
+        args
+    ):
+        args = _OSEMGREP_EXTRA_ARGS + args
+    command = [_SEMGREP_PATH]
+    if subcommand is not None:
+        command.append(subcommand)
+    return command + args
 
 
 # TODO: this should be removed as we don't want to run tests with Click
@@ -104,10 +110,7 @@ def fork_semgrep(
     if args is None:
         args = []
 
-    if subcommand is None:
-        argv = SEMGREP_BASE_SCAN_COMMAND + args
-    else:
-        argv = mk_semgrep_base_command(subcommand, args)
+    argv = mk_semgrep_base_command(subcommand, args)
 
     # ugly: adding --project-root for --help would trigger the wrong help message
     if "-h" in args or "--help" in args:

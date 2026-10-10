@@ -1,0 +1,1371 @@
+[
+  {
+    "rule": "symbolic-false",
+    "path": "targets/legacy_symbolic_eligibility/alias.py",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 21
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 28
+    },
+    "fingerprint": "8edb96c7d3b06d366041fc16261f1a82d3c17d4d459a6516d0898ff06d28a44fb6caf4938b906a9c8ef37d70e05320a31d379122d6de47285f4f7ab591276bca_0",
+    "captures": {
+      "$X": "b"
+    }
+  },
+  {
+    "rule": "symbolic-false-value",
+    "path": "targets/legacy_symbolic_eligibility/alias.py",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 21
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 28
+    },
+    "fingerprint": "e099f25e2a38817d523b84a4a3ac3623871f41f186e8cb97148dd798499fce8620e2fbce757a3e91547912e8e5715d4a733f7ebbb5e45b5fbb59b42dc72e0422_0",
+    "captures": {
+      "$X": "b"
+    }
+  },
+  {
+    "rule": "symbolic-true",
+    "path": "targets/legacy_symbolic_eligibility/alias.py",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 21
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 28
+    },
+    "fingerprint": "357ac7e4a86f46be765401ac266eabd1a561d569c5247a8283760ce36a5d38ed6213a0e2776e9df1d223903e4e6bec59fb7628f7aaa04ee1cdfe4d4162511ee9_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-true",
+    "path": "targets/legacy_symbolic_eligibility/alias.py",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 21
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 28
+    },
+    "fingerprint": "f0f69a27edc1e437c705b6aa384cb77b5ed0985bfe20baf274e8c0648f1ffc3dea96490eed30d1784efd7f601df377d787016db6fc3056ad4b6d918e3acd35e0_0",
+    "captures": {
+      "$X": "b"
+    }
+  },
+  {
+    "rule": "symbolic-true-value",
+    "path": "targets/legacy_symbolic_eligibility/alias.py",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 21
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 28
+    },
+    "fingerprint": "b9ccce4715d3c2e56a20929d2eacadc17f9b5b7c9d028f4c7ed2287ffea6c014cdf31e4d9422f3bfada3727b247e212522e8d20ddf959713b2e08444d142ceb6_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-false",
+    "path": "targets/legacy_symbolic_eligibility/allowed.py",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 34
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 41
+    },
+    "fingerprint": "1b32f0035a2afe867fa03dafba4859e4df9432799387087570ad2061e3243ffe27f0913d1067b1c0f14bef01e5b30ac9a282a04d9bd873add01b191b3ef67261_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-false-value",
+    "path": "targets/legacy_symbolic_eligibility/allowed.py",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 34
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 41
+    },
+    "fingerprint": "2dc12ebfd329dae1ad042ee890d92ff47b9b52710c72653f15c57a31b9c9fa7875c014a26bdf224165c1e0fb1ba3b6734df89d50401fed493ae178ccdae8f5bd_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-true",
+    "path": "targets/legacy_symbolic_eligibility/allowed.py",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 34
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 41
+    },
+    "fingerprint": "e64d17f9768c131faba447ac8075ed784cfb5db1c853fdd253cf4e77fbd112557bd111b81bed86f03b2f3e5af1dddc4aa10bb82794c0a505de4a50c8a5d27ea7_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-true",
+    "path": "targets/legacy_symbolic_eligibility/allowed.py",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 34
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 41
+    },
+    "fingerprint": "f7dd65a6129ada21bf861c1c713f673d63d324dc040a4b17210993c9fad05bb1933a4a9ed61600f46d48ee3b379deba74ce1e43a6ea10f28878c448a0494c2cd_0",
+    "captures": {
+      "$X": "wrap(source())"
+    }
+  },
+  {
+    "rule": "symbolic-true-value",
+    "path": "targets/legacy_symbolic_eligibility/allowed.py",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 34
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 41
+    },
+    "fingerprint": "3fc142b31a8a97588fbd269e03dd3410668d2e2f971a503cde4125c62f7229e28548be153ecd2c961ec48982716684cdbf5b01398575bcedc93b24b299dd217c_0",
+    "captures": {
+      "$X": "wrap(source())"
+    }
+  },
+  {
+    "rule": "symbolic-false",
+    "path": "targets/legacy_symbolic_eligibility/constant.js",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 38
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 45
+    },
+    "fingerprint": "1cf3885f8460958c18789ddf5b0159db6b1bef3786abcb978b55bfe909379ae2bef82dc3ed5948190622535e925e8866a19060ba74f5bd3302ea5b174e97e9f1_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-false-value",
+    "path": "targets/legacy_symbolic_eligibility/constant.js",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 38
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 45
+    },
+    "fingerprint": "14a50714bf3bcfcf87b9d7626e08113a1d1851df6c84fb3047371fdb4e501fd3539216bde4e73e5911bbac92a778e2e581ce111e10f96eefede171aea481766f_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-true",
+    "path": "targets/legacy_symbolic_eligibility/constant.js",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 38
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 45
+    },
+    "fingerprint": "46ee2d71972854bc1cf6e121b300b4fda976ce1fd6f4b563e6ee8d6f986a5c51c1ed0e6011bc6f022b74b1eca79ef4cdfa32c5a132ffee544392f6b06f4a0238_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-true-value",
+    "path": "targets/legacy_symbolic_eligibility/constant.js",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 38
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 45
+    },
+    "fingerprint": "000e3d5118cc7faed19ea82782c2c537950a6480299bb4629a7e8cf6a537d7e6bf57d214c3cd5f01a3324b3128baf2eee1ce90e3ecac46788d2e41b8627cd2e5_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-false",
+    "path": "targets/legacy_symbolic_eligibility/dictionary.py",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 41
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 48
+    },
+    "fingerprint": "79512973ff7bdd173c9cb542f8b515422bdd1a6626588573a27fa2cd9a705100d9b465c2625ead063fe28b767ee737a5092b12f772bee763983e4a08d55548e7_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-false-value",
+    "path": "targets/legacy_symbolic_eligibility/dictionary.py",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 41
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 48
+    },
+    "fingerprint": "86167892a9f49d71297d6ad6a7f6f43dd32253a5f023d627575dbe5573443219bbd7a90c3002a86c90f4c8d74623dacc16f2de25aee0c14a538ca5cbf18a8480_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-true",
+    "path": "targets/legacy_symbolic_eligibility/dictionary.py",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 41
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 48
+    },
+    "fingerprint": "5e893aaaa7e6251c39cb597932cfe240f94b6a7d8994c7f3e6de56176bd828d47da4495b9c5f6b6bcbbe1189c3ffa89fb571809cf216d48538266b2cac1c0c77_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-true-value",
+    "path": "targets/legacy_symbolic_eligibility/dictionary.py",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 41
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 48
+    },
+    "fingerprint": "aeafdf2c592457ab03d4a4a26e464aecf05839d5081dd14eef87d5846271bc7b4803b309b4496b47ee77902f8cddf456cd7bb8ebfc72ecfc5c9eb1098620ecd6_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-false",
+    "path": "targets/legacy_symbolic_eligibility/dictionary.rb",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 40
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 47
+    },
+    "fingerprint": "5f5e19937283efdc4f08c51a64d14af938e037d4b7712c4b99b6277c723e73224485055c08167912c75aadc9eacc16d3cd658083f658fd06f1de06a422d49344_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-false-value",
+    "path": "targets/legacy_symbolic_eligibility/dictionary.rb",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 40
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 47
+    },
+    "fingerprint": "bf865479fb4e0193d69c2603243887f9e0099c8f47cda486e665c93eb7acbe6db5fda35e67d4a0383a08fa2f1cf8878f6d41f2733410064387148bed4373d3e4_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-true",
+    "path": "targets/legacy_symbolic_eligibility/dictionary.rb",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 40
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 47
+    },
+    "fingerprint": "e22da45aa988b83d06716e0226b9865541d66a79676be1c6f20137c7692e01be9759e8f5012865ca773dba4c0214cb556671b3f730efa74ed3baf4b7ec83fa26_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-true-value",
+    "path": "targets/legacy_symbolic_eligibility/dictionary.rb",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 40
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 47
+    },
+    "fingerprint": "c905c78849bbb53e226e267b0b40e15b0f520051a1460ade55a74f755e496d8564193daa909ef5e909ae04e5e738d25aa759f5ca3eb7e362993c47da87475b92_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-false",
+    "path": "targets/legacy_symbolic_eligibility/direct.js",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 36
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 43
+    },
+    "fingerprint": "87fb7c0c00a964453e027cf25311e06d4415897210abbf17e1cc95d574e3fa6eb96a27f646deede35b27d2b98a5e0c6cd052f651884f912d5e2674c9a9949032_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-false-value",
+    "path": "targets/legacy_symbolic_eligibility/direct.js",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 36
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 43
+    },
+    "fingerprint": "e46eb084e7b923dffc6970f9a8944dc7730536f6ccac52f297a4f00d952400532a097921280e8770c8d4739007d2fa9c62f0082e6294365b2ca6dc0ea9959e22_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-true",
+    "path": "targets/legacy_symbolic_eligibility/direct.js",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 36
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 43
+    },
+    "fingerprint": "f89012713b76271a53ad656f0e81b220319cfefa2d51ff217f27b78cc69682c712e8a6666754cf9999f4b8dc93db05152260ad9a4faaf8f23c449b2be966f7c6_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-true-value",
+    "path": "targets/legacy_symbolic_eligibility/direct.js",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 36
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 43
+    },
+    "fingerprint": "6277e44aa9124651170d683760127b5ed314c0c7759223249378c06804598382c0671d2110a1b89d5d4549089f8c75606b60ca9def26afdfb91b0fe2f852d03c_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-false",
+    "path": "targets/legacy_symbolic_eligibility/direct.py",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 30
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 37
+    },
+    "fingerprint": "34b2deab97ce624938ee88d7a467ec603413cab3670beb7dd099c23f0b973252fcc6d5a2ab01b3dda05d5782a9ad4f2bdc3f6c6be181d9a8bcdca3adbca70d2a_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-false-value",
+    "path": "targets/legacy_symbolic_eligibility/direct.py",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 30
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 37
+    },
+    "fingerprint": "7c2b763b5916135e881748e4a6385ff76e1eba973825cba18dacb0ab998d6a7ea00e4773feddde31a04a6a07e60dc6d85bf36a60842ee86302f1e3a32910dac2_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-true",
+    "path": "targets/legacy_symbolic_eligibility/direct.py",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 30
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 37
+    },
+    "fingerprint": "ce5c266134291c30ed1331f5759772bcc1ac9e9d2292cb46ac3b0c6cf37dff50eeabb108333ce3e9d5f479216743652d6c90761391650481a7b27fc7d9bf6171_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-true-value",
+    "path": "targets/legacy_symbolic_eligibility/direct.py",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 30
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 37
+    },
+    "fingerprint": "45a6175bb250e27ea8913b138fd76f472b58d4189e8ae5435e212a73492d95de5d83c36d69efb8ad3a0b4df6e53df5d21e71e2828c71d9273003befee78c60e8_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-false",
+    "path": "targets/legacy_symbolic_eligibility/direct.rb",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 30
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 37
+    },
+    "fingerprint": "549e52f897b51e9039c8d3f19491a40bde7b18db21a85742f93ebb763c12a5b922496c49230a07eaa5601cf54697d296c3159814c131a0676fc3fc125bdb44bf_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-false-value",
+    "path": "targets/legacy_symbolic_eligibility/direct.rb",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 30
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 37
+    },
+    "fingerprint": "86f17820c8147add935e7aee3149c1bd9337e72ed18978d68a180ebfd22c71ddb7ea640db0ee04e98d24808b0592d81dd43661ab2e36ade77d003083b4be19d9_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-true",
+    "path": "targets/legacy_symbolic_eligibility/direct.rb",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 30
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 37
+    },
+    "fingerprint": "c912238a56b82fbcd3f1a4b8abe16fe879e1c294e004c7c47b0a76877a82f532dff041d600f234288ff63c2a9a5f6f259458371c0eb391f1c2ecbdf619ede5ce_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-true-value",
+    "path": "targets/legacy_symbolic_eligibility/direct.rb",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 30
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 37
+    },
+    "fingerprint": "b046811de35a249b57107d4c8497344dab224860b118a9aa4ee9b692d3f2b03c044a06d3deb1da8e66b71e04137a9ea2f7345cf04e1a11ba2a7af32994ef8251_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-false",
+    "path": "targets/legacy_symbolic_eligibility/lambda.js",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 42
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 49
+    },
+    "fingerprint": "4481be61db4729620bb26ab69f6a1252c6549d2c08a634b3c2d4ec26539d049360d2d8117c65d8ab804108244e3b8a2336150d410610e9fc972aa9558768ba50_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-false-value",
+    "path": "targets/legacy_symbolic_eligibility/lambda.js",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 42
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 49
+    },
+    "fingerprint": "5870594f38f047bc5f9624fda599809c231780fc6970162355e087d251201d4ec6a96654348a57143a32fad3fbde185a348c4aae9190764db6741ac63c343417_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-true",
+    "path": "targets/legacy_symbolic_eligibility/lambda.js",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 42
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 49
+    },
+    "fingerprint": "14bf72a0bb395a23c4233b3565605c352aa99f0d82f139eba1d375dd59082d768d926f92407cdb1a409afd4aea1e334f8c2ee9f460b152e2684f23bbfadab1a2_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-true-value",
+    "path": "targets/legacy_symbolic_eligibility/lambda.js",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 42
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 49
+    },
+    "fingerprint": "cfe24442770d5cafc5aa625016ebb97c2dbfa75bcace8c58a6457f3ea7ca693640f293fa201b018212767c0a2ff6b2ddb44f8c55ccbe35a05097bcf31ca1280d_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-false",
+    "path": "targets/legacy_symbolic_eligibility/lambda.py",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 38
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 45
+    },
+    "fingerprint": "7e1954362b90c45c85d1e9b95f0d213b2280d242609cd878451f58d8c8afeb429f08b999fbe28d4b3018ba0b300c0967140bf2445bc6b6534f37be7a2a387ba9_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-false-value",
+    "path": "targets/legacy_symbolic_eligibility/lambda.py",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 38
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 45
+    },
+    "fingerprint": "ed9bb826f8616d476f72fbb4a41406dbfed8b6b0d2c389bb6c9d9b0d6d935e2b2ff3ee603197b9217d70f92285e898543f19e049718453b36f5c012e5300d082_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-true",
+    "path": "targets/legacy_symbolic_eligibility/lambda.py",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 38
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 45
+    },
+    "fingerprint": "3f703667938463adc012ae4e1b88bd8f844f172052a95c256259fd41ad0b7373276e7961f334ef1ae2351514624a20ce538e8bdeb357e83ec191be35c54c6107_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-true-value",
+    "path": "targets/legacy_symbolic_eligibility/lambda.py",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 38
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 45
+    },
+    "fingerprint": "4dbb1600f58717a4e18ca6bd3443af7686e25ffba79b6db0ea4c9501ba4ee1301d428debb54615b5694e5a0988c38297721bb981bf2d27f9c4b6ff3a7501912a_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-false",
+    "path": "targets/legacy_symbolic_eligibility/local.py",
+    "start": {
+      "line": 3,
+      "col": 5,
+      "offset": 32
+    },
+    "end": {
+      "line": 3,
+      "col": 12,
+      "offset": 39
+    },
+    "fingerprint": "6d8cc929fbedc6a917fcaee53390f32d8f7e939d439f14ea1a64a5a85edc22e718ea1e854039fba7f6f9c1442c5ea4f1e596155001a93ad0dbd6dfcc22a325f2_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-false-value",
+    "path": "targets/legacy_symbolic_eligibility/local.py",
+    "start": {
+      "line": 3,
+      "col": 5,
+      "offset": 32
+    },
+    "end": {
+      "line": 3,
+      "col": 12,
+      "offset": 39
+    },
+    "fingerprint": "889ac8237a50daf0c60f87ed976a1e379650dc6b75634eba465bf02ff090177938947e5b997eb35112c5d1fbfdecbc404fe8c342c3d93e6d61da48a8a3ae1177_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-true",
+    "path": "targets/legacy_symbolic_eligibility/local.py",
+    "start": {
+      "line": 3,
+      "col": 5,
+      "offset": 32
+    },
+    "end": {
+      "line": 3,
+      "col": 12,
+      "offset": 39
+    },
+    "fingerprint": "21b47a8a10fec4f05ba4d5f461926e17125ed4e17cc1d6e3325a725eed875aee34e6cddc14c83e5704b8db39cc0d7d335b8c16c49defde99a4bc8ae9c45726a1_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-true-value",
+    "path": "targets/legacy_symbolic_eligibility/local.py",
+    "start": {
+      "line": 3,
+      "col": 5,
+      "offset": 32
+    },
+    "end": {
+      "line": 3,
+      "col": 12,
+      "offset": 39
+    },
+    "fingerprint": "1aae5d4d0c952046414289f5280610013a617e0a624b5bbdede79fee921b8eb0ff8fd66d89e7c979fbac816696b0d8af274ad50866e9bbec6d287954e5eea319_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-false",
+    "path": "targets/legacy_symbolic_eligibility/local.py",
+    "start": {
+      "line": 5,
+      "col": 5,
+      "offset": 63
+    },
+    "end": {
+      "line": 5,
+      "col": 12,
+      "offset": 70
+    },
+    "fingerprint": "6d8cc929fbedc6a917fcaee53390f32d8f7e939d439f14ea1a64a5a85edc22e718ea1e854039fba7f6f9c1442c5ea4f1e596155001a93ad0dbd6dfcc22a325f2_1",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-false-value",
+    "path": "targets/legacy_symbolic_eligibility/local.py",
+    "start": {
+      "line": 5,
+      "col": 5,
+      "offset": 63
+    },
+    "end": {
+      "line": 5,
+      "col": 12,
+      "offset": 70
+    },
+    "fingerprint": "889ac8237a50daf0c60f87ed976a1e379650dc6b75634eba465bf02ff090177938947e5b997eb35112c5d1fbfdecbc404fe8c342c3d93e6d61da48a8a3ae1177_1",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-true",
+    "path": "targets/legacy_symbolic_eligibility/local.py",
+    "start": {
+      "line": 5,
+      "col": 5,
+      "offset": 63
+    },
+    "end": {
+      "line": 5,
+      "col": 12,
+      "offset": 70
+    },
+    "fingerprint": "21b47a8a10fec4f05ba4d5f461926e17125ed4e17cc1d6e3325a725eed875aee34e6cddc14c83e5704b8db39cc0d7d335b8c16c49defde99a4bc8ae9c45726a1_1",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-true-value",
+    "path": "targets/legacy_symbolic_eligibility/local.py",
+    "start": {
+      "line": 5,
+      "col": 5,
+      "offset": 63
+    },
+    "end": {
+      "line": 5,
+      "col": 12,
+      "offset": 70
+    },
+    "fingerprint": "1aae5d4d0c952046414289f5280610013a617e0a624b5bbdede79fee921b8eb0ff8fd66d89e7c979fbac816696b0d8af274ad50866e9bbec6d287954e5eea319_1",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-false",
+    "path": "targets/legacy_symbolic_eligibility/nested.js",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 42
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 49
+    },
+    "fingerprint": "1ad7c07741cda2fb817727bffc3a078c7f65ec8eea4b6728b3130b89bb23129264e6d5e0e5eeedeef69f97bb4bd8f8793f0e92def4d4d2e5eab4ba243f40f09e_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-false-value",
+    "path": "targets/legacy_symbolic_eligibility/nested.js",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 42
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 49
+    },
+    "fingerprint": "40e1f2265bd8764c83daff261e7c6de5cf07f2bf97a1349e23b6d8ce96d53f0ca5db9ae9b2719d9f81492628cecb1814ba6fad38f40da2ac756c226264d46abc_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-true",
+    "path": "targets/legacy_symbolic_eligibility/nested.js",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 42
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 49
+    },
+    "fingerprint": "19e451c37ceaabb4d54014ad6a78028ab869673d7edd37095ee1ab172056bab1ab705781a8b2d653d57ba0ff02acd3f7df3a9e5f36d66d69eb06681255af3bdb_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-true-value",
+    "path": "targets/legacy_symbolic_eligibility/nested.js",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 42
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 49
+    },
+    "fingerprint": "ae6fd0d26c16a090db6fa1747e42ce9b8870300f5a142e087d47f19997bf8c4132daf045d8ac7231dc867ae090b424462eed67634d3481f68e29842161188911_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-false",
+    "path": "targets/legacy_symbolic_eligibility/nested.py",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 36
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 43
+    },
+    "fingerprint": "ad6b972bd040291b870e3b6d69a4b6251104e87100e17f963fe72994a1095aa66a850a16ba7b91f810c4255a1582cb0109b89c799139dd7f09f582bfe2644a28_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-false-value",
+    "path": "targets/legacy_symbolic_eligibility/nested.py",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 36
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 43
+    },
+    "fingerprint": "d33d2a6f7cd3dadcc39b36c36979c7cd48e669ee1a383586877d819a47bfa35121733467eaac69ae0f5eacf2799bc303b4afb09bd1bb62c0ebe10841f84593b1_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-true",
+    "path": "targets/legacy_symbolic_eligibility/nested.py",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 36
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 43
+    },
+    "fingerprint": "40a68489dd91d9c1ef82d4080a9128581f37e0328fd9a71de7366e6d124f9c88b1d5df9dde8879b6e90edffb810a9fb9230b3c62b6f2ee5c0268f9b7815b6a0f_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-true-value",
+    "path": "targets/legacy_symbolic_eligibility/nested.py",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 36
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 43
+    },
+    "fingerprint": "e40851cdbaa47ba497b2358711349bd507afdddda8160b8a56ca9b370f08025e4fa29a79ebbe70daa37a81ec2e4fc369480c5ac36fbb9db21dea00f4f6cfdf1b_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-false",
+    "path": "targets/legacy_symbolic_eligibility/nested_lambda.py",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 44
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 51
+    },
+    "fingerprint": "5f30b8813fb45e481d3f96fde5b3867767f55317f2659a138a66b1d2b67012de921cfc534d5d32662da73646f4ed83da6fb7544365483a7d69106aa07490ddb3_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-false-value",
+    "path": "targets/legacy_symbolic_eligibility/nested_lambda.py",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 44
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 51
+    },
+    "fingerprint": "ef0adbef733036fa4467d5fdaa010394e6ce3c9f6654e68c9021e967772d9c3b2c4eddd39f974301aa3847d9d8457bf3be73432babb9d5b795c8db1450981ae0_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-true",
+    "path": "targets/legacy_symbolic_eligibility/nested_lambda.py",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 44
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 51
+    },
+    "fingerprint": "8b9e7e27358a148cc34f422215b54d4c28114f4c35d6ff7e3c76d0a5f12d37f3082fbce85a1daec1d32b0a28ddc32665ad8cd4f62eea429f07e5ff68bb963c6e_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-true-value",
+    "path": "targets/legacy_symbolic_eligibility/nested_lambda.py",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 44
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 51
+    },
+    "fingerprint": "7f89f02f56a5d6e6bdb77867326ce798f2b5d195119c2734ae9398bbbb2253dfd8f745569d8c1579215fb7abe4d1f469026675078c89b7371096d29e189332cd_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-false",
+    "path": "targets/legacy_symbolic_eligibility/plain.py",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 15
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 22
+    },
+    "fingerprint": "fc326df8111bb948d2fff6c8ef5a6fda689c28d5abfaf374318f4c7dc6ef99d1c692624f00a043e7d89fa574758dfd1c33980f2f938cfa5bf6f9af1cb0c5eaaf_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-false-value",
+    "path": "targets/legacy_symbolic_eligibility/plain.py",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 15
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 22
+    },
+    "fingerprint": "93c1e75442264a7c60628d9b818657c2665d8dcd4882f878567b2295b3ddfe3022ddfb1848331ad4d65bb3316d3afa19c6090dd916a203f0c188b308c9014610_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-true",
+    "path": "targets/legacy_symbolic_eligibility/plain.py",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 15
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 22
+    },
+    "fingerprint": "12825b4e7d65a83536f54689c7bf3ad1f8374d90c748f0cef309cf5c67da90191df2b09042fcbd26ff89d0fa7f5cfdd49d7b823d3b5e9b6966c82f6321b098af_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "symbolic-true-value",
+    "path": "targets/legacy_symbolic_eligibility/plain.py",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 15
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 22
+    },
+    "fingerprint": "74eb71d574be7b8b53e6b95449d1bacadbdf92a2a3690dad508e25f0a16d58871a6d7c85191d36bd338a6d91b5bfc4f3bac543c74adc07abe0bf166a19f3a281_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "repeated-0-false",
+    "path": "targets/legacy_symbolic_eligibility/repeated.py",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 34
+    },
+    "end": {
+      "line": 3,
+      "col": 11,
+      "offset": 44
+    },
+    "fingerprint": "de9ceadcb5bf37488178d851d7c8e0a0d4501f3aaccd7fa76529c45bbaf918101c24130ea4770f48b90fb10aaf561017a6e22e9838c07a1d5ffdb14e364040f5_0",
+    "captures": {
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "repeated-0-false",
+    "path": "targets/legacy_symbolic_eligibility/repeated.py",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 34
+    },
+    "end": {
+      "line": 3,
+      "col": 11,
+      "offset": 44
+    },
+    "fingerprint": "a5dfb5eb4fa8b55c58f80699112f51014604e51458c4164e0453aedde621fa2ef067cb8df597b100881e395a66bed69f0304c739ab57b3f31fa0e3d60ff9da3d_0",
+    "captures": {
+      "$X": "wrap(source())"
+    }
+  },
+  {
+    "rule": "repeated-0-true",
+    "path": "targets/legacy_symbolic_eligibility/repeated.py",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 34
+    },
+    "end": {
+      "line": 3,
+      "col": 11,
+      "offset": 44
+    },
+    "fingerprint": "8b8078991f1e7333867fd35c6319c8238245d6284b70bb6575d4b9c0a9473556a4be0b6082d93eb3e53231aae298e2a16a5dbb81b00ff4b73414bce3661696ab_0",
+    "captures": {
+      "$X": "wrap(source())"
+    }
+  },
+  {
+    "rule": "repeated-1-false",
+    "path": "targets/legacy_symbolic_eligibility/repeated.py",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 34
+    },
+    "end": {
+      "line": 3,
+      "col": 11,
+      "offset": 44
+    },
+    "fingerprint": "a7345cc182ef47c5d5e1afdac6d6d3aa6b5ff2f992957810fa0f202c5fc37b95f77f0d455c52c52e740dcc1a5f4345b87b1211db36f312660ddd3b3d8b907e05_0",
+    "captures": {
+      "$X": "a",
+      "$Y": "a"
+    }
+  },
+  {
+    "rule": "repeated-1-false",
+    "path": "targets/legacy_symbolic_eligibility/repeated.py",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 34
+    },
+    "end": {
+      "line": 3,
+      "col": 11,
+      "offset": 44
+    },
+    "fingerprint": "79fb7b76d5f1fb538668c41744e25ed805b97c103e531c6e4393ea00472ceda20567ac5dd9dd48e580fcbd9d5c94f1b807a6d5c67b0cc24c3be8347d6a3918ed_0",
+    "captures": {
+      "$Y": "wrap(source())",
+      "$X": "a"
+    }
+  },
+  {
+    "rule": "repeated-1-false",
+    "path": "targets/legacy_symbolic_eligibility/repeated.py",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 34
+    },
+    "end": {
+      "line": 3,
+      "col": 11,
+      "offset": 44
+    },
+    "fingerprint": "a709684e498a751a9b4523fb9f89d4d5207c28785106d0ab92e75acec86012b98d8cb65d151c9f28e4b4497d38ec354c5604c4abc7980f428ff349552fa702c0_0",
+    "captures": {
+      "$X": "wrap(source())",
+      "$Y": "a"
+    }
+  },
+  {
+    "rule": "repeated-1-false",
+    "path": "targets/legacy_symbolic_eligibility/repeated.py",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 34
+    },
+    "end": {
+      "line": 3,
+      "col": 11,
+      "offset": 44
+    },
+    "fingerprint": "963376cca8ea518dee2ebe11acb93538eb0ef62bfcd3eae58ed01ea215d11704dfd1af1d8bd0d67ed5e79e93cbc6dfde0c973570a649a57597280358d7308e7f_0",
+    "captures": {
+      "$X": "wrap(source())",
+      "$Y": "wrap(source())"
+    }
+  },
+  {
+    "rule": "repeated-1-true",
+    "path": "targets/legacy_symbolic_eligibility/repeated.py",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 34
+    },
+    "end": {
+      "line": 3,
+      "col": 11,
+      "offset": 44
+    },
+    "fingerprint": "27928e30941e852ca5f68adf2a59bac1e6d1505bc7819afe0093593888cce38bc1b7ed6c7e220bd08efcc3d981ec936216825add2d86f01eb7e61dd3bc0a0fbf_0",
+    "captures": {
+      "$X": "wrap(source())",
+      "$Y": "wrap(source())"
+    }
+  },
+  {
+    "rule": "repeated-2-false",
+    "path": "targets/legacy_symbolic_eligibility/repeated.py",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 45
+    },
+    "end": {
+      "line": 4,
+      "col": 17,
+      "offset": 61
+    },
+    "fingerprint": "168ba2b901d468cdf4af5ee0989201d3508c6816a060938d98bfc063081639fcb6fe1b3fe906931672776e9f2831982c74495da9c5be25cace5b9a005c3d963b_0",
+    "captures": {}
+  },
+  {
+    "rule": "repeated-2-true",
+    "path": "targets/legacy_symbolic_eligibility/repeated.py",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 45
+    },
+    "end": {
+      "line": 4,
+      "col": 17,
+      "offset": 61
+    },
+    "fingerprint": "d9a465917cb51a1edd96e677725fee9eed4de02cd1f8271e0174cf03a49a82cf0845747103c2d747f96e03813e5360fec9bea6bd2f74830871bb744c7f367a9e_0",
+    "captures": {}
+  }
+]

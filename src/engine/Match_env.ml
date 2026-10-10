@@ -44,6 +44,7 @@ type xconfig = {
   config : Rule_options.t; (* corresponds to rule `options` key *)
   equivs : Equivalence.equivalences;
   nested_formula : bool;
+  legacy_elixir_captures : bool;
   matching_conf : Match_patterns.matching_conf;
   (* ^^^ i.e. we are evaluating a nested formula within `metavariable-pattern`. *)
   (* Fields coming from Runner_config.t used by the engine.
@@ -122,6 +123,7 @@ let default_xconfig =
     config = Rule_options.default;
     equivs = [];
     nested_formula = false;
+    legacy_elixir_captures = false;
     matching_conf = Match_patterns.default_matching_conf;
     matching_explanations = false;
     (* TODO: set to true by default?
@@ -130,3 +132,68 @@ let default_xconfig =
      *)
     filter_irrelevant_rules = NoPrefiltering;
   }
+
+let needs_legacy_elixir_captures (rule : Rule.t) (target : Xtarget.t) =
+  let found =
+    ref (List.exists (Lang.equal Lang.Elixir) (Xlang.to_langs target.xlang))
+  in
+  Rule.formulas_of_mode rule.mode
+  |> List.iter
+       (Visit_rule.visit_formula (fun formula ->
+            List.iter
+              (function
+                | _, Rule.CondNestedFormula (_, Some lang, _) ->
+                    if
+                      List.exists (Lang.equal Lang.Elixir) (Xlang.to_langs lang)
+                    then found := true
+                | _ -> ())
+              formula.Rule.conditions));
+  !found
+
+let merge_legacy_results modern legacy =
+  let open Core_result in
+  if
+    not
+      (Core_error.ErrorSet.is_empty
+         (Core_error.ErrorSet.diff legacy.errors modern.errors))
+  then
+    raise
+      (Core_error.Unhandled_core_error
+         (Core_error.mk_error
+            ~msg:
+              "Legacy fingerprint matching failed; scan aborted to preserve \
+               finding identities"
+            FatalError));
+  let site (m : Core_match.t) =
+    let start, end_ = m.range_loc in
+    ( m.rule_id.id,
+      m.path,
+      start.pos.bytepos,
+      end_.pos.bytepos,
+      String.length end_.str )
+  in
+  let legacy_sites = Hashtbl.create (List.length legacy.matches) in
+  List.iter (fun m -> Hashtbl.replace legacy_sites (site m) ()) legacy.matches;
+  let matches =
+    legacy.matches
+    @ List.filter
+        (fun m -> not (Hashtbl.mem legacy_sites (site m)))
+        modern.matches
+    |> Core_match.uniq
+  in
+  let profiling =
+    match (modern.profiling, legacy.profiling) with
+    | Some a, Some b ->
+        Some
+          {
+            a with
+            Core_profiling.rule_match_time =
+              a.Core_profiling.rule_match_time
+              +. b.Core_profiling.rule_match_time;
+          }
+    | (Some _ as p), _
+    | _, (Some _ as p) ->
+        p
+    | None, None -> None
+  in
+  { modern with matches; profiling }

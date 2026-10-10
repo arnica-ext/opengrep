@@ -461,7 +461,12 @@ def _run_semgrep(
             if (
                 (subcommand is None or subcommand == "scan")
                 and USE_OSEMGREP
+                and "--legacy" not in options
                 and osemgrep_force_project_root
+                and not any(
+                    option == "--project-root" or option.startswith("--project-root=")
+                    for option in options
+                )
             ):
                 options.extend(["--project-root", "."])
 

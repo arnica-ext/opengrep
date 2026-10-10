@@ -43,6 +43,8 @@ let make_core_result () : Core_result.processed_match =
             pattern_string = "";
             options = None;
           };
+        target_lang = None;
+        metavar_langs = [];
         engine_of_match = `OSS;
         env =
           [

@@ -1,0 +1,8 @@
+rules:
+  - id: indexer-alias
+    languages: [csharp]
+    message: Indexed value
+    severity: WARNING
+    options:
+      symbolic_propagation: true
+    pattern: sink(source[0])

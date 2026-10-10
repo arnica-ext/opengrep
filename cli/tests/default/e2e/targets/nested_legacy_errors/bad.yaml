@@ -1,0 +1,6 @@
+code: |
+  sink("def (")
+wrapped: |
+  wrap(sink("def ("))
+missing: |
+  sink("def (")

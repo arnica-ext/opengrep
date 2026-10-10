@@ -184,6 +184,17 @@ let group_rules xconf rules xtarget =
   in
   (relevant_taint_rules_groups, relevant_nontaint_rules, skipped_rules)
 
+(* A failed rule must not discard other rules' findings for the same file. *)
+let stack_overflow_result file rule =
+  let loc = Tok.first_loc_of_file file in
+  let error =
+    E.mk_error ~rule_id:(fst rule.R.id) ~loc ~msg:"Stack overflow"
+      OutJ.StackOverflow
+  in
+  RP.mk_match_result []
+    (Core_error.ErrorSet.singleton error)
+    (Core_profiling.empty_rule_profiling rule)
+
 (* Given a thunk [f] that computes the results of running the engine on a
  * single rule, this function simply instruments the computation on a single
  * rule with some boilerplate logic, like setting the last matched rule,
@@ -200,28 +211,31 @@ let per_rule_boilerplate_fn (timeout : timeout_config option) =
   fun (file : Fpath.t) (rule : Rule.t) f ->
     let rule_id = fst rule.R.id in
     TLS.set Rule.last_matched_rule (Some rule_id);
-    let res_opt =
-      Profiling.profile_code
-        (spf "real_rule:%s" (Rule_ID.to_string rule_id))
-        (fun () ->
-          (* here we handle the rule! *)
-          timeout_function rule file timeout f)
-    in
-    match res_opt with
-    | Some res -> res
-    | None ->
-        incr cnt_timeout;
-        Stack_.push rule_id rule_timeouts;
-        (match timeout with
-        | Some { threshold; _ } when threshold > 0 && !cnt_timeout >= threshold
-          ->
-            raise (File_timeout !rule_timeouts)
-        | _else_ -> ());
-        let loc = Tok.first_loc_of_file file in
-        let error = E.mk_error ~rule_id ~loc OutJ.Timeout in
-        RP.mk_match_result []
-          (Core_error.ErrorSet.singleton error)
-          (Core_profiling.empty_rule_profiling rule)
+    try
+      let res_opt =
+        Profiling.profile_code
+          (spf "real_rule:%s" (Rule_ID.to_string rule_id))
+          (fun () ->
+            (* here we handle the rule! *)
+            timeout_function rule file timeout f)
+      in
+      match res_opt with
+      | Some res -> res
+      | None ->
+          incr cnt_timeout;
+          Stack_.push rule_id rule_timeouts;
+          (match timeout with
+          | Some { threshold; _ }
+            when threshold > 0 && !cnt_timeout >= threshold ->
+              raise (File_timeout !rule_timeouts)
+          | _else_ -> ());
+          let loc = Tok.first_loc_of_file file in
+          let error = E.mk_error ~rule_id ~loc OutJ.Timeout in
+          RP.mk_match_result []
+            (Core_error.ErrorSet.singleton error)
+            (Core_profiling.empty_rule_profiling rule)
+    with
+    | Stack_overflow -> stack_overflow_result file rule
 
 let per_rule_boilerplate_fn_opt (timeout : timeout_config option) =
   let cnt_timeout = ref 0 in
@@ -229,28 +243,32 @@ let per_rule_boilerplate_fn_opt (timeout : timeout_config option) =
   fun (file : Fpath.t) (rule : Rule.t) f ->
     let rule_id = fst rule.R.id in
     TLS.set Rule.last_matched_rule (Some rule_id);
-    let res_opt =
-      Profiling.profile_code
-        (spf "real_rule:%s" (Rule_ID.to_string rule_id))
-        (fun () ->
-          (* here we handle the rule! *)
-          timeout_function rule file timeout f)
-    in
-    match res_opt with
-    | Some res -> res
-    | None ->
-        incr cnt_timeout;
-        Stack_.push rule_id rule_timeouts;
-        (match timeout with
-        | Some { threshold; _ } when threshold > 0 && !cnt_timeout >= threshold
-          ->
-            raise (File_timeout !rule_timeouts)
-        | _else_ -> ());
-        let loc = Tok.first_loc_of_file file in
-        let error = E.mk_error ~rule_id ~loc OutJ.Timeout in
-        Some (RP.mk_match_result []
-          (Core_error.ErrorSet.singleton error)
-          (Core_profiling.empty_rule_profiling rule))
+    try
+      let res_opt =
+        Profiling.profile_code
+          (spf "real_rule:%s" (Rule_ID.to_string rule_id))
+          (fun () ->
+            (* here we handle the rule! *)
+            timeout_function rule file timeout f)
+      in
+      match res_opt with
+      | Some res -> res
+      | None ->
+          incr cnt_timeout;
+          Stack_.push rule_id rule_timeouts;
+          (match timeout with
+          | Some { threshold; _ }
+            when threshold > 0 && !cnt_timeout >= threshold ->
+              raise (File_timeout !rule_timeouts)
+          | _else_ -> ());
+          let loc = Tok.first_loc_of_file file in
+          let error = E.mk_error ~rule_id ~loc OutJ.Timeout in
+          Some
+            (RP.mk_match_result []
+               (Core_error.ErrorSet.singleton error)
+               (Core_profiling.empty_rule_profiling rule))
+    with
+    | Stack_overflow -> Some (stack_overflow_result file rule)
 
 let scc_match_hook (match_hook : Core_match.t -> unit)
     (dependency_match_table : Match_SCA_mode.dependency_match_table option) :

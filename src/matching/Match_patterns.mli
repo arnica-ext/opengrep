@@ -26,6 +26,7 @@ val check :
   ?has_as_metavariable:bool ->
   ?mvar_context:Metavariable.bindings ->
   ?range_filter:(Tok.location * Tok.location -> bool) ->
+  ?legacy_elixir_captures:bool ->
   ?matching_conf:matching_conf ->
   Rule_options.t * Equivalence.equivalences ->
   Mini_rule.rules ->

@@ -136,6 +136,7 @@ and map_id_info x =
    id_type = v_id_type;
    id_svalue = v3;
    id_flags = _not_available_in_v1;
+   _;
   } ->
       let v3 = map_of_ref (map_of_option map_svalue) v3 in
       let v_id_type = map_of_ref (map_of_option map_type_) v_id_type in
@@ -959,7 +960,7 @@ and map_for_var_or_expr = function
 
 and map_pattern = function
   | PatEllipsis v1 -> raise (SemgrepConstruct v1)
-  | PatRecord v1 ->
+  | PatRecord { pr_fields = v1; _ } ->
       let v1 =
         map_bracket
           (map_of_list (fun (v1, v2) ->

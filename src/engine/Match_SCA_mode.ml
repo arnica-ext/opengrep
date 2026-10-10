@@ -133,6 +133,8 @@ let check_rule (rule : Rule.t) (xtarget : Lockfile_xtarget.t)
                  };
                path = Target.path_of_origin (Origin.File xtarget.target.path);
                (* TODO: should be pro if the pro engine is used in the match *)
+               target_lang = None;
+               metavar_langs = [];
                engine_of_match = `OSS;
                range_loc = dep.loc;
                (* TODO? *)

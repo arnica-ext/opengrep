@@ -94,6 +94,8 @@ let (matches_of_matcher :
                               ast_node = None;
                               enclosure = None;
                               tokens = lazy [ info_of_token_location loc1 ];
+                              target_lang = None;
+                              metavar_langs = [];
                               engine_of_match = `OSS;
                               validation_state = `No_validator;
                               severity_override = None;

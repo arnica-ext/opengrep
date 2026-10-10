@@ -197,7 +197,21 @@ let tests (caps : Cap.all_caps) =
 let tests_with_delayed_error caps =
   try
     Printf.printf "Gathering tests from %s...\n%!" (Sys.getcwd ());
-    let tests = tests caps |> List_.map (with_env_check ~ignore_empty:true) in
+    let unsupported =
+      UFile.cat (Fpath.v "tests/legacy-parser-unsupported-tests.txt")
+    in
+    let tests =
+      tests caps
+      |> List_.map (fun (test : Testo.t) ->
+             let name = String.concat " > " (test.category @ [ test.name ]) in
+             if List.mem name unsupported then
+               Testo.update test
+                 ~expected_outcome:
+                   (Should_fail
+                      "PHP/Docker parsers pinned to 1.15 for fingerprint compatibility")
+             else test)
+      |> List_.map (with_env_check ~ignore_empty:true)
+    in
     Printf.printf "Done gathering tests.\n%!";
     tests
   with

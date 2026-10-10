@@ -449,6 +449,16 @@ class OutputHandler:
             final_error = self.semgrep_structured_errors[-1]
             self.ignore_log.core_failure_lines_by_file = failed_to_analyze_lines_by_path
 
+        final_error = next(
+            (
+                error
+                for error in self.semgrep_structured_errors
+                if isinstance(error, SemgrepCoreError)
+                and isinstance(error.core.error_type.value, out.FatalError)
+            ),
+            final_error,
+        )
+
         if self.has_output:
             for output_destination, output in self._build_outputs():
                 if output_destination:

@@ -195,6 +195,8 @@ let match_rules_and_recurse
                         (* This will be overrided later on by the Pro engine, if this is
                            from a Pro run.
                         *)
+                        target_lang = Some env.lang;
+                        metavar_langs = [];
                         engine_of_match = `OSS;
                         validation_state = `No_validator;
                         severity_override = None;
@@ -344,7 +346,7 @@ class ['self] check_visitor range_filter m_env has_as_metavariable
 
     method get_matches = mp_env.matches
 
-    method! visit_expr env x =
+    method private match_expr x =
       (* this could be quite slow ... we match many sgrep patterns
        * against an expression recursively
        *)
@@ -388,6 +390,8 @@ class ['self] check_visitor range_filter m_env has_as_metavariable
                             enclosure = Option.map (!) enclosure;
                             tokens;
                             taint_trace = None;
+                            target_lang = Some env.lang;
+                            metavar_langs = [];
                             engine_of_match = `OSS;
                             validation_state = `No_validator;
                             severity_override = None;
@@ -408,7 +412,13 @@ class ['self] check_visitor range_filter m_env has_as_metavariable
                        rule.pattern_string !!(start_loc.pos.file)
                        start_loc.pos.line start_loc.pos.column
                        end_loc.pos.line end_loc.pos.column);
-                 ());
+                 ())
+
+    method! visit_expr env x =
+      self#match_expr x;
+      (if Lang.equal m_env.lang Lang.Ruby then
+         Option.iter self#match_expr
+           (AST_generic_helpers.ruby_array_access_callee x));
       (* try the rules on subexpressions *)
       (* this can recurse to find nested matching inside the
        * matched code itself *)
@@ -450,6 +460,8 @@ class ['self] check_visitor range_filter m_env has_as_metavariable
                             enclosure = Option.map (!) enclosure;
                             tokens;
                             taint_trace = None;
+                            target_lang = Some env.lang;
+                            metavar_langs = [];
                             engine_of_match = `OSS;
                             validation_state = `No_validator;
                             severity_override = None;
@@ -496,6 +508,8 @@ class ['self] check_visitor range_filter m_env has_as_metavariable
                      enclosure = Option.map (!) enclosure;
                      tokens;
                      taint_trace = None;
+                     target_lang = Some env.lang;
+                     metavar_langs = [];
                      engine_of_match = `OSS;
                      validation_state = `No_validator;
                      severity_override = None;
@@ -652,9 +666,8 @@ class ['self] check_visitor range_filter m_env has_as_metavariable
   end
 
 let check ~hook ?(has_as_metavariable = false) ?mvar_context
-    ?(range_filter = fun _ -> true)
-    ?(matching_conf = default_matching_conf)
-    (config, equivs) rules
+    ?(range_filter = fun _ -> true) ?(legacy_elixir_captures = false)
+    ?(matching_conf = default_matching_conf) (config, equivs) rules
     (internal_path_to_content, origin, lang, ast) =
   Log.info (fun m ->
       m "checking %s with %d mini rules" !!internal_path_to_content
@@ -673,18 +686,25 @@ let check ~hook ?(has_as_metavariable = false) ?mvar_context
      * but we should only need to create it once.
      *)
     let m_env = MG.environment_of_program lang config ast in
+    let m_env =
+      {
+        m_env with
+        legacy_elixir_captures =
+          legacy_elixir_captures && Lang.equal lang Lang.Elixir;
+      }
+    in
 
     (* old: let prog = Normalize_AST.normalize (Pr ast) lang in
-       * we were rewriting code, e.g., A != B was rewritten as !(A == B),
-       * which enable some nice semantic matching demo where searching for
-       * $X == $X would also find code written as a != a. The problem
-       * is that if we don't do the same rewriting on the pattern, then
-       * looking for $X != $X would not find anything anymore.
-       * In any case, rewriting the source code is less necessary
-       * now that we have user-defined code equivalences (see Equivalence.ml)
-       * and this will also be less surprising (you can see the set of
-       * equivalences in the equivalence file).
-    *)
+     * we were rewriting code, e.g., A != B was rewritten as !(A == B),
+     * which enable some nice semantic matching demo where searching for
+     * $X == $X would also find code written as a != a. The problem
+     * is that if we don't do the same rewriting on the pattern, then
+     * looking for $X != $X would not find anything anymore.
+     * In any case, rewriting the source code is less necessary
+     * now that we have user-defined code equivalences (see Equivalence.ml)
+     * and this will also be less surprising (you can see the set of
+     * equivalences in the equivalence file).
+     *)
     let prog = Pr ast in
 
     let expr_rules = ref [] in

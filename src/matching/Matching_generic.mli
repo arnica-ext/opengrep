@@ -7,9 +7,10 @@ type tin = {
   (* TODO: this does not have to be in tout; maybe split tin in 2? *)
   lang : Lang.t;
   config : Rule_options.t;
+  legacy_elixir_captures : bool;
   deref_sym_vals : int;
-      (** Counts the number of times that we "follow" symbolically propagated
-    * values. This is bound to prevent potential infinite loops. *)
+      (** Counts the number of times that we "follow" symbolically propagated *
+          values. This is bound to prevent potential infinite loops. *)
   wildcard_imports : AST_generic.dotted_ident list;
       (** Stores the "wildcard imports" that import everything from a given
           module, but only the ones that occur at the top level of the program

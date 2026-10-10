@@ -702,7 +702,7 @@ let rec map_bind (env : env) (x : CST.bind) : G.pattern =
           | `Bind_fields x ->
               let lbrace, fields, rbrace = map_bind_fields env x in
               (* abused for record binding in move, so that struct is matchable *)
-              G.PatDisj (struct_type, G.PatRecord (lbrace, fields, rbrace))
+              G.PatDisj (struct_type, G.record_pattern (lbrace, fields, rbrace))
           | `Bind_tuple x -> G.PatConstructor (struct_name, map_bind_tuple env x)
           )
       | None -> struct_type)
@@ -1381,7 +1381,7 @@ let rec transpile_let_bind (env : env) (left : G.pattern) (right : G.expr) :
       let typed_right = G.Cast (inner_type, sc, right) |> G.e in
       transpile_let_bind env inner typed_right
   | G.PatWildcard _ -> []
-  | G.PatRecord (_, fields, _) ->
+  | G.PatRecord { pr_fields = _, fields, _; _ } ->
       let fields =
         fields
         |> List_.map (fun (field, pat) ->

@@ -1,0 +1,35 @@
+{
+  "rules": [
+    {
+      "languages": [
+        "elixir"
+      ],
+      "severity": "WARNING",
+      "id": "direct-call",
+      "message": "$X",
+      "pattern": "sink(wrap(f($X)))",
+      "options": {
+        "symbolic_propagation": true
+      }
+    },
+    {
+      "languages": [
+        "elixir"
+      ],
+      "severity": "WARNING",
+      "id": "pipeline-taint",
+      "message": "$X",
+      "mode": "taint",
+      "pattern-sources": [
+        {
+          "pattern": "source()"
+        }
+      ],
+      "pattern-sinks": [
+        {
+          "pattern": "danger($X)"
+        }
+      ]
+    }
+  ]
+}

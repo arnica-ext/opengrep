@@ -362,9 +362,18 @@ let m_with_symbolic_propagation ~is_root f b tin =
      * below. We enforce a bound just to make sure that we never hang due to
      * one of these bugs. *)
     if tin.deref_sym_vals < max_NESTED_SYMBOLIC_PROPAGATION then
-      match b.G.e with
-      | G.N (G.Id ((id, _), { id_svalue = { contents = Some (G.Sym b1) }; _ }))
-        ->
+      let value =
+        match b.G.e with
+        | G.N (G.Id ((id, _), info)) ->
+            let value =
+              if tin.legacy_elixir_captures then !(info.id_legacy_svalue)
+              else !(info.id_svalue)
+            in
+            Some (id, info, value)
+        | _ -> None
+      in
+      match value with
+      | Some (id, info, Some (G.Sym b1)) ->
           (* We shouldn't end up with a symbol that resolves to itself, but if
            * we do, we shouldn't crash. This simple check will not protect
            * against complicated paths through which a symbol could resolve to
@@ -377,7 +386,21 @@ let m_with_symbolic_propagation ~is_root f b tin =
                    encountered (\"%s\")"
                   id);
             fail () tin)
-          else f b1 { tin with deref_sym_vals = tin.deref_sym_vals + 1 }
+          else
+            let b1 =
+              if
+                tin.legacy_elixir_captures
+                || Dataflow_svalue.is_symbolic_expr ~legacy:true b1
+              then b1
+              else
+                let original =
+                  match !(info.id_legacy_svalue) with
+                  | Some (G.Sym original) -> original
+                  | _ -> b
+                in
+                { b1 with e_original = Some (G.E original) }
+            in
+            f b1 { tin with deref_sym_vals = tin.deref_sym_vals + 1 }
       | ___else___ -> fail () tin
     else (
       Log.warn (fun m ->
@@ -783,6 +806,7 @@ and m_id_info a b =
         id_type = _a3;
         id_svalue = _a4;
         id_flags = _a5;
+        _;
       },
       {
         B.id_resolved = _b1;
@@ -790,6 +814,7 @@ and m_id_info a b =
         id_type = _b3;
         id_svalue = _b4;
         id_flags = _b5;
+        _;
       } ) ->
       (* old: (m_ref m_resolved_name) a3 b3  >>= (fun () ->
        * but doing import flask in a source file means every reference
@@ -873,6 +898,16 @@ and m_expr_root a b = m_expr ~is_root:true a b
    all the other cases.
 *)
 and m_expr ?(is_root = false) ?(arguments_have_changed = true) a b =
+  with_lang (fun lang ->
+      let legacy_call expr =
+        match (lang, expr.G.e, expr.e_original) with
+        | Lang.Ruby, G.Call _, Some (G.E ({ e = G.DotAccess _; _ } as original)) ->
+            original
+        | _ -> expr
+      in
+      m_expr_impl ~is_root ~arguments_have_changed (legacy_call a) (legacy_call b))
+
+and m_expr_impl ~is_root ~arguments_have_changed a b =
   Trace_matching.(if on then print_expr_pair a b);
   (* Added for Clojure's `let` and similar constructs that are encoded
    * as OtherExpr in generic AST. Useful for Elixir ShortLambda too. *)
@@ -1010,8 +1045,32 @@ and m_expr ?(is_root = false) ?(arguments_have_changed = true) a b =
    * the next case where we bind to the more general MV.E.
    * TODO: should be B.N (B.Id _ | B.IdQualified _)?
    *)
-  | G.N (G.Id _ as na), B.N (B.Id _ as nb) ->
-      m_name na nb
+  | G.N (G.Id (((str, _) as mvar), _) as na), B.N (B.Id (_, info) as nb) ->
+      (fun tin ->
+        let legacy =
+          if
+            Mvar.is_metavar_name str && tin.config.Options.constant_propagation
+            && tin.config.Options.symbolic_propagation && (not is_root)
+            && tin.lang <> Lang.Elixir
+            && Option.is_none !(info.id_svalue)
+          then
+            match !(info.id_legacy_svalue) with
+            | Some (G.Sym original) -> envf mvar (MV.E original) tin
+            | _ -> []
+          else []
+        in
+        let direct =
+          if tin.legacy_elixir_captures && Mvar.is_metavar_name str then
+            match nb with
+            | B.Id (id, info) ->
+                envf mvar
+                  (MV.Id
+                     (id, Some { info with id_svalue = info.id_legacy_svalue }))
+                  tin
+            | _ -> m_name na nb tin
+          else m_name na nb tin
+        in
+        legacy @ direct)
       >||> m_with_symbolic_propagation ~is_root (fun b1 -> m_expr a b1) b
   (* Ruby/Crystal equivalence: bare identifier `foo` matches zero-arg call `foo()`.
      After disambiguation, target bare identifiers become Call(N(Id(x)), [])
@@ -1048,9 +1107,16 @@ and m_expr ?(is_root = false) ?(arguments_have_changed = true) a b =
      binding to a program — same shape as the identifier-metavar case
      just above. Without this, [m_literal]'s atom-vs-atom path binds as
      [MV.Text], which [metavariable-pattern] cannot consume. *)
-  | G.L (G.Atom (_, (str, tok))), B.L (B.Atom _)
+  | G.L (G.Atom (_, (str, tok))), B.L (B.Atom (colon, name))
     when Mvar.is_metavar_name str ->
-      envf (str, tok) (MV.E b)
+      with_lang (fun lang ->
+          let captured =
+            if lang =*= Lang.Ruby then
+              (* A symbol metavariable captures its name, without the colon. *)
+              B.L (B.Atom (Tok.fake_tok colon ":", name)) |> G.e
+            else b
+          in
+          envf (str, tok) (MV.E captured))
   (* metavar: typed! *)
   | G.TypedMetavar ((str, tok), _, t), _b when Mvar.is_metavar_name str ->
       with_lang (fun lang -> m_compatible_type lang (str, tok) t b)
@@ -3128,7 +3194,7 @@ and m_pattern a b =
       m_name a1 b1 >>= fun () -> (m_list_with_ellipsis m_pattern) a2 b2
   | G.PatTuple a1, B.PatTuple b1 -> m_bracket (m_list_with_ellipsis m_pattern) a1 b1
   | G.PatList a1, B.PatList b1 -> m_bracket (m_list_with_ellipsis m_pattern) a1 b1
-  | G.PatRecord a1, B.PatRecord b1 ->
+  | G.PatRecord { pr_fields = a1; _ }, B.PatRecord { pr_fields = b1; _ } ->
       m_bracket m_list__m_field_pattern a1 b1
   | G.PatKeyVal (a1, a2), B.PatKeyVal (b1, b2) ->
       m_pattern a1 b1 >>= fun () -> m_pattern a2 b2

@@ -705,7 +705,7 @@ and pattern env pat : stmts * lval * stmts =
               ~eorig val_pat
       in
       ([], tmp_lval, ss)
-  | G.PatRecord (_tok1, fields, tok2) ->
+  | G.PatRecord { pr_fields = (_tok1, fields, tok2); _ } ->
     (* Each field is (dotted_ident, pattern). The dotted_ident carries only
      * the field label (string * tok) with no id_info; we synthesise an
      * IL.name with empty id_info and the default sid. That matches the

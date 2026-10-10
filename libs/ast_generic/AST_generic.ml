@@ -178,7 +178,7 @@
  * convenient to correspond mostly to Semgrep versions. So version below
  * can jump from "1.12.1" to "1.20.0" and that's fine.
  *)
-let version = "1.93.0"
+let version = "1.93.4"
 
 (*****************************************************************************)
 (* Some notes on deriving *)
@@ -625,6 +625,9 @@ and id_info = {
    * depending where it is used.
    *)
   id_svalue : svalue option ref; [@hash.ignore] [@equal fun _a _b -> true]
+  (* Legacy capture candidates; separate from analysis values. *)
+  id_legacy_svalue : (svalue option ref[@opaque]);
+      [@hash.ignore] [@equal fun _a _b -> true] [@compare fun _a _b -> 0]
   (* ^^^ THINK: Drop option? *)
   (* See module 'IdFlags'. Previously we compared 'id_flags' with 'IdFlags.equal'
    * but, once we added the 'final' flag which is only set at definition site,
@@ -647,6 +650,9 @@ and id_flags = (IdFlags.t[@name "id_flags_t"])
 and expr = {
   e : expr_kind;
   e_id : int;
+  (* Pre-lowering representation used only for legacy fingerprints. *)
+  e_original : (any option[@opaque]);
+      [@equal fun _a _b -> true] [@compare fun _a _b -> 0] [@hash.ignore]
   (* used to quickly get the range of an expression *)
   mutable e_range : (Tok.location * Tok.location) option;
       [@equal fun _a _b -> true] [@hash.ignore]
@@ -1201,6 +1207,8 @@ and argument =
  * our stress-test-monorepo benchmark. *)
 and stmt = {
   s : stmt_kind; [@hash.ignore]
+  s_original : (any option[@opaque]);
+      [@equal fun _a _b -> true] [@compare fun _a _b -> 0] [@hash.ignore]
   (* todo? we could store a range: (tok * tok) to delimit the range of a stmt
    * which would allow us to remove some of the extra 'tok' in stmt_kind.
    * Indeed, the main use of those 'tok' is to accurately report a match range
@@ -1441,7 +1449,7 @@ and pattern =
    *)
   | PatConstructor of name * pattern list (* TODO: bracket also here *)
   (* And-Type*)
-  | PatRecord of (dotted_ident * pattern) list bracket
+  | PatRecord of record_pattern
   (* newvar:! *)
   | PatId of ident * id_info (* Usually Local/Param, Global in toplevel let *)
   (* special cases of PatConstructor *)
@@ -1467,6 +1475,13 @@ and pattern =
    * so maybe have a PatExpr like we have StmtExpr?
    *)
   | OtherPat of todo_kind * any list
+
+and record_pattern = {
+  pr_fields : (dotted_ident * pattern) list bracket;
+  (* Reporting-only tokens retained before record normalization. *)
+  pr_original_tokens : (tok list option[@opaque]);
+      [@equal fun _a _b -> true] [@compare fun _a _b -> 0] [@hash.ignore]
+}
 
 (*****************************************************************************)
 (* Type *)
@@ -2233,13 +2248,14 @@ let no_sc : Tok.t option = None
 (* ------------------------------------------------------------------------- *)
 
 (* statements *)
-let s skind = { s = skind; s_range = None }
+let s skind = { s = skind; s_original = None; s_range = None }
 
 (* expressions *)
 let e ekind =
   {
     e = ekind;
     e_id = 0;
+    e_original = None;
     e_range = None;
     is_implicit_return = false;
     facts = [];
@@ -2268,6 +2284,7 @@ let empty_id_info ?(hidden = false) ?(case_insensitive = false) () =
     id_resolved_alternatives = ref [];
     id_type = ref None;
     id_svalue = ref None;
+    id_legacy_svalue = ref None;
     id_flags =
       ref (IdFlags.make ~hidden ~case_insensitive ~final:false ~static:false);
   }
@@ -2354,6 +2371,9 @@ let stmt_of_raw (x : any Raw_tree.t) : stmt = RawStmt x |> s
 (* Embed proper AST nodes into an untranslated subtree *)
 let raw_of_expr (x : expr) : any Raw_tree.t = Any (E x)
 let raw_of_stmt (x : stmt) : any Raw_tree.t = Any (S x)
+
+let record_pattern ?original_tokens fields =
+  PatRecord { pr_fields = fields; pr_original_tokens = original_tokens }
 
 (* ------------------------------------------------------------------------- *)
 (* Parameters *)

@@ -149,6 +149,40 @@ let error_with_rule_id rule_id (error : Core_error.t) =
   | PartialParsing _ -> error
   | _ -> { error with rule_id = Some rule_id }
 
+let relocate_nested_error file revert_loc (error : E.t) =
+  let relocate_loc (loc : Tok.location) =
+    if Fpath.equal loc.pos.file file then revert_loc loc else loc
+  in
+  let relocate_span (span : OutJ.location) =
+    if Fpath.equal span.path file then
+      let relocate_position (position : OutJ.position) =
+        let loc =
+          Tok.
+            {
+              str = "";
+              pos =
+                Pos.make file ~line:position.line ~column:(position.col - 1)
+                  position.offset;
+            }
+        in
+        revert_loc loc
+      in
+      let start = relocate_position span.start in
+      let end_ = relocate_position span.end_ in
+      {
+        OutJ.path = start.pos.file;
+        start = Semgrep_output_utils.position_of_token_location start;
+        end_ = Semgrep_output_utils.position_of_token_location end_;
+      }
+    else span
+  in
+  let typ =
+    match error.typ with
+    | PartialParsing spans -> OutJ.PartialParsing (List.map relocate_span spans)
+    | typ -> typ
+  in
+  { error with loc = Option.map relocate_loc error.loc; typ }
+
 let lazy_force x = Lazy.force x [@@profiling]
 
 (* `fold_with_expls` is a left fold across a list of things, while
@@ -219,21 +253,21 @@ let (mini_rule_of_pattern :
 (* Debugging semgrep *)
 (*****************************************************************************)
 
-let debug_semgrep config mini_rules file lang ast =
+let debug_semgrep ~legacy_elixir_captures config mini_rules file lang ast =
   (* process one mini rule at a time *)
   Log.debug (fun m -> m "DEBUG SEMGREP MODE!");
   mini_rules
   |> List.concat_map (fun mr ->
-         Log.debug (fun m ->
-             m "Checking mini rule with pattern %s" mr.MR.pattern_string);
-         let res =
-           Match_patterns.check
-             ~hook:(fun _ -> ())
-             config [ mr ]
-             (file, File file, lang, ast)
-         in
-         if !debug_matches then
-           (* TODO
+      Log.debug (fun m ->
+          m "Checking mini rule with pattern %s" mr.MR.pattern_string);
+      let res =
+        Match_patterns.check
+          ~hook:(fun _ -> ())
+          ~legacy_elixir_captures config [ mr ]
+          (file, File file, lang, ast)
+      in
+      if !debug_matches then
+        (* TODO
               let json = res |> List.map (fun x ->
                    x |> JSON_report.match_to_match_ |> SJ.string_of_match_) in
               let json_uniq = Common.uniq_by ( = ) json in
@@ -282,13 +316,15 @@ let matches_of_patterns ~has_as_metavariable ?mvar_context ?range_filter rule
 
             if !debug_timeout || !debug_matches then
               (* debugging path *)
-              debug_semgrep config mini_rules internal_path_to_content lang ast
+              debug_semgrep ~legacy_elixir_captures:xconf.legacy_elixir_captures
+                config mini_rules internal_path_to_content lang ast
             else
               (* regular path *)
               Match_patterns.check
                 ~hook:(fun _ -> ())
                 ~has_as_metavariable ?mvar_context ?range_filter ~matching_conf
-                config mini_rules
+                ~legacy_elixir_captures:xconf.legacy_elixir_captures config
+                mini_rules
                 (internal_path_to_content, origin, lang, ast))
       in
       let errors = Parse_target.errors_from_skipped_tokens skipped_tokens in
@@ -430,6 +466,8 @@ let apply_focus_on_ranges (env : env) (focus_mvars_list : R.focus_mv_list list)
                tokens = lazy (MV.ii_of_mval mval);
                env = range.mvars;
                taint_trace = None;
+               target_lang = List.assoc focus_mvar range.metavar_langs;
+               metavar_langs = range.metavar_langs;
                engine_of_match = `OSS;
                validation_state = `No_validator;
                severity_override = None;
@@ -501,6 +539,7 @@ let apply_as_on_ranges ranges as_ =
   |> List_.map (fun (range : RM.t) ->
          {
            range with
+           metavar_langs = (as_, range.origin.target_lang) :: range.metavar_langs;
            mvars =
              (match range.origin.ast_node with
              | Some node -> (as_, MV.mvalue_of_any node) :: range.mvars
@@ -685,41 +724,51 @@ let hook_pro_metavariable_name :
     (G.expr -> Rule.metavar_cond_name -> bool) option ref =
   ref None
 
-let rec filter_ranges (env : env) (xs : (RM.t * MV.bindings list) list)
-    (cond : R.metavar_cond) : (RM.t * MV.bindings list) list =
+let rec filter_ranges (env : env)
+    (xs : (RM.t * (MV.bindings * PM.metavar_langs) list) list)
+    (cond : R.metavar_cond) : (RM.t * (MV.bindings * PM.metavar_langs) list) list =
   let file = env.xtarget.path.internal_path_to_content in
   xs
   |> List_.filter_map (fun (r, new_bindings) ->
-         let map_bool r b = if b then Some (r, new_bindings) else None in
-         let bindings = r.RM.mvars in
-         match cond with
-         | R.CondEval e ->
-             let env =
-               Eval_generic.bindings_to_env env.xconf.config ~file bindings
-             in
-             Eval_generic.eval_bool env e r.origin.facts bindings |> map_bool r
-         | R.CondNestedFormula (mvar, opt_lang, formula) -> (
-             (* TODO: could return expl for nested matching! *)
-             match
-               Metavariable_pattern.get_nested_metavar_pattern_bindings
-                 get_nested_formula_matches env r mvar opt_lang formula
-             with
-             | [] -> None
-             | bindings -> Some (r, bindings @ new_bindings))
-         | R.CondType (mvar, opt_lang, _, ts) -> (
-             let* mval = List.assoc_opt mvar bindings in
-             match Metavariable.mvalue_to_expr mval with
-             | Some e ->
-                 let lang =
-                   match Option.value opt_lang ~default:env.xtarget.xlang with
-                   | Xlang.L (lang, _) -> lang
-                   | Xlang.LRegex
-                   | Xlang.LSpacegrep
-                   | Xlang.LAliengrep ->
-                       raise Impossible
-                 in
-                 let ast, _ = Lazy.force env.xtarget.lazy_ast_and_errors in
-                 (* This call iterates over the program's top-level statements, and
+      let map_bool r b = if b then Some (r, new_bindings) else None in
+      let bindings = r.RM.mvars in
+      let legacy_metavars =
+        if env.xconf.legacy_elixir_captures then
+          r.metavar_langs
+          |> List.filter_map (function
+            | name, Some Lang.Elixir -> Some name
+            | _ -> None)
+        else []
+      in
+      match cond with
+      | R.CondEval e ->
+          let env =
+            Eval_generic.bindings_to_env ~legacy_metavars env.xconf.config ~file
+              bindings
+          in
+          Eval_generic.eval_bool env e r.origin.facts bindings |> map_bool r
+      | R.CondNestedFormula (mvar, opt_lang, formula) -> (
+          (* TODO: could return expl for nested matching! *)
+          match
+            Metavariable_pattern.get_nested_metavar_pattern_bindings
+              get_nested_formula_matches env r mvar opt_lang formula
+          with
+          | [] -> None
+          | bindings -> Some (r, bindings @ new_bindings))
+      | R.CondType (mvar, opt_lang, _, ts) -> (
+          let* mval = List.assoc_opt mvar bindings in
+          match Metavariable.mvalue_to_expr mval with
+          | Some e ->
+              let lang =
+                match Option.value opt_lang ~default:env.xtarget.xlang with
+                | Xlang.L (lang, _) -> lang
+                | Xlang.LRegex
+                | Xlang.LSpacegrep
+                | Xlang.LAliengrep ->
+                    raise Impossible
+              in
+              let ast, _ = Lazy.force env.xtarget.lazy_ast_and_errors in
+              (* This call iterates over the program's top-level statements, and
                     thus incurs some cost, but it shouldn't be much.
                  *)
                  let env =
@@ -737,62 +786,71 @@ let rec filter_ranges (env : env) (xs : (RM.t * MV.bindings list) list)
                             t e env)
                  in
 
-                 (* the type can also contain metavariables, but we probably
-                  * don't want to use that in other parts of the rules, so it's
-                  * probably fine to just check whether the match is empty or
-                  * not *)
-                 matches <> [] |> map_bool r
-             | None ->
-                 error env
-                   (spf "couldn't find metavar %s in the match results." mvar);
-                 None)
-         | R.CondName ({ mvar; _ } as cond) -> (
-             let find_name env e cond =
-               match !hook_pro_metavariable_name with
-               | None ->
-                   error env
-                     "semgrep-internal-metavariable-name operator is only \
-                      supported in the Pro engine";
-                   false
-               | Some f -> f e cond
-             in
-             let* mval = List.assoc_opt mvar bindings in
-             match Metavariable.mvalue_to_expr mval with
-             | Some e -> find_name env e cond |> map_bool r
-             | None ->
-                 error env
-                   (spf "couldn't find metavar %s in the match results." mvar);
-                 None)
-         (* todo: would be nice to have CondRegexp also work on
-          * eval'ed bindings.
-          * We could also use re.match(), to be close to python, but really
-          * Eval_generic must do something special here with the metavariable
-          * which may not always be a string. The regexp is really done on
-          * the text representation of the metavar content.
-          *)
-         | R.CondRegexp (mvar, re, const_prop) -> (
-             let config = env.xconf.config in
-             let env =
-               if const_prop && config.constant_propagation then
-                 Eval_generic.bindings_to_env config ~file bindings
-               else
-                 Eval_generic.bindings_to_env_just_strings config ~file bindings
-             in
-             (* TODO: could return expl for nested matching! *)
-             match
-               Metavariable_regex.get_metavar_regex_capture_bindings env ~file r
-                 (mvar, re)
-             with
-             | None -> None
-             (* The bindings we get back are solely the new capture group metavariables. We need
-              * to combine them with the metavariables from the original match.
-              *)
-             | Some capture_bindings -> Some (r, capture_bindings @ new_bindings)
-             )
-         | R.CondAnalysis (mvar, CondEntropyV2 mode) -> (
-             match !hook_pro_entropy_analysis with
-             | None ->
-                 (* TODO - nice UX handling of this for pysemgrep - tell the user
+              (* the type can also contain metavariables, but we probably
+               * don't want to use that in other parts of the rules, so it's
+               * probably fine to just check whether the match is empty or
+               * not *)
+              matches <> [] |> map_bool r
+          | None ->
+              error env
+                (spf "couldn't find metavar %s in the match results." mvar);
+              None)
+      | R.CondName ({ mvar; _ } as cond) -> (
+          let find_name env e cond =
+            match !hook_pro_metavariable_name with
+            | None ->
+                error env
+                  "semgrep-internal-metavariable-name operator is only \
+                   supported in the Pro engine";
+                false
+            | Some f -> f e cond
+          in
+          let* mval = List.assoc_opt mvar bindings in
+          match Metavariable.mvalue_to_expr mval with
+          | Some e -> find_name env e cond |> map_bool r
+          | None ->
+              error env
+                (spf "couldn't find metavar %s in the match results." mvar);
+              None)
+      (* todo: would be nice to have CondRegexp also work on
+       * eval'ed bindings.
+       * We could also use re.match(), to be close to python, but really
+       * Eval_generic must do something special here with the metavariable
+       * which may not always be a string. The regexp is really done on
+       * the text representation of the metavar content.
+       *)
+      | R.CondRegexp (mvar, re, const_prop) -> (
+          let config = env.xconf.config in
+          let env =
+            if const_prop && config.constant_propagation then
+              Eval_generic.bindings_to_env ~legacy_metavars config ~file
+                bindings
+            else
+              Eval_generic.bindings_to_env_just_strings ~legacy_metavars config
+                ~file bindings
+          in
+          (* TODO: could return expl for nested matching! *)
+          match
+            Metavariable_regex.get_metavar_regex_capture_bindings
+              ~legacy:(List.mem mvar legacy_metavars)
+              env ~file r (mvar, re)
+          with
+          | None -> None
+          (* The bindings we get back are solely the new capture group metavariables. We need
+           * to combine them with the metavariables from the original match.
+           *)
+          | Some capture_bindings ->
+              let capture_bindings =
+                List.map
+                  (fun bindings ->
+                    (bindings, List.map (fun (name, _) -> (name, None)) bindings))
+                  capture_bindings
+              in
+              Some (r, capture_bindings @ new_bindings))
+      | R.CondAnalysis (mvar, CondEntropyV2 mode) -> (
+          match !hook_pro_entropy_analysis with
+          | None ->
+              (* TODO - nice UX handling of this for pysemgrep - tell the user
                   * that they ran a rule in OSS w/o Pro hook and so their rule
                   * didn't do anything
                   *)
@@ -841,7 +899,7 @@ let rec filter_ranges (env : env) (xs : (RM.t * MV.bindings list) list)
                analyze
              |> map_bool r)
 
-and get_nested_formula_matches env formula range =
+and get_nested_formula_matches ~revert_loc env formula range =
   let res, final_ranges =
     matches_of_formula
       { env.xconf with nested_formula = true }
@@ -855,6 +913,10 @@ and get_nested_formula_matches env formula range =
     let rule = fst env.rule.id in
     res.RP.errors
     |> E.ErrorSet.map (fun err ->
+           let err =
+             relocate_nested_error env.xtarget.path.internal_path_to_content
+               revert_loc err
+           in
            let msg =
              spf
                "When parsing a snippet as %s for metavariable-pattern in rule \
@@ -918,8 +980,12 @@ and evaluate_formula env opt_context
            *)
            r
            :: (new_bindings_list
-              |> List_.map (fun new_bindings ->
-                     { r with RM.mvars = new_bindings @ r.RM.mvars })))
+              |> List_.map (fun (new_bindings, langs) ->
+                     {
+                       r with
+                       RM.mvars = new_bindings @ r.RM.mvars;
+                       metavar_langs = langs @ r.metavar_langs;
+                     })))
   in
 
   let ranges =
@@ -1113,6 +1179,30 @@ and matches_of_formula xconf rule xtarget formula opt_context :
       xpatterns
     |> RP.add_rule rule
   in
+  let res =
+    match opt_context with
+    | None -> res
+    | Some context ->
+        let inherited =
+          {
+            context.origin with
+            PM.env = context.mvars;
+            metavar_langs = context.metavar_langs;
+          }
+        in
+        {
+          res with
+          RP.matches =
+            List.map
+              (fun pm ->
+                {
+                  pm with
+                  PM.metavar_langs =
+                    PM.metavar_langs_for_bindings pm.PM.env [ inherited; pm ];
+                })
+              res.matches;
+        }
+  in
   Log.info (fun m -> m "found %d matches" (List.length res.matches));
   (* match results per minirule id which is the same as pattern_id in
    * the formula *)
@@ -1144,7 +1234,7 @@ and matches_of_formula xconf rule xtarget formula opt_context :
 (* Main entry point *)
 (*****************************************************************************)
 
-let check_rule ({ R.mode = `Search formula; _ } as r) hook xconf xtarget =
+let check_rule_once ({ R.mode = `Search formula; _ } as r) hook xconf xtarget =
   let rule_id = fst r.id in
   let res, final_ranges = matches_of_formula xconf r xtarget formula None in
   let errors = res.errors |> E.ErrorSet.map (error_with_rule_id rule_id) in
@@ -1156,3 +1246,15 @@ let check_rule ({ R.mode = `Search formula; _ } as r) hook xconf xtarget =
       |> PM.uniq |> hook;
     errors;
   }
+
+let check_rule r hook xconf xtarget =
+  if Match_env.needs_legacy_elixir_captures (r :> R.t) xtarget then
+    let modern = check_rule_once r Fun.id xconf xtarget in
+    let legacy =
+      check_rule_once r Fun.id
+        { xconf with legacy_elixir_captures = true }
+        xtarget
+    in
+    let result = Match_env.merge_legacy_results modern legacy in
+    { result with RP.matches = hook result.matches }
+  else check_rule_once r hook xconf xtarget

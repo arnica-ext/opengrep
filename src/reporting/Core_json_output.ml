@@ -243,9 +243,11 @@ let get_propagated_value default_start mvalue =
       | None -> None)
   | __else__ -> None
 
-let metavars startp_of_match_range (s, mval) =
+let metavars ?lang startp_of_match_range (s, mval) =
   let any = MV.mvalue_to_any mval in
-  match range_of_any_opt startp_of_match_range any with
+  match
+    range_of_any_opt startp_of_match_range (MR.original_for_reporting any)
+  with
   | None ->
       raise
         (Tok.NoTokenLocation
@@ -257,7 +259,7 @@ let metavars startp_of_match_range (s, mval) =
           {
             start = startp;
             end_ = endp;
-            abstract_content = MR.metavar_string_of_any any;
+            abstract_content = MR.metavar_abstract_content ?lang any;
             propagated_value = get_propagated_value startp_of_match_range any;
           } )
 
@@ -345,8 +347,15 @@ let unsafe_match_to_match ?(inline = false)
         | (lazy trace) -> taint_trace_to_dataflow_trace trace)
       x.taint_trace
   in
-  let metavars = x.env |> List_.map (metavars startp) in
-  let bindings =  Metavar_replacement.(of_bindings x.env) in
+  let metavars =
+    x.env
+    |> List_.map (fun ((name, _) as binding) ->
+        metavars ?lang:(Core_match.metavar_lang x name) startp binding)
+  in
+  let bindings =
+    Metavar_replacement.of_bindings ~for_reporting:true
+      ~metavar_lang:(Core_match.metavar_lang x) x.env
+  in
   let replacement_fn st =
     Metavar_replacement.(interpolate_metavars st bindings)
   in

@@ -1,0 +1,82 @@
+{
+  "rules": [
+    {
+      "id": "modern-propagator",
+      "languages": [
+        "elixir"
+      ],
+      "message": "Capture $X",
+      "severity": "WARNING",
+      "mode": "taint",
+      "options": {
+        "symbolic_propagation": true
+      },
+      "pattern-sources": [
+        {
+          "pattern": "source()"
+        }
+      ],
+      "pattern-sinks": [
+        {
+          "pattern": "sink($X)"
+        }
+      ],
+      "pattern-propagators": [
+        {
+          "patterns": [
+            {
+              "pattern": "transfer($FROM, $TO, $WRAPPER)"
+            },
+            {
+              "metavariable-regex": {
+                "metavariable": "$WRAPPER",
+                "regex": "^%User"
+              }
+            }
+          ],
+          "from": "$FROM",
+          "to": "$TO"
+        }
+      ]
+    },
+    {
+      "id": "legacy-propagator",
+      "languages": [
+        "elixir"
+      ],
+      "message": "Capture $X",
+      "severity": "WARNING",
+      "mode": "taint",
+      "options": {
+        "symbolic_propagation": true
+      },
+      "pattern-sources": [
+        {
+          "pattern": "source()"
+        }
+      ],
+      "pattern-sinks": [
+        {
+          "pattern": "sink($X)"
+        }
+      ],
+      "pattern-propagators": [
+        {
+          "patterns": [
+            {
+              "pattern": "transfer($FROM, $TO, $WRAPPER)"
+            },
+            {
+              "metavariable-regex": {
+                "metavariable": "$WRAPPER",
+                "regex": "^User"
+              }
+            }
+          ],
+          "from": "$FROM",
+          "to": "$TO"
+        }
+      ]
+    }
+  ]
+}

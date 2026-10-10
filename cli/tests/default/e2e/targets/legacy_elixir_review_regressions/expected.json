@@ -1,0 +1,591 @@
+[
+  {
+    "rule": "capture",
+    "path": "targets/legacy_elixir_review_regressions/call.ex",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 1,
+      "col": 15,
+      "offset": 14
+    },
+    "fingerprint": "116c5dd3fa4e57489486afb27ed2da9365e14e7b3981cb84e74945910cdec5af26970f1cf4454a8ef22404db4842310bcc919146cce7cd650f5352eb13f5052a_0",
+    "captures": {
+      "$X": "&&foo(1)"
+    },
+    "message": "&foo(&1)"
+  },
+  {
+    "rule": "symbolic-capture",
+    "path": "targets/legacy_elixir_review_regressions/call.ex",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 1,
+      "col": 15,
+      "offset": 14
+    },
+    "fingerprint": "5faa2236667c99e97f5acec51332d713c2c7eb3f0bb285aff630fb9ea7d7f27595fc7334b27095f8edc18289ac2241ead287bb7c21def6463002beb28143c23a_0",
+    "captures": {
+      "$X": "&&foo(1)"
+    },
+    "message": "&foo(&1)"
+  },
+  {
+    "rule": "capture",
+    "path": "targets/legacy_elixir_review_regressions/call_two_params.ex",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 1,
+      "col": 19,
+      "offset": 18
+    },
+    "fingerprint": "220c63421f473fe0a234df74fbe9c83a4423b76f6d4059a833424a3d45544763cabdef960cab307e3c0abfb6833a7f2cebfa750ba39ac6b06d5eb41b86ecb1ea_0",
+    "captures": {
+      "$X": "&&&foo(1 2)"
+    },
+    "message": "&foo(&1, &2)"
+  },
+  {
+    "rule": "symbolic-capture",
+    "path": "targets/legacy_elixir_review_regressions/call_two_params.ex",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 1,
+      "col": 19,
+      "offset": 18
+    },
+    "fingerprint": "925d574bc8a14bab8e94d09652d7e8fe89c26b709e0011da7afe2aa600079edc6294f28f9258d509611cbe258e226e55e8e4c766e9e2fc6ee061a05c2693f184_0",
+    "captures": {
+      "$X": "&&&foo(1 2)"
+    },
+    "message": "&foo(&1, &2)"
+  },
+  {
+    "rule": "capture",
+    "path": "targets/legacy_elixir_review_regressions/case.ex",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 3,
+      "col": 6,
+      "offset": 32
+    },
+    "fingerprint": "48e3b5a4afcf439aac544e4a5962d392e541bfe5840b86eae46aecf4360ab9a178ac734dec83d1c1e7f18e7557469993062c8172cb1f53cf7d195c25f36b13af_0",
+    "captures": {
+      "$X": "&&case 1 do do do do do x x"
+    },
+    "message": "&(case &1 do\n  x -> x\nend)"
+  },
+  {
+    "rule": "symbolic-capture",
+    "path": "targets/legacy_elixir_review_regressions/case.ex",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 3,
+      "col": 6,
+      "offset": 32
+    },
+    "fingerprint": "91866eb2025fb53ec8af00ca9749d391946c309cf4f0ec69456207cdb18030f8477a32e5a933909b43d9b4efd7a220b8f190e733529628601e4b5be2f2613a0b_0",
+    "captures": {
+      "$X": "&&case 1 do do do do do x x"
+    },
+    "message": "&(case &1 do\n  x -> x\nend)"
+  },
+  {
+    "rule": "capture",
+    "path": "targets/legacy_elixir_review_regressions/interpolation.ex",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 1,
+      "col": 23,
+      "offset": 22
+    },
+    "fingerprint": "497ca433ea4cc87a954fdc2032e9f156eaeb18b95b8ade98265842ea38b60e62c3b7926b27aa1343f8087cd90aa1574d44767aa3944a956bff8f8d7bb9a3c241_0",
+    "captures": {
+      "$X": "&&\"\"hello #{#{1}\""
+    },
+    "message": "&(\"hello #{&1}\")"
+  },
+  {
+    "rule": "symbolic-capture",
+    "path": "targets/legacy_elixir_review_regressions/interpolation.ex",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 1,
+      "col": 23,
+      "offset": 22
+    },
+    "fingerprint": "3cfa9a8bd7ce87444ab60d55fcf6bf00ff7b8f347a68cf26a16fa77005cd60138689bc634d2eec9947fbd567bb4034287d7cead29e556e2761339e853ff3180c_0",
+    "captures": {
+      "$X": "&&\"\"hello #{#{1}\""
+    },
+    "message": "&(\"hello #{&1}\")"
+  },
+  {
+    "rule": "capture",
+    "path": "targets/legacy_elixir_review_regressions/pipeline.ex",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 1,
+      "col": 19,
+      "offset": 18
+    },
+    "fingerprint": "07ed129a424c797282b5baa1eedc6fc3933d153f8733bc7a3c630e3472f0608f8d94b9288aaf14a2c293130d7cf998f696f91a2470a47d698353bcc7c9128f5a_0",
+    "captures": {
+      "$X": "&&1|>f()"
+    },
+    "message": "&(&1 |> f())"
+  },
+  {
+    "rule": "symbolic-capture",
+    "path": "targets/legacy_elixir_review_regressions/pipeline.ex",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 1,
+      "col": 19,
+      "offset": 18
+    },
+    "fingerprint": "7fb616f1207fa557c0d5dd814d7c595ed0a69428a045b9314f8594fd2e870d6c3a290f506e2fb84077da01898677e1818f53bb6b3d6cdeca9fcae52e547a0742_0",
+    "captures": {
+      "$X": "&&1|>f()"
+    },
+    "message": "&(&1 |> f())"
+  },
+  {
+    "rule": "capture",
+    "path": "targets/legacy_elixir_review_regressions/pipeline_long.ex",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 1,
+      "col": 236,
+      "offset": 235
+    },
+    "fingerprint": "c402520ef079abc727907db1d9a56dca939b46dae43949af46d663c7999331a608cddd3487b3f6bf6070d52d2d1b5d71436a1742690398f15675d1c0f15f0dd2_0",
+    "captures": {
+      "$X": "&&1|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()"
+    },
+    "message": "&(&1 |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f())"
+  },
+  {
+    "rule": "symbolic-capture",
+    "path": "targets/legacy_elixir_review_regressions/pipeline_long.ex",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 1,
+      "col": 236,
+      "offset": 235
+    },
+    "fingerprint": "c6ea64ba4c3a2bc9d26222a006b22c920bb20a9bb7c75f6554632188c8882d29b5d01b39293178533429ed8e1e08266671e5bd92f00bd4b196f95953b9c3829e_0",
+    "captures": {
+      "$X": "&&1|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()"
+    },
+    "message": "&(&1 |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f())"
+  },
+  {
+    "rule": "capture",
+    "path": "targets/legacy_elixir_review_regressions/pipeline_two_params.ex",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 1,
+      "col": 21,
+      "offset": 20
+    },
+    "fingerprint": "d82649ca9aa80f3ba1956e07625ad20660c704098b38ab348e17fbdd1f46168d72559ff46137a1434ddb059cd39327c0950b5641c4d338aaf9707c658e87fd39_0",
+    "captures": {
+      "$X": "&&&2|>f(1)"
+    },
+    "message": "&(&2 |> f(&1))"
+  },
+  {
+    "rule": "symbolic-capture",
+    "path": "targets/legacy_elixir_review_regressions/pipeline_two_params.ex",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 1,
+      "col": 21,
+      "offset": 20
+    },
+    "fingerprint": "2e2fecc473810454a4148a40d5624a517f6246b846f8f6fd092009b95d5e040faf9871850269f24a559795a5df87e0294291eb2c6c15b57aee7094ed714cbff4_0",
+    "captures": {
+      "$X": "&&&2|>f(1)"
+    },
+    "message": "&(&2 |> f(&1))"
+  },
+  {
+    "rule": "capture",
+    "path": "targets/legacy_elixir_review_regressions/pipelines.ex",
+    "start": {
+      "line": 4,
+      "col": 3,
+      "offset": 68
+    },
+    "end": {
+      "line": 4,
+      "col": 10,
+      "offset": 75
+    },
+    "fingerprint": "c992a513ff17823860c6e6f4dd5a32acf0288d573c6d1d0fbdd7dc38cef7926f1f448091a82bfcb6b8b19bd455a11821298ba1ee5e5082cf3e9642d00c2ff01a_0",
+    "captures": {
+      "$X": "b"
+    },
+    "message": "b"
+  },
+  {
+    "rule": "pipeline-alias",
+    "path": "targets/legacy_elixir_review_regressions/pipelines.ex",
+    "start": {
+      "line": 4,
+      "col": 3,
+      "offset": 68
+    },
+    "end": {
+      "line": 4,
+      "col": 10,
+      "offset": 75
+    },
+    "fingerprint": "20bb40083ea3b81f8a0ccf7b0e70e883f5d31153d69d3f6485b6c4c2f90d6106a7ee7b0c5e92aa7321ecd45b1a004e6bbd5467675593937d44532bd50443a44f_0",
+    "captures": {
+      "$X": "x|>f()"
+    },
+    "message": "x |> f()"
+  },
+  {
+    "rule": "symbolic-capture",
+    "path": "targets/legacy_elixir_review_regressions/pipelines.ex",
+    "start": {
+      "line": 4,
+      "col": 3,
+      "offset": 68
+    },
+    "end": {
+      "line": 4,
+      "col": 10,
+      "offset": 75
+    },
+    "fingerprint": "bf77ab5f567ee23c73e51c41616342a86ea37987cd4ee4a0b162683fc3d6384ae1a92fabf98fba3c9d08dd8c5ae585f794c30c70dcbcebf3a562b27be79a4fe6_0",
+    "captures": {
+      "$X": "wrap(x|>f())"
+    },
+    "message": "wrap(x |> f())"
+  },
+  {
+    "rule": "symbolic-capture",
+    "path": "targets/legacy_elixir_review_regressions/pipelines.ex",
+    "start": {
+      "line": 4,
+      "col": 3,
+      "offset": 68
+    },
+    "end": {
+      "line": 4,
+      "col": 10,
+      "offset": 75
+    },
+    "fingerprint": "c48a0cc799bf6b38c1afb01ef6ea70f71b307710a259f500b1bd31e7cbf19d65d544b054e9f659eaa3bdca2ac3f6ca5c5debb522e1fefff1e4a5ad58f4349ddf_0",
+    "captures": {
+      "$X": "b"
+    },
+    "message": "wrap(x|>f())"
+  },
+  {
+    "rule": "capture",
+    "path": "targets/legacy_elixir_review_regressions/pipelines.ex",
+    "start": {
+      "line": 8,
+      "col": 3,
+      "offset": 123
+    },
+    "end": {
+      "line": 8,
+      "col": 10,
+      "offset": 130
+    },
+    "fingerprint": "c992a513ff17823860c6e6f4dd5a32acf0288d573c6d1d0fbdd7dc38cef7926f1f448091a82bfcb6b8b19bd455a11821298ba1ee5e5082cf3e9642d00c2ff01a_1",
+    "captures": {
+      "$X": "b"
+    },
+    "message": "b"
+  },
+  {
+    "rule": "pipeline-alias",
+    "path": "targets/legacy_elixir_review_regressions/pipelines.ex",
+    "start": {
+      "line": 8,
+      "col": 3,
+      "offset": 123
+    },
+    "end": {
+      "line": 8,
+      "col": 10,
+      "offset": 130
+    },
+    "fingerprint": "c3c7e5aae8f85169c0cbdc484aafbdd7a5ef8a56f7e3dcffe897b0f95e6dc091e0808761d796793bb8f1ca6de4b5530f761683f3f231ee1af64469ae728d0511_0",
+    "captures": {
+      "$X": "f(x)"
+    },
+    "message": "f(x)"
+  },
+  {
+    "rule": "symbolic-capture",
+    "path": "targets/legacy_elixir_review_regressions/pipelines.ex",
+    "start": {
+      "line": 8,
+      "col": 3,
+      "offset": 123
+    },
+    "end": {
+      "line": 8,
+      "col": 10,
+      "offset": 130
+    },
+    "fingerprint": "3bd532c46b21882ed5d40e9eab4f47a7c7f5c5801752b32ff2e61e40f6cec3dd6c1f6caadf7f40b18e222b2c27a3cedc0720b5062a8fde519d713cf3bb063c42_0",
+    "captures": {
+      "$X": "wrap(f(x))"
+    },
+    "message": "wrap(f(x))"
+  },
+  {
+    "rule": "capture",
+    "path": "targets/legacy_elixir_review_regressions/pipelines.ex",
+    "start": {
+      "line": 11,
+      "col": 3,
+      "offset": 165
+    },
+    "end": {
+      "line": 11,
+      "col": 23,
+      "offset": 185
+    },
+    "fingerprint": "aacd46e112b5d16ef1cffe028c2403f2656cac216718160cddbee421be6217b4141bd0259fadebb29a4dcefc7a67f9f7eeaef1e7f2007e63fbd1802f20ee9ce4_0",
+    "captures": {
+      "$X": "wrap(x|>f())"
+    },
+    "message": "wrap(x |> f())"
+  },
+  {
+    "rule": "pipeline-alias",
+    "path": "targets/legacy_elixir_review_regressions/pipelines.ex",
+    "start": {
+      "line": 11,
+      "col": 3,
+      "offset": 165
+    },
+    "end": {
+      "line": 11,
+      "col": 23,
+      "offset": 185
+    },
+    "fingerprint": "20bb40083ea3b81f8a0ccf7b0e70e883f5d31153d69d3f6485b6c4c2f90d6106a7ee7b0c5e92aa7321ecd45b1a004e6bbd5467675593937d44532bd50443a44f_1",
+    "captures": {
+      "$X": "x|>f()"
+    },
+    "message": "x |> f()"
+  },
+  {
+    "rule": "symbolic-capture",
+    "path": "targets/legacy_elixir_review_regressions/pipelines.ex",
+    "start": {
+      "line": 11,
+      "col": 3,
+      "offset": 165
+    },
+    "end": {
+      "line": 11,
+      "col": 23,
+      "offset": 185
+    },
+    "fingerprint": "bf77ab5f567ee23c73e51c41616342a86ea37987cd4ee4a0b162683fc3d6384ae1a92fabf98fba3c9d08dd8c5ae585f794c30c70dcbcebf3a562b27be79a4fe6_1",
+    "captures": {
+      "$X": "wrap(x|>f())"
+    },
+    "message": "wrap(x |> f())"
+  },
+  {
+    "rule": "capture",
+    "path": "targets/legacy_elixir_review_regressions/pipelines.ex",
+    "start": {
+      "line": 14,
+      "col": 3,
+      "offset": 218
+    },
+    "end": {
+      "line": 14,
+      "col": 19,
+      "offset": 234
+    },
+    "fingerprint": "17d1b31794eeccf8c7ec7df5306882574e8b2874747af5eec5eaa3f522fdc80edeb0b2cbfaec2ad29419483863426f76049d008c25c14968d5daa52dc72cda9f_0",
+    "captures": {
+      "$X": "wrap(f(x))"
+    },
+    "message": "wrap(f(x))"
+  },
+  {
+    "rule": "pipeline-alias",
+    "path": "targets/legacy_elixir_review_regressions/pipelines.ex",
+    "start": {
+      "line": 14,
+      "col": 3,
+      "offset": 218
+    },
+    "end": {
+      "line": 14,
+      "col": 19,
+      "offset": 234
+    },
+    "fingerprint": "c3c7e5aae8f85169c0cbdc484aafbdd7a5ef8a56f7e3dcffe897b0f95e6dc091e0808761d796793bb8f1ca6de4b5530f761683f3f231ee1af64469ae728d0511_1",
+    "captures": {
+      "$X": "f(x)"
+    },
+    "message": "f(x)"
+  },
+  {
+    "rule": "symbolic-capture",
+    "path": "targets/legacy_elixir_review_regressions/pipelines.ex",
+    "start": {
+      "line": 14,
+      "col": 3,
+      "offset": 218
+    },
+    "end": {
+      "line": 14,
+      "col": 19,
+      "offset": 234
+    },
+    "fingerprint": "3bd532c46b21882ed5d40e9eab4f47a7c7f5c5801752b32ff2e61e40f6cec3dd6c1f6caadf7f40b18e222b2c27a3cedc0720b5062a8fde519d713cf3bb063c42_1",
+    "captures": {
+      "$X": "wrap(f(x))"
+    },
+    "message": "wrap(f(x))"
+  },
+  {
+    "rule": "capture",
+    "path": "targets/legacy_elixir_review_regressions/struct.ex",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 1,
+      "col": 25,
+      "offset": 24
+    },
+    "fingerprint": "9a5115852aa37f94cd31c6017c5ad3be66e2fb80d38a56cdd9ec57fe45eadf4182e9dd4e0a96062c1c6636e6253ec51871b2fa9b0cc82ef9aa9b603525a2a9be_0",
+    "captures": {
+      "$X": "&&User{data: 1}"
+    },
+    "message": "&(%User{data: &1})"
+  },
+  {
+    "rule": "symbolic-capture",
+    "path": "targets/legacy_elixir_review_regressions/struct.ex",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 1,
+      "col": 25,
+      "offset": 24
+    },
+    "fingerprint": "86e84bd21c7d149ff1c5bdbcff0b80df097c46addbe53dc6ad85d14fc1667e499cf8e8db73d0536d1ae2bb0e8f735696c0644a2e6acdba2576f9c3e9ce7a27a2_0",
+    "captures": {
+      "$X": "&&User{data: 1}"
+    },
+    "message": "&(%User{data: &1})"
+  },
+  {
+    "rule": "capture",
+    "path": "targets/legacy_elixir_review_regressions/struct_two_params.ex",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 1,
+      "col": 36,
+      "offset": 35
+    },
+    "fingerprint": "c3067a577b904af4db7548695344364d169221ede8efaab2bfd650a0e8ce9c50a3e33176b89cc1ebc8076c39aad3527f197d2ed7b982b50b16a2d989fdcbd3e6_0",
+    "captures": {
+      "$X": "&&&User{data: 2 other: 1}"
+    },
+    "message": "&(%User{data: &2, other: &1})"
+  },
+  {
+    "rule": "symbolic-capture",
+    "path": "targets/legacy_elixir_review_regressions/struct_two_params.ex",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 1,
+      "col": 36,
+      "offset": 35
+    },
+    "fingerprint": "42ec54c377c2dd24c48a26283060e2751acfff86e39370aa4cc5de7d78429295860235b117502104d57d3b11819f6d3b54d86be75f9e033363c96c360f84c098_0",
+    "captures": {
+      "$X": "&&&User{data: 2 other: 1}"
+    },
+    "message": "&(%User{data: &2, other: &1})"
+  }
+]

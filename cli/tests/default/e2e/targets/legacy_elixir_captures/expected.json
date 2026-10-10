@@ -1,0 +1,4629 @@
+[
+  {
+    "rule": "capture-false-false",
+    "path": "targets/legacy_elixir_captures/aliases/chain.ex",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 24
+    },
+    "end": {
+      "line": 4,
+      "col": 8,
+      "offset": 31
+    },
+    "fingerprint": "13ab5edfa2df51a9a98fa41c1e01022aa4c620e8253a21acbaf3646911f8fd32f9a251d96ca7ec044a588c599442545ea7688cea4233938fb93050bbaf20dd5b_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-false-true",
+    "path": "targets/legacy_elixir_captures/aliases/chain.ex",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 24
+    },
+    "end": {
+      "line": 4,
+      "col": 8,
+      "offset": 31
+    },
+    "fingerprint": "d55359f7a563ede95b29fd814e5c5b0356c4882e03e0b536609eff8f02e8b83a5067fa15f9356337e076d92daa1b0290a45231fe0947c1ce732fa37d4ec69aa1_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/aliases/chain.ex",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 24
+    },
+    "end": {
+      "line": 4,
+      "col": 8,
+      "offset": 31
+    },
+    "fingerprint": "197d47c1eb624dbc44fe6b6cf147930529aae082dba98617b9ecfecae1dbe871294013948c01d42a2aae955ce3d4c111ab4ac6cad5352a861448492dfcad2ad1_0",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/aliases/chain.ex",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 24
+    },
+    "end": {
+      "line": 4,
+      "col": 8,
+      "offset": 31
+    },
+    "fingerprint": "d7e5641c89c75765909153150ba32656c8dd956021c89367d5f77f347a36aefc779ea7a2542bd9bf00a10e7f9e72bd3024c0a4c14546bd47487d6b72dee4d90a_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/aliases/chain.ex",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 24
+    },
+    "end": {
+      "line": 4,
+      "col": 8,
+      "offset": 31
+    },
+    "fingerprint": "55cf8bdfa1fcd48e91910ee8684d2d5809da08f308c9ae55d53b3bf366a44356e864a2782863f196c73d5a780361640132e1579881f14d8de42a33e109858bd8_0",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-false-false",
+    "path": "targets/legacy_elixir_captures/aliases/chain.ex",
+    "start": {
+      "line": 5,
+      "col": 1,
+      "offset": 32
+    },
+    "end": {
+      "line": 5,
+      "col": 8,
+      "offset": 39
+    },
+    "fingerprint": "0e401db6ee048af5baecda1a9e49d2ea1ff634b2924bb5bcbee35dc4536de1db8f869867b109ee31d79a4597c21f5ef85444f36bff3e781ba1b107e950b9a828_0",
+    "captures": {
+      "$X": "b"
+    },
+    "message": "Capture b"
+  },
+  {
+    "rule": "capture-false-true",
+    "path": "targets/legacy_elixir_captures/aliases/chain.ex",
+    "start": {
+      "line": 5,
+      "col": 1,
+      "offset": 32
+    },
+    "end": {
+      "line": 5,
+      "col": 8,
+      "offset": 39
+    },
+    "fingerprint": "8470f848c51b5a8f8c7fc456b5d3c496ab68f5b77a056bb9779185027cf45d7b8a58063076b9922b7424f3ff034309c1f994be1f4657896a3607d0af942f1fa3_0",
+    "captures": {
+      "$X": "b"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/aliases/chain.ex",
+    "start": {
+      "line": 5,
+      "col": 1,
+      "offset": 32
+    },
+    "end": {
+      "line": 5,
+      "col": 8,
+      "offset": 39
+    },
+    "fingerprint": "197d47c1eb624dbc44fe6b6cf147930529aae082dba98617b9ecfecae1dbe871294013948c01d42a2aae955ce3d4c111ab4ac6cad5352a861448492dfcad2ad1_1",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/aliases/chain.ex",
+    "start": {
+      "line": 5,
+      "col": 1,
+      "offset": 32
+    },
+    "end": {
+      "line": 5,
+      "col": 8,
+      "offset": 39
+    },
+    "fingerprint": "4bfc8d1b1e247f87719c4ce27bc28e97e26b1b7b0dcc21511127905a71662e4eb7e9ebc87089c13561c7051eac32841b8fc51f78c71206e593ee1ef44cd5cfb3_0",
+    "captures": {
+      "$X": "b"
+    },
+    "message": "Capture b"
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/aliases/chain.ex",
+    "start": {
+      "line": 5,
+      "col": 1,
+      "offset": 32
+    },
+    "end": {
+      "line": 5,
+      "col": 8,
+      "offset": 39
+    },
+    "fingerprint": "55cf8bdfa1fcd48e91910ee8684d2d5809da08f308c9ae55d53b3bf366a44356e864a2782863f196c73d5a780361640132e1579881f14d8de42a33e109858bd8_1",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-false-false",
+    "path": "targets/legacy_elixir_captures/aliases/chain.ex",
+    "start": {
+      "line": 6,
+      "col": 1,
+      "offset": 40
+    },
+    "end": {
+      "line": 6,
+      "col": 8,
+      "offset": 47
+    },
+    "fingerprint": "79fe1b23fc4ba92a7807b611dc6a19ea0eb5c2ad4ff13315e5365723e716e1bb4967be5e6835d560dad01473e81eaad07277a260c059ac4d5ceeadda383cbfce_0",
+    "captures": {
+      "$X": "c"
+    },
+    "message": "Capture c"
+  },
+  {
+    "rule": "capture-false-true",
+    "path": "targets/legacy_elixir_captures/aliases/chain.ex",
+    "start": {
+      "line": 6,
+      "col": 1,
+      "offset": 40
+    },
+    "end": {
+      "line": 6,
+      "col": 8,
+      "offset": 47
+    },
+    "fingerprint": "3850ea7782b942ce5aa9e2bc34d8c5f9efbb1e670698ee8dafd135b97ca9d2bc23be87164d7f59c3e0dd613c17d9a8c071373d1f623d3cfb0933387def44fc91_0",
+    "captures": {
+      "$X": "c"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/aliases/chain.ex",
+    "start": {
+      "line": 6,
+      "col": 1,
+      "offset": 40
+    },
+    "end": {
+      "line": 6,
+      "col": 8,
+      "offset": 47
+    },
+    "fingerprint": "197d47c1eb624dbc44fe6b6cf147930529aae082dba98617b9ecfecae1dbe871294013948c01d42a2aae955ce3d4c111ab4ac6cad5352a861448492dfcad2ad1_2",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/aliases/chain.ex",
+    "start": {
+      "line": 6,
+      "col": 1,
+      "offset": 40
+    },
+    "end": {
+      "line": 6,
+      "col": 8,
+      "offset": 47
+    },
+    "fingerprint": "8daf35ba07805077f584a5044d7de212cc0f63d5c2e4e9efea9d440ac2f500dcafa4af0df4a762a127ac4b22e7c7dbd55e69b980adea1cdc75ed6e543c3df048_0",
+    "captures": {
+      "$X": "c"
+    },
+    "message": "Capture c"
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/aliases/chain.ex",
+    "start": {
+      "line": 6,
+      "col": 1,
+      "offset": 40
+    },
+    "end": {
+      "line": 6,
+      "col": 8,
+      "offset": 47
+    },
+    "fingerprint": "55cf8bdfa1fcd48e91910ee8684d2d5809da08f308c9ae55d53b3bf366a44356e864a2782863f196c73d5a780361640132e1579881f14d8de42a33e109858bd8_2",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-false-false",
+    "path": "targets/legacy_elixir_captures/aliases/dynamic.ex",
+    "start": {
+      "line": 4,
+      "col": 5,
+      "offset": 62
+    },
+    "end": {
+      "line": 4,
+      "col": 12,
+      "offset": 69
+    },
+    "fingerprint": "92c80846172f602bc35b967d910f4d5a06ec0c03a92cb5da509aa3fd0b11083ea40e25bf621baaae6fd5cf1f54ec3e9556b8749d80d89432eda10b77736c6045_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-false-true",
+    "path": "targets/legacy_elixir_captures/aliases/dynamic.ex",
+    "start": {
+      "line": 4,
+      "col": 5,
+      "offset": 62
+    },
+    "end": {
+      "line": 4,
+      "col": 12,
+      "offset": 69
+    },
+    "fingerprint": "e0bb78169765f7cbc0ad89767fa5cceea136a35e72702f04619ac7ece1409c643270bfd513c8240ec9b68b324a9c1de3d6c0bd0a546f177636f531d96ad95bcb_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture module{}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/aliases/dynamic.ex",
+    "start": {
+      "line": 4,
+      "col": 5,
+      "offset": 62
+    },
+    "end": {
+      "line": 4,
+      "col": 12,
+      "offset": 69
+    },
+    "fingerprint": "418f7747f4c95e78bf0564e66ac433f1456516af5e62193846f258986ded5c44d7871305996340d16e016597b041888ba0c4448e8b45f2cbb9cf26e24cfe7a65_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/aliases/dynamic.ex",
+    "start": {
+      "line": 4,
+      "col": 5,
+      "offset": 62
+    },
+    "end": {
+      "line": 4,
+      "col": 12,
+      "offset": 69
+    },
+    "fingerprint": "90ef8dd37027ad6a1472c693e5924fd34ff3532a6e60533fc4ca3483e3b644bcedc02fa7401a2d2f93c36aa354a98088ecd67b8f6ad80bda18bfb81d8f89bda3_0",
+    "captures": {
+      "$X": "module{}"
+    },
+    "message": "Capture module{}"
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/aliases/dynamic.ex",
+    "start": {
+      "line": 4,
+      "col": 5,
+      "offset": 62
+    },
+    "end": {
+      "line": 4,
+      "col": 12,
+      "offset": 69
+    },
+    "fingerprint": "60102852c01523b99de337411289cbc6deac61173ec8dcc04d8bd40849d498a736a9ac91e060b4c4433a20fc27e79997955ca9cf34d8183e55c7542606063b34_0",
+    "captures": {
+      "$X": "module{}"
+    },
+    "message": "Capture module{}"
+  },
+  {
+    "rule": "capture-false-false",
+    "path": "targets/legacy_elixir_captures/aliases/function.ex",
+    "start": {
+      "line": 4,
+      "col": 5,
+      "offset": 54
+    },
+    "end": {
+      "line": 4,
+      "col": 12,
+      "offset": 61
+    },
+    "fingerprint": "b9738497a40fbd43af3854261cab9602dbed2c3c3e7624a49d3ed5a6c28a371e5fe8cce240225a6417e3ece98eb3a00b95c8bbfc31d9fecdeeda8be368a009da_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-false-true",
+    "path": "targets/legacy_elixir_captures/aliases/function.ex",
+    "start": {
+      "line": 4,
+      "col": 5,
+      "offset": 54
+    },
+    "end": {
+      "line": 4,
+      "col": 12,
+      "offset": 61
+    },
+    "fingerprint": "1cf5918aab99f9598b46d02e32bad13065bd94587bce8b551ed72fa90ecc2af42f5011b25dbb4b1a5b7c04005842b00f48480ccfe093c2c9d7655ba9100f0184_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/aliases/function.ex",
+    "start": {
+      "line": 4,
+      "col": 5,
+      "offset": 54
+    },
+    "end": {
+      "line": 4,
+      "col": 12,
+      "offset": 61
+    },
+    "fingerprint": "0f0efc8a2181afe88044e92e90db27d8864b65e8354a744420cc2904087cd09e5611f9758d597c0b66dd51ec757f048a380c6e4294ed2c78b14f0d191fa316c4_0",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/aliases/function.ex",
+    "start": {
+      "line": 4,
+      "col": 5,
+      "offset": 54
+    },
+    "end": {
+      "line": 4,
+      "col": 12,
+      "offset": 61
+    },
+    "fingerprint": "19974835caade9f24d430ee9604e7ae39fd17c84c93d5969eb1f8a4b8c9e61f52b2ff89d538d31f728cea70b48489bc9e720e060bd9dfb7fa84705d9d0c64046_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/aliases/function.ex",
+    "start": {
+      "line": 4,
+      "col": 5,
+      "offset": 54
+    },
+    "end": {
+      "line": 4,
+      "col": 12,
+      "offset": 61
+    },
+    "fingerprint": "edf9bfb8d4dc27c0f2b0f2d09c19e0a55117ec49da9e654a5e9c3774177d4539d4e22539c53621f61bb6c64405fd6dc5a7bf0dc83b35cb08735942b5f7430d17_0",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-false-false",
+    "path": "targets/legacy_elixir_captures/aliases/nested_struct.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 26
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 33
+    },
+    "fingerprint": "1ad52adc6bd4b030a554e677de84d3e6d22dfd828f2a85fe0055cd3a6a252e50c96adf3c14d4f103ca326ced5f53fc42601533f7475c589fc326ec225d246ab4_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-false-true",
+    "path": "targets/legacy_elixir_captures/aliases/nested_struct.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 26
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 33
+    },
+    "fingerprint": "49c81a376f05e8227ac2c07ed4bffa3447d4962105bc6a97eb1d2c3708ae7f44a0905ab07bec0949fa5b67b453982f29cfcf47cf069bdd021a5f85f885499c5e_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/aliases/nested_struct.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 26
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 33
+    },
+    "fingerprint": "847c4f8b09e7fba8007c73fcd2015da6174c488ed1fb17ce477e33c11b565c19ef2465196580a2540a3abfc094f880d0b8e4b9e8abc946e5cdfdee9ed90d7e1b_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/aliases/nested_struct.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 26
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 33
+    },
+    "fingerprint": "149a0d4e5c1472a49bf9c54379fb17e4fc6df9ee018d2cace4416acff351e35580d5ae167c1d5fdbe7d30bd4ada09f75078a10604388dce9c7997f8abe3b60bf_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-false-false",
+    "path": "targets/legacy_elixir_captures/aliases/nested_struct.ex",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 34
+    },
+    "end": {
+      "line": 3,
+      "col": 14,
+      "offset": 47
+    },
+    "fingerprint": "1005db6cb8264792c61ee2533e0becc979111e8da784b0bcf01fccedf9e00f46fcfb6d6b15e4a480adfdda883e409c0c16fcd33beec047ede4fc4160913371cc_0",
+    "captures": {
+      "$X": "a.child"
+    },
+    "message": "Capture a.child"
+  },
+  {
+    "rule": "capture-false-true",
+    "path": "targets/legacy_elixir_captures/aliases/nested_struct.ex",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 34
+    },
+    "end": {
+      "line": 3,
+      "col": 14,
+      "offset": 47
+    },
+    "fingerprint": "3e7d295d14319612761638ca8cd8eacb8fec5b782c84fad6aa11f498a8dd947b7ee2331894bdf5a3e879abd4fa23b49c2c5a4344e7d0ba1251cc1176a8e88c4a_0",
+    "captures": {
+      "$X": "a.child"
+    },
+    "message": "Capture a.child"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/aliases/nested_struct.ex",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 34
+    },
+    "end": {
+      "line": 3,
+      "col": 14,
+      "offset": 47
+    },
+    "fingerprint": "4344df68c79642bbf5e639f0f599d0f5ca1b4f52f68426b2bb4427a617153dfe3d7a4bd5f69b269fcda1a30d5e50ae1605a2f344ffc2532b424ae610c45ba946_0",
+    "captures": {
+      "$X": "a.child"
+    },
+    "message": "Capture a.child"
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/aliases/nested_struct.ex",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 34
+    },
+    "end": {
+      "line": 3,
+      "col": 14,
+      "offset": 47
+    },
+    "fingerprint": "230abc5d4b980553d96d99093beb166d9f3307d7f80fef785a60a719b0de3735aeecbe490cfd7c809418c4a73cf541eb0032ea7214fe46051dda61ae7b8f58ed_0",
+    "captures": {
+      "$X": "a.child"
+    },
+    "message": "Capture a.child"
+  },
+  {
+    "rule": "capture-false-false",
+    "path": "targets/legacy_elixir_captures/aliases/top_level.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 12
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 19
+    },
+    "fingerprint": "663dbc773b2cbc059c9c2f8530f4cabafbc48ac62ad35c85af3be998fba6c0ae78aab601194727e9d7b6efc35bc19cb76354d5bf21668224c36094918c19095c_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-false-true",
+    "path": "targets/legacy_elixir_captures/aliases/top_level.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 12
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 19
+    },
+    "fingerprint": "c3fbee1cfbb9ee9fa4403ea24d7d1d0b243f857cbf4d773d5c2904c43db1bec886f4fc08fd99f0ef10457305f95fa7b867cf331c1405495265eeb09d002cee01_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/aliases/top_level.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 12
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 19
+    },
+    "fingerprint": "6ed677972f26fa3144cf646f51efe5825d73b39201eb3304b6fdde62d9315c07ce16dae928260c5a015eade41c96733334f177b192c5f3ecbc494da3510b780a_0",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/aliases/top_level.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 12
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 19
+    },
+    "fingerprint": "98c1289d1bd196020eb802a8f554d5d4984945af0fc26e5045f10f3dd05b7b85f8977a46bf52faab06af514742ee297d88a384534e9eb06ffcb3119b4d58e5a3_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/aliases/top_level.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 12
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 19
+    },
+    "fingerprint": "84b7c6f56cd1be4a9803bc249c2e27ccb5cab17438b4f5d3d554f0214b3bafa8d08033456acb5427dab4a000cd4de3486de2450425d85bcf291a2a0fde706f94_0",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-false-false",
+    "path": "targets/legacy_elixir_captures/aliases/with_fields.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 24
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 31
+    },
+    "fingerprint": "cd41addd29dfb036b805c9d8a75de63ec3f92b29e746ad53108a204e6ae00758ee7549a06dabf5badb9991c9d1e9cc2788d847091ad007b0e6ac35750c0929db_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-false-true",
+    "path": "targets/legacy_elixir_captures/aliases/with_fields.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 24
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 31
+    },
+    "fingerprint": "2b86e36ef17f427aaafc03b9261389531ccb3142696ffb470dfe17211398f4326bd58a3452b350ebab761e72a928876e0d7b0011fd7db2fe6f240dfb27f08e64_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/aliases/with_fields.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 24
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 31
+    },
+    "fingerprint": "ec9aff27d69b9bc8a8373bd459fcfae9e546e78ac341dc19d4a4f5fb064664d92016b146d3e84b337ef5136c650172d26e6ea85419e62def88a522497c575e0a_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/aliases/with_fields.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 24
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 31
+    },
+    "fingerprint": "3fe40901186f7548a75ca1fefe62fcfd263a1cdc0d4787989b435c4ed43ebf419a3c485bf41b7a6323b0537e5f4528e10e447408b8e8c1c7fbc047e7942b9c29_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-false-false",
+    "path": "targets/legacy_elixir_captures/aliases/with_fields.ex",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 32
+    },
+    "end": {
+      "line": 3,
+      "col": 26,
+      "offset": 57
+    },
+    "fingerprint": "a1fb90e347eac5eba04e105ee433b99c1d1475278426a8892d5595a80ef6802f6f5f0e9c9080f5871a8c8dca27f91f45fa0091d37b63a7d809437ace67712d8d_0",
+    "captures": {
+      "$X": "User{name: \"safe\"}"
+    },
+    "message": "Capture User{name: \"safe\"}"
+  },
+  {
+    "rule": "capture-false-true",
+    "path": "targets/legacy_elixir_captures/aliases/with_fields.ex",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 32
+    },
+    "end": {
+      "line": 3,
+      "col": 26,
+      "offset": 57
+    },
+    "fingerprint": "23ce7b4264f4709d1ee09f14ca6a1a3480f46be63b25496fbf1ed5c89b0a72470ff00cbaba73ce00fafde94c1c78d0a00e55b557943aef59fa3c655dedb1cd95_0",
+    "captures": {
+      "$X": "User{name: \"safe\"}"
+    },
+    "message": "Capture User{name: \"safe\"}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/aliases/with_fields.ex",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 32
+    },
+    "end": {
+      "line": 3,
+      "col": 26,
+      "offset": 57
+    },
+    "fingerprint": "9781a5a3615e1d8ecb323d2b421cea7ee4842e1e451b9e10e504d10957ba3b8771c32293fd5e1fddbce0bf1ddaa4624934d9aee2bdb63cc7ee6d1e9af6e1e40b_0",
+    "captures": {
+      "$X": "User{name: \"safe\"}"
+    },
+    "message": "Capture User{name: \"safe\"}"
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/aliases/with_fields.ex",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 32
+    },
+    "end": {
+      "line": 3,
+      "col": 26,
+      "offset": 57
+    },
+    "fingerprint": "8bda82b670a31cbbbac501f5a2ae29fd01232775e39cb8d1510ad2bfee88d85aa3571d1c98ba0593bb462d5205efcf0760c20fa5695a61e081e6d76966797603_0",
+    "captures": {
+      "$X": "User{name: \"safe\"}"
+    },
+    "message": "Capture User{name: \"safe\"}"
+  },
+  {
+    "rule": "capture-false-false",
+    "path": "targets/legacy_elixir_captures/branches/case.ex",
+    "start": {
+      "line": 7,
+      "col": 5,
+      "offset": 111
+    },
+    "end": {
+      "line": 7,
+      "col": 12,
+      "offset": 118
+    },
+    "fingerprint": "c679e4db5625b1804997f04ead87a405aaa0a6852a74cf4e0374cb873eb2d66f2ce4f03b39880be4c30c6e9955167b103fe55ab1122500a0be52445f68dcace8_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-false-true",
+    "path": "targets/legacy_elixir_captures/branches/case.ex",
+    "start": {
+      "line": 7,
+      "col": 5,
+      "offset": 111
+    },
+    "end": {
+      "line": 7,
+      "col": 12,
+      "offset": 118
+    },
+    "fingerprint": "60108992748d8f0b7bb6dbe0825cb6a33a74d67e2610386636ca68ae5d981ce3bcc5e35595cff406c2d5cd0acb13a3265262c33b19b0e29f93fbcbf3e685a684_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/branches/case.ex",
+    "start": {
+      "line": 7,
+      "col": 5,
+      "offset": 111
+    },
+    "end": {
+      "line": 7,
+      "col": 12,
+      "offset": 118
+    },
+    "fingerprint": "56fa031fd21171db1475b5ee1a3365997ded2ad6c74a086a344a1d91654cc88623e6903427ce646922cd4328649e13076772938c6701d68c7e2264369117fc0b_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/branches/case.ex",
+    "start": {
+      "line": 7,
+      "col": 5,
+      "offset": 111
+    },
+    "end": {
+      "line": 7,
+      "col": 12,
+      "offset": 118
+    },
+    "fingerprint": "b9dd82aad76f3b702b6fed0eedf7130f1bd8568b6556485e899e0c5f92b5d2958e40f206e8954cd0f0c704330d6d31d986e3725c354f9b767a6973a952b00b1d_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-false-false",
+    "path": "targets/legacy_elixir_captures/branches/different_values.ex",
+    "start": {
+      "line": 4,
+      "col": 5,
+      "offset": 85
+    },
+    "end": {
+      "line": 4,
+      "col": 12,
+      "offset": 92
+    },
+    "fingerprint": "1908995568112bf4870cf3301ba567ae4bc41094cb84487177f13617346dd4c873fc9cf2df8990d2637e28b93f447544becb46a5cda6bf2725c251b3ecb4c461_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-false-true",
+    "path": "targets/legacy_elixir_captures/branches/different_values.ex",
+    "start": {
+      "line": 4,
+      "col": 5,
+      "offset": 85
+    },
+    "end": {
+      "line": 4,
+      "col": 12,
+      "offset": 92
+    },
+    "fingerprint": "b8e8a28e8c532825ef5982cade54d1a3c8a7cccda5ba9e8c932d8a580b4a478cc7e3171d8174d76b591f183fb33049a75190aad8f8b18d8ddf3041cc77303e15_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture if flag do: User{}else: \"safe\""
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/branches/different_values.ex",
+    "start": {
+      "line": 4,
+      "col": 5,
+      "offset": 85
+    },
+    "end": {
+      "line": 4,
+      "col": 12,
+      "offset": 92
+    },
+    "fingerprint": "4c8b60cb3b0111a62aad720d652857586bb63a81ead530ade677f1ff3738e4be4501ae0a85291d97a26905303bc5fce87a085caea210b5f84b84d7188ef764f4_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/branches/different_values.ex",
+    "start": {
+      "line": 4,
+      "col": 5,
+      "offset": 85
+    },
+    "end": {
+      "line": 4,
+      "col": 12,
+      "offset": 92
+    },
+    "fingerprint": "8030d76d6027994cf65afce748e223ace76d32ce971674411753574e548b2b68c13d07aadc28f5dfb25baa44442316edf9d6552cdd53e3e338894d6ecbc7b1a2_0",
+    "captures": {
+      "$X": "if flag do: User{}else: \"safe\""
+    },
+    "message": "Capture if flag, do: %User{}, else: \"safe\""
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/branches/different_values.ex",
+    "start": {
+      "line": 4,
+      "col": 5,
+      "offset": 85
+    },
+    "end": {
+      "line": 4,
+      "col": 12,
+      "offset": 92
+    },
+    "fingerprint": "3c6cecd05568b526576533b7593d981493f1fd97439dc35af1f32f29109fa82e413da7b010cb8880b33cbfe3c208d61e3c13a71363e68e27d999b1ff9c82ce79_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture if flag do: User{}else: \"safe\""
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/branches/different_values.ex",
+    "start": {
+      "line": 4,
+      "col": 5,
+      "offset": 85
+    },
+    "end": {
+      "line": 4,
+      "col": 12,
+      "offset": 92
+    },
+    "fingerprint": "b498364722ca9b051270a71aee275ccfd52b60404aa805390ae62a8e1d1f580e1342a1247cb880c4892d9f7b2e7823b8de0ec9fbba445bb30a4ce8c8301a6b27_0",
+    "captures": {
+      "$X": "if flag do: User{}else: \"safe\""
+    },
+    "message": "Capture if flag, do: %User{}, else: \"safe\""
+  },
+  {
+    "rule": "capture-false-false",
+    "path": "targets/legacy_elixir_captures/branches/no_else.ex",
+    "start": {
+      "line": 4,
+      "col": 5,
+      "offset": 71
+    },
+    "end": {
+      "line": 4,
+      "col": 12,
+      "offset": 78
+    },
+    "fingerprint": "f612ccc878c2419f7292b0e557c9af022193be6b5608f834a8ee150b609e31d9a68e368cbcbbc574b04fa4df457990e3808e10341a9c17e8f15f4f3841964642_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-false-true",
+    "path": "targets/legacy_elixir_captures/branches/no_else.ex",
+    "start": {
+      "line": 4,
+      "col": 5,
+      "offset": 71
+    },
+    "end": {
+      "line": 4,
+      "col": 12,
+      "offset": 78
+    },
+    "fingerprint": "891bdd8fc363f0daa15bcc16d328a652bd4c16defb76bdefcf20b69cac805c053b7bfbc36fb9f19e585505296a02d9f1aedd6a4fff471beee5293653a2f955b0_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture if flag do: User{}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/branches/no_else.ex",
+    "start": {
+      "line": 4,
+      "col": 5,
+      "offset": 71
+    },
+    "end": {
+      "line": 4,
+      "col": 12,
+      "offset": 78
+    },
+    "fingerprint": "c4ed7a68eaa089941916a8bbe65af5e63d411d513cfd3e39baf91c6552e25b547ba761e7f60148d957a6c7c03624f7838973ea0421abe8fcb56ac715bb4d0e0e_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/branches/no_else.ex",
+    "start": {
+      "line": 4,
+      "col": 5,
+      "offset": 71
+    },
+    "end": {
+      "line": 4,
+      "col": 12,
+      "offset": 78
+    },
+    "fingerprint": "a6cff3a59a0b7cf5f636497183b3ea0dffabe99f1905b393b663635ddc8aefa124c7a5d02683fd5ad482b6581656cab3f5a08dce79f1a2a85a7721952939ae9e_0",
+    "captures": {
+      "$X": "if flag do: User{}"
+    },
+    "message": "Capture if flag, do: %User{}"
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/branches/no_else.ex",
+    "start": {
+      "line": 4,
+      "col": 5,
+      "offset": 71
+    },
+    "end": {
+      "line": 4,
+      "col": 12,
+      "offset": 78
+    },
+    "fingerprint": "9896f95b7d58fbe00bb45d667820e99c979ea3f3d5b88574f0b147df53c0a847214e8b2eb966c2473ca175bee9858c7bb5158b09f87de38568c9bdaae7f46eef_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture if flag do: User{}"
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/branches/no_else.ex",
+    "start": {
+      "line": 4,
+      "col": 5,
+      "offset": 71
+    },
+    "end": {
+      "line": 4,
+      "col": 12,
+      "offset": 78
+    },
+    "fingerprint": "f14593b69c991b21fba20fa13cfce4c50d1cfcbf96676c49065c2226b909c51494c32e7cb7fc146d62f2ab508a015e5e3750f0d53d54114180428c445120df20_0",
+    "captures": {
+      "$X": "if flag do: User{}"
+    },
+    "message": "Capture if flag, do: %User{}"
+  },
+  {
+    "rule": "capture-false-false",
+    "path": "targets/legacy_elixir_captures/branches/separate_structs.ex",
+    "start": {
+      "line": 4,
+      "col": 5,
+      "offset": 86
+    },
+    "end": {
+      "line": 4,
+      "col": 12,
+      "offset": 93
+    },
+    "fingerprint": "900c0fe45ab0b3d72a99b0e522587283860e4a45453084d6f7c226d95d1cce850e4172f391da97ce862c69324ed900f42b1885590af19f337d782a8c5ddf494c_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-false-true",
+    "path": "targets/legacy_elixir_captures/branches/separate_structs.ex",
+    "start": {
+      "line": 4,
+      "col": 5,
+      "offset": 86
+    },
+    "end": {
+      "line": 4,
+      "col": 12,
+      "offset": 93
+    },
+    "fingerprint": "4fff414f87bc8e27c308bc9cec8e2e08c0cc723aa51979a2c1cd4f09e9292683273d0a0dc9d1b9b01e07c2460281386f584d131a22a1493040853507912feed2_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture if flag do: User{}else: User{}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/branches/separate_structs.ex",
+    "start": {
+      "line": 4,
+      "col": 5,
+      "offset": 86
+    },
+    "end": {
+      "line": 4,
+      "col": 12,
+      "offset": 93
+    },
+    "fingerprint": "3a405e2ed15e8e5e3b4725f24c84816e7d6c6427d9910b73413b5bc3d5ee1cc66bb2cf27375fc41a028197e94dfbe50fc51975a4f57dd628926f7648832a9942_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/branches/separate_structs.ex",
+    "start": {
+      "line": 4,
+      "col": 5,
+      "offset": 86
+    },
+    "end": {
+      "line": 4,
+      "col": 12,
+      "offset": 93
+    },
+    "fingerprint": "ae2701a263e1662b90708fbabd22da90fd211c3ceb5e92b71f98e3343dc521fafbc9fb4429d57675bba2d83a3d348e4e4473b0580cf25d96ff5c5bd517d48e92_0",
+    "captures": {
+      "$X": "if flag do: User{}else: User{}"
+    },
+    "message": "Capture if flag, do: %User{}, else: %User{}"
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/branches/separate_structs.ex",
+    "start": {
+      "line": 4,
+      "col": 5,
+      "offset": 86
+    },
+    "end": {
+      "line": 4,
+      "col": 12,
+      "offset": 93
+    },
+    "fingerprint": "638ea3d02db47718f49eebddf84bc38412edb411e5b9b6be8230cef13ca5f1c9c2226b4155d9ad7947ae52e46abf0c9a53373ffec00c55169b88a8831a938de2_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture if flag do: User{}else: User{}"
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/branches/separate_structs.ex",
+    "start": {
+      "line": 4,
+      "col": 5,
+      "offset": 86
+    },
+    "end": {
+      "line": 4,
+      "col": 12,
+      "offset": 93
+    },
+    "fingerprint": "5db1969dd1db9dc2b3c549966e63ecfba18c67b266b2ed1f3956740ac7dd47f90590363269fe8874de65c5779dc0e41553908d73d8fc9fbb1ee2b4dc7fb158c0_0",
+    "captures": {
+      "$X": "if flag do: User{}else: User{}"
+    },
+    "message": "Capture if flag, do: %User{}, else: %User{}"
+  },
+  {
+    "rule": "capture-false-false",
+    "path": "targets/legacy_elixir_captures/branches/shared_value.ex",
+    "start": {
+      "line": 5,
+      "col": 5,
+      "offset": 90
+    },
+    "end": {
+      "line": 5,
+      "col": 12,
+      "offset": 97
+    },
+    "fingerprint": "5f11d1941cb458b4b3a9017cb38502501c020bb71a3f776ab032b68757224850472819ea0316dc6c4e050869c909d0f69f0e762cddf810f3914f8b120ba0bd15_0",
+    "captures": {
+      "$X": "b"
+    },
+    "message": "Capture b"
+  },
+  {
+    "rule": "capture-false-true",
+    "path": "targets/legacy_elixir_captures/branches/shared_value.ex",
+    "start": {
+      "line": 5,
+      "col": 5,
+      "offset": 90
+    },
+    "end": {
+      "line": 5,
+      "col": 12,
+      "offset": 97
+    },
+    "fingerprint": "30b216e90e19c1034c758d80fd3e0fc1f6cd10da89c0ce316dc4960c27b6b719a268f829909825c494b2677df336f49cce5431bd58e5e58425820b8cc4c27099_0",
+    "captures": {
+      "$X": "b"
+    },
+    "message": "Capture if flag do: a else: a"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/branches/shared_value.ex",
+    "start": {
+      "line": 5,
+      "col": 5,
+      "offset": 90
+    },
+    "end": {
+      "line": 5,
+      "col": 12,
+      "offset": 97
+    },
+    "fingerprint": "66d052f982b0162545869ac69e88867d97d87ec694479028d9fb4a1693a5393df5a53f54bf325cfa166d2739440ed70321f4b30f7e2be4038bc838ca4a5bcb10_0",
+    "captures": {
+      "$X": "b"
+    },
+    "message": "Capture b"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/branches/shared_value.ex",
+    "start": {
+      "line": 5,
+      "col": 5,
+      "offset": 90
+    },
+    "end": {
+      "line": 5,
+      "col": 12,
+      "offset": 97
+    },
+    "fingerprint": "3eee82ded85573edef1e411eb0d82caa48fd15940bb585ef6f4dd71f16192021a546247c913f2cd22b525c755e3cbcca509e870cc65c5f08b650e62363911cd8_0",
+    "captures": {
+      "$X": "if flag do: a else: a"
+    },
+    "message": "Capture if flag, do: a, else: a"
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/branches/shared_value.ex",
+    "start": {
+      "line": 5,
+      "col": 5,
+      "offset": 90
+    },
+    "end": {
+      "line": 5,
+      "col": 12,
+      "offset": 97
+    },
+    "fingerprint": "3778a6d7490715f6b088f22fcc85376496314a1a900054de3d9b6c7793f778a8a578beead52b3dcb2ab1d70dc7e8b666be6dc965ffc669ca3fa1a5421389f328_0",
+    "captures": {
+      "$X": "b"
+    },
+    "message": "Capture if flag do: a else: a"
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/branches/shared_value.ex",
+    "start": {
+      "line": 5,
+      "col": 5,
+      "offset": 90
+    },
+    "end": {
+      "line": 5,
+      "col": 12,
+      "offset": 97
+    },
+    "fingerprint": "cd1499c3567e0fa28673a56367b71c85a648f3251f4d67bc9fdeb310d22391f04c27fe07c1238158253c1a585c333d56db5a337f99c3d5036a69e6a805e67187_0",
+    "captures": {
+      "$X": "if flag do: a else: a"
+    },
+    "message": "Capture if flag, do: a, else: a"
+  },
+  {
+    "rule": "capture-false-false",
+    "path": "targets/legacy_elixir_captures/closures/capture.ex",
+    "start": {
+      "line": 4,
+      "col": 34,
+      "offset": 88
+    },
+    "end": {
+      "line": 4,
+      "col": 41,
+      "offset": 95
+    },
+    "fingerprint": "c15c366cd188371d54f7bab9e1ac1dd6acdf64c0e894d97f2667e95f555be15384482bf2493d794345c8c23f822d29fccde367fa6ed09af6f22e3c8eb30e3258_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-false-true",
+    "path": "targets/legacy_elixir_captures/closures/capture.ex",
+    "start": {
+      "line": 4,
+      "col": 34,
+      "offset": 88
+    },
+    "end": {
+      "line": 4,
+      "col": 41,
+      "offset": 95
+    },
+    "fingerprint": "a69dfb2197373b51d098dbf69d6a4f7d51e43fdb157163fb72cf56b22b657781adec272cf84604e8556d217f801af330f4abc8002352c1fcc1da23d8ba98227b_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/closures/capture.ex",
+    "start": {
+      "line": 4,
+      "col": 34,
+      "offset": 88
+    },
+    "end": {
+      "line": 4,
+      "col": 41,
+      "offset": 95
+    },
+    "fingerprint": "38caa95ed54cc5eed8908a1ec46d961fcbe0e95cbf02004a98bb4a6179f7c0d8250c66bb0720225e4981b231eb134685186074246578a893328d7094c9ec8f89_0",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/closures/capture.ex",
+    "start": {
+      "line": 4,
+      "col": 34,
+      "offset": 88
+    },
+    "end": {
+      "line": 4,
+      "col": 41,
+      "offset": 95
+    },
+    "fingerprint": "5668e9fef54599773dc57f0f49a401673451aa82610e5861b4944adf9b6fe68d78915f77ee0968fa4478f3a4a10abf48fb8379772cfa99c9abd877b35cc17222_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/closures/capture.ex",
+    "start": {
+      "line": 4,
+      "col": 34,
+      "offset": 88
+    },
+    "end": {
+      "line": 4,
+      "col": 41,
+      "offset": 95
+    },
+    "fingerprint": "84873a0b70d7ab2ac045e3d8987208f551d4d1bf39749e8ca2e124bd8593b1401087e52b02292dfe9ec04ad12f0bcc25f86693cb60aa9abd21503943fb076b1b_0",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-false-false",
+    "path": "targets/legacy_elixir_captures/closures/capture.ex",
+    "start": {
+      "line": 5,
+      "col": 5,
+      "offset": 105
+    },
+    "end": {
+      "line": 5,
+      "col": 12,
+      "offset": 112
+    },
+    "fingerprint": "c15c366cd188371d54f7bab9e1ac1dd6acdf64c0e894d97f2667e95f555be15384482bf2493d794345c8c23f822d29fccde367fa6ed09af6f22e3c8eb30e3258_1",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-false-true",
+    "path": "targets/legacy_elixir_captures/closures/capture.ex",
+    "start": {
+      "line": 5,
+      "col": 5,
+      "offset": 105
+    },
+    "end": {
+      "line": 5,
+      "col": 12,
+      "offset": 112
+    },
+    "fingerprint": "a69dfb2197373b51d098dbf69d6a4f7d51e43fdb157163fb72cf56b22b657781adec272cf84604e8556d217f801af330f4abc8002352c1fcc1da23d8ba98227b_1",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/closures/capture.ex",
+    "start": {
+      "line": 5,
+      "col": 5,
+      "offset": 105
+    },
+    "end": {
+      "line": 5,
+      "col": 12,
+      "offset": 112
+    },
+    "fingerprint": "38caa95ed54cc5eed8908a1ec46d961fcbe0e95cbf02004a98bb4a6179f7c0d8250c66bb0720225e4981b231eb134685186074246578a893328d7094c9ec8f89_1",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/closures/capture.ex",
+    "start": {
+      "line": 5,
+      "col": 5,
+      "offset": 105
+    },
+    "end": {
+      "line": 5,
+      "col": 12,
+      "offset": 112
+    },
+    "fingerprint": "5668e9fef54599773dc57f0f49a401673451aa82610e5861b4944adf9b6fe68d78915f77ee0968fa4478f3a4a10abf48fb8379772cfa99c9abd877b35cc17222_1",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/closures/capture.ex",
+    "start": {
+      "line": 5,
+      "col": 5,
+      "offset": 105
+    },
+    "end": {
+      "line": 5,
+      "col": 12,
+      "offset": 112
+    },
+    "fingerprint": "84873a0b70d7ab2ac045e3d8987208f551d4d1bf39749e8ca2e124bd8593b1401087e52b02292dfe9ec04ad12f0bcc25f86693cb60aa9abd21503943fb076b1b_1",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-false-false",
+    "path": "targets/legacy_elixir_captures/closures/reassign_inside.ex",
+    "start": {
+      "line": 6,
+      "col": 7,
+      "offset": 111
+    },
+    "end": {
+      "line": 6,
+      "col": 14,
+      "offset": 118
+    },
+    "fingerprint": "064233c2577c89ac93f818a7b1e16135f2718f97e7b636b3827ccfd63e686584b669c00055eba613fc22da3cc3e5d045f93ff2fe50c93d0a950941626fddfc98_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-false-true",
+    "path": "targets/legacy_elixir_captures/closures/reassign_inside.ex",
+    "start": {
+      "line": 6,
+      "col": 7,
+      "offset": 111
+    },
+    "end": {
+      "line": 6,
+      "col": 14,
+      "offset": 118
+    },
+    "fingerprint": "0be96a5cf12ea287632d0be3833fcfac9410d7e3c6dc7c0f14f2e516a1b110a7b8c48427fce8ceb417e830dad3769b79633339bd991a1e15b39dcf3cab5a168c_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture \"safe\""
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/closures/reassign_inside.ex",
+    "start": {
+      "line": 6,
+      "col": 7,
+      "offset": 111
+    },
+    "end": {
+      "line": 6,
+      "col": 14,
+      "offset": 118
+    },
+    "fingerprint": "57f81bdc8b549f122902472135e334221aa543d2d883b5e29d6210b0d0f29e5aa3a9b88035a872d078feb91b9961cd4aed461f29d54db93f9abff79ce03c414a_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/closures/reassign_inside.ex",
+    "start": {
+      "line": 6,
+      "col": 7,
+      "offset": 111
+    },
+    "end": {
+      "line": 6,
+      "col": 14,
+      "offset": 118
+    },
+    "fingerprint": "bda4affb0b0b66865631f38af22f54450f3e93ecf5299cf8cad9210cfd27ae6d5275746b572691c4b58b8d162e2df115062173ee8ac2fe0b45ce40b16aba3263_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture \"safe\""
+  },
+  {
+    "rule": "capture-false-false",
+    "path": "targets/legacy_elixir_captures/closures/reassign_inside.ex",
+    "start": {
+      "line": 8,
+      "col": 5,
+      "offset": 132
+    },
+    "end": {
+      "line": 8,
+      "col": 12,
+      "offset": 139
+    },
+    "fingerprint": "064233c2577c89ac93f818a7b1e16135f2718f97e7b636b3827ccfd63e686584b669c00055eba613fc22da3cc3e5d045f93ff2fe50c93d0a950941626fddfc98_1",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-false-true",
+    "path": "targets/legacy_elixir_captures/closures/reassign_inside.ex",
+    "start": {
+      "line": 8,
+      "col": 5,
+      "offset": 132
+    },
+    "end": {
+      "line": 8,
+      "col": 12,
+      "offset": 139
+    },
+    "fingerprint": "0be96a5cf12ea287632d0be3833fcfac9410d7e3c6dc7c0f14f2e516a1b110a7b8c48427fce8ceb417e830dad3769b79633339bd991a1e15b39dcf3cab5a168c_1",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/closures/reassign_inside.ex",
+    "start": {
+      "line": 8,
+      "col": 5,
+      "offset": 132
+    },
+    "end": {
+      "line": 8,
+      "col": 12,
+      "offset": 139
+    },
+    "fingerprint": "df94c81f26993ad7ed8082c507b24be97a5af6d4268aa8f4c7a5268bdbb1ae5b2235861e2df80161cb50fd497a041f984cfac0f69d65be7a7d8e1982b851dfd5_0",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/closures/reassign_inside.ex",
+    "start": {
+      "line": 8,
+      "col": 5,
+      "offset": 132
+    },
+    "end": {
+      "line": 8,
+      "col": 12,
+      "offset": 139
+    },
+    "fingerprint": "57f81bdc8b549f122902472135e334221aa543d2d883b5e29d6210b0d0f29e5aa3a9b88035a872d078feb91b9961cd4aed461f29d54db93f9abff79ce03c414a_1",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/closures/reassign_inside.ex",
+    "start": {
+      "line": 8,
+      "col": 5,
+      "offset": 132
+    },
+    "end": {
+      "line": 8,
+      "col": 12,
+      "offset": 139
+    },
+    "fingerprint": "5661677c023bb3b167b541f13825764df0be28e948a819a49ccae16978f0f21c5ff04381ed8f61725d995b5e1b6a6441711e2b3f60a29b64b9121263a2ffb7bf_0",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-false-false",
+    "path": "targets/legacy_elixir_captures/closures/reduce.ex",
+    "start": {
+      "line": 4,
+      "col": 7,
+      "offset": 98
+    },
+    "end": {
+      "line": 4,
+      "col": 16,
+      "offset": 107
+    },
+    "fingerprint": "390fcb8024a05b122789341b8e3eb5c6b05e57a21fc681793d8560f7c232a70f9aab7ba4bf4c85d2201165c367bbd700447100554ec7cab25010e5c3da62a07f_0",
+    "captures": {
+      "$X": "acc"
+    },
+    "message": "Capture acc"
+  },
+  {
+    "rule": "capture-false-true",
+    "path": "targets/legacy_elixir_captures/closures/reduce.ex",
+    "start": {
+      "line": 4,
+      "col": 7,
+      "offset": 98
+    },
+    "end": {
+      "line": 4,
+      "col": 16,
+      "offset": 107
+    },
+    "fingerprint": "8defbd6045ad5fb67157930bb7aafcc6eea84b3744bdce300b65cfd93b9557dac39ff22cdd8ab9f4d84780f8ee6831f4db1657b64838143fcecb4dfac433598f_0",
+    "captures": {
+      "$X": "acc"
+    },
+    "message": "Capture acc"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/closures/reduce.ex",
+    "start": {
+      "line": 4,
+      "col": 7,
+      "offset": 98
+    },
+    "end": {
+      "line": 4,
+      "col": 16,
+      "offset": 107
+    },
+    "fingerprint": "527ea4913a7143dc9b590b2fece6474c7ce189f01b942372280dbd0c6c24d43e40f4041b3f96c883ba3481736c862c09fa18bcfb416c19a71928c9537cb7df1b_0",
+    "captures": {
+      "$X": "acc"
+    },
+    "message": "Capture acc"
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/closures/reduce.ex",
+    "start": {
+      "line": 4,
+      "col": 7,
+      "offset": 98
+    },
+    "end": {
+      "line": 4,
+      "col": 16,
+      "offset": 107
+    },
+    "fingerprint": "e64575b30c7a2d44b2cf51c3ced5cdeaef8549d0890b13b4e658738820392d42373ac0b5da44cfb702f706bbe00c920cc7477b16b28bd467d3047852244593ad_0",
+    "captures": {
+      "$X": "acc"
+    },
+    "message": "Capture acc"
+  },
+  {
+    "rule": "capture-false-false",
+    "path": "targets/legacy_elixir_captures/closures/reduce.ex",
+    "start": {
+      "line": 7,
+      "col": 5,
+      "offset": 131
+    },
+    "end": {
+      "line": 7,
+      "col": 12,
+      "offset": 138
+    },
+    "fingerprint": "8f829e185310fee28327d5e769058d8f9a115ec7af0e2a0c005ab0c449e6d81f0978d4e53b331a533dba2b65cac4fd4b33045f39cbbe4a491f40a19befda00bd_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-false-true",
+    "path": "targets/legacy_elixir_captures/closures/reduce.ex",
+    "start": {
+      "line": 7,
+      "col": 5,
+      "offset": 131
+    },
+    "end": {
+      "line": 7,
+      "col": 12,
+      "offset": 138
+    },
+    "fingerprint": "362691126dc125f4d92599faa9399075dfe8f68d8857bd865d6aeeb722f1b444ed25c866d1bdc991f93a3e49283e11525f60948c695e0cfb0533f6fa58ca854b_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/closures/reduce.ex",
+    "start": {
+      "line": 7,
+      "col": 5,
+      "offset": 131
+    },
+    "end": {
+      "line": 7,
+      "col": 12,
+      "offset": 138
+    },
+    "fingerprint": "3f687762de88e6f45d70929a0f3e58cd0d733dd8c64e4f0c75f59843c9ff119d71213b3dc6b9aee9cc80c2f982d0ed1d57a5e25fd0374907c7e41936b22abe92_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/closures/reduce.ex",
+    "start": {
+      "line": 7,
+      "col": 5,
+      "offset": 131
+    },
+    "end": {
+      "line": 7,
+      "col": 12,
+      "offset": 138
+    },
+    "fingerprint": "e014a416c99bc41dce4f30342881431ced82bd94985e2c6c9d9c5f85c129a3bf8c98e8cd186338f4be83c44108993c44a98ad03f722191d104d460e948ca0af7_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-false-false",
+    "path": "targets/legacy_elixir_captures/closures/shadow.ex",
+    "start": {
+      "line": 4,
+      "col": 30,
+      "offset": 84
+    },
+    "end": {
+      "line": 4,
+      "col": 37,
+      "offset": 91
+    },
+    "fingerprint": "483ff6070718ceefa58745ab9fa80b8682b939e20c3b405d9852215d62eda392f61a91269cbcbb8bcafe94dc436464c5dc09b25be05a2f9028f2c52917a96a75_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-false-true",
+    "path": "targets/legacy_elixir_captures/closures/shadow.ex",
+    "start": {
+      "line": 4,
+      "col": 30,
+      "offset": 84
+    },
+    "end": {
+      "line": 4,
+      "col": 37,
+      "offset": 91
+    },
+    "fingerprint": "fb415ff04027d05772851d91a167a3bd389af3f7b7777d46bd78ed70a5f77793d3848ee45408bcb183fc030043b725746b22dcb8a4bb20694c39fc69ebb18e63_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/closures/shadow.ex",
+    "start": {
+      "line": 4,
+      "col": 30,
+      "offset": 84
+    },
+    "end": {
+      "line": 4,
+      "col": 37,
+      "offset": 91
+    },
+    "fingerprint": "ae713c68190acb47a76bcb79207dac032e20721519a0d4bfdba62564608d0b984672d803fb4f1dbaa58f73ea770b4617fde91f9ed706c24e307513bbc8c863e8_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/closures/shadow.ex",
+    "start": {
+      "line": 4,
+      "col": 30,
+      "offset": 84
+    },
+    "end": {
+      "line": 4,
+      "col": 37,
+      "offset": 91
+    },
+    "fingerprint": "fdb9c792ec50fa48ae2a6f6d466dc06f82c7b63cbe064acd71f1ec8561730a59905d5c8af34456f36e1c788132ae4fbc35ee8d3576095ec262895fa2d1ae6960_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-false-false",
+    "path": "targets/legacy_elixir_captures/closures/shadow.ex",
+    "start": {
+      "line": 5,
+      "col": 5,
+      "offset": 101
+    },
+    "end": {
+      "line": 5,
+      "col": 12,
+      "offset": 108
+    },
+    "fingerprint": "483ff6070718ceefa58745ab9fa80b8682b939e20c3b405d9852215d62eda392f61a91269cbcbb8bcafe94dc436464c5dc09b25be05a2f9028f2c52917a96a75_1",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-false-true",
+    "path": "targets/legacy_elixir_captures/closures/shadow.ex",
+    "start": {
+      "line": 5,
+      "col": 5,
+      "offset": 101
+    },
+    "end": {
+      "line": 5,
+      "col": 12,
+      "offset": 108
+    },
+    "fingerprint": "fb415ff04027d05772851d91a167a3bd389af3f7b7777d46bd78ed70a5f77793d3848ee45408bcb183fc030043b725746b22dcb8a4bb20694c39fc69ebb18e63_1",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/closures/shadow.ex",
+    "start": {
+      "line": 5,
+      "col": 5,
+      "offset": 101
+    },
+    "end": {
+      "line": 5,
+      "col": 12,
+      "offset": 108
+    },
+    "fingerprint": "4c76e74f560dc2586460fe729587d4bbb4c6469815d62d2830fcd4e01f140171c9cad0fe269e119bfaefdb3809a6cd0d10acdeeb58520d605fbb670ab563cb77_0",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/closures/shadow.ex",
+    "start": {
+      "line": 5,
+      "col": 5,
+      "offset": 101
+    },
+    "end": {
+      "line": 5,
+      "col": 12,
+      "offset": 108
+    },
+    "fingerprint": "ae713c68190acb47a76bcb79207dac032e20721519a0d4bfdba62564608d0b984672d803fb4f1dbaa58f73ea770b4617fde91f9ed706c24e307513bbc8c863e8_1",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/closures/shadow.ex",
+    "start": {
+      "line": 5,
+      "col": 5,
+      "offset": 101
+    },
+    "end": {
+      "line": 5,
+      "col": 12,
+      "offset": 108
+    },
+    "fingerprint": "cf5914292354587926309b42abd919dc51690cfb357f1a7d91dd3c98f70016356d46ccb9534c191b7771929e94f003d53f454d8111d752e8887f54b593f1ee90_0",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-false-false",
+    "path": "targets/legacy_elixir_captures/controls/call_alias.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 11
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 18
+    },
+    "fingerprint": "dade31c002ab1bba515b00796f8d28f81e8f5ff28af6339ef840218276fd77979b9441804596d0cb87424e4e0622ed588703e895e766f81969b320e558eb8326_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-false-true",
+    "path": "targets/legacy_elixir_captures/controls/call_alias.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 11
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 18
+    },
+    "fingerprint": "6d420e1302f67a8f66555b9358d4ad484580331a484833145a8d1359e72a3c81d0eb4f3e439cb55ec12082ccd5a2b23012cddfa6ddcb646c62354878e382b5a1_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture make()"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/controls/call_alias.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 11
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 18
+    },
+    "fingerprint": "7c482e41d9ca4c8b434ba6b967b6e83caaca368be4d0375295193fc7395bb6ad32bdbd65799ad1682f41f811c971ea3e2d4c2c6676df148be5f63e08ebec1756_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/controls/call_alias.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 11
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 18
+    },
+    "fingerprint": "719621342b65e5cb29be010502fd1f9dac83dbdfdeb36d1a0ef5ada582fba3bf7ab5f55e6591ba08e4a1bf45753f58a87177717eaa344cf87b29b04569a583fb_0",
+    "captures": {
+      "$X": "make()"
+    },
+    "message": "Capture make()"
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/controls/call_alias.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 11
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 18
+    },
+    "fingerprint": "969ae6dd309de4f5c9642a8bf3201a61656903bae409f3ac1f980e714102a70bafc8ec90c1862173529d08b762b1eaa9dc07a9fe01182f9e278a32507c45c27e_0",
+    "captures": {
+      "$X": "make()"
+    },
+    "message": "Capture make()"
+  },
+  {
+    "rule": "capture-false-false",
+    "path": "targets/legacy_elixir_captures/controls/direct_struct.ex",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 1,
+      "col": 14,
+      "offset": 13
+    },
+    "fingerprint": "dce04b03ae8822e935dbebfa6e41c9c9b871521f10f03f98892fb9b362b75d71eba0e7ddd002a3ce86108fd03e9f19e6c8f82659b0d015206ad2b2631efca15c_0",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-false-true",
+    "path": "targets/legacy_elixir_captures/controls/direct_struct.ex",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 1,
+      "col": 14,
+      "offset": 13
+    },
+    "fingerprint": "db85aab3e0b077041d6a0ce94fa550c567ebd96f890d013a04bff8063e1bad518683d38d6626d659261480a516e67a2aeb0e93fce4592cc66ada4b52d3964079_0",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/controls/direct_struct.ex",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 1,
+      "col": 14,
+      "offset": 13
+    },
+    "fingerprint": "f01c46434805c2213a00cf82b35600a172bb7d2deb11c815594ca987edbf25edb2c8c394f2cea80b152fb19ffff5fa78e7fef4797588a1ca4d608fbce1460d48_0",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/controls/direct_struct.ex",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 1,
+      "col": 14,
+      "offset": 13
+    },
+    "fingerprint": "37399125ec93edd78bffb81ed46b02732be53dcfa2cad2b7dd64d2fad692e8ffb315197e0155041e32f394d31175e5f8c59ed3a6461e5c4db7137cb9b54e40e2_0",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-false-false",
+    "path": "targets/legacy_elixir_captures/controls/direct_struct.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 14
+    },
+    "end": {
+      "line": 2,
+      "col": 26,
+      "offset": 39
+    },
+    "fingerprint": "c1e17693f2eab6a1105f04f2fd36d1376152d3d9532bf4a022a242464f8b1781b7b214400afb111683fc2f1d260590e45a0789af3dd4f08789019e99033b96d9_0",
+    "captures": {
+      "$X": "User{name: \"safe\"}"
+    },
+    "message": "Capture User{name: \"safe\"}"
+  },
+  {
+    "rule": "capture-false-true",
+    "path": "targets/legacy_elixir_captures/controls/direct_struct.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 14
+    },
+    "end": {
+      "line": 2,
+      "col": 26,
+      "offset": 39
+    },
+    "fingerprint": "2c49a84a33484f7b30e76d2b6dca6d3ef623735faf1f9fbec44d0978706e68373bb7836d947ade293f6a64916b978bbd67134545a67fcca37f5e6ac9b81a8ac3_0",
+    "captures": {
+      "$X": "User{name: \"safe\"}"
+    },
+    "message": "Capture User{name: \"safe\"}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/controls/direct_struct.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 14
+    },
+    "end": {
+      "line": 2,
+      "col": 26,
+      "offset": 39
+    },
+    "fingerprint": "4276a5fa08681f4e12578c85cf74404e2f0ed01a753b9f7141eb02c8a29faa485b78bbd4f00a1a972fcd234d7e892a82c4cd5eb77262099df7bf69270fe62dc8_0",
+    "captures": {
+      "$X": "User{name: \"safe\"}"
+    },
+    "message": "Capture User{name: \"safe\"}"
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/controls/direct_struct.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 14
+    },
+    "end": {
+      "line": 2,
+      "col": 26,
+      "offset": 39
+    },
+    "fingerprint": "2df48924e23a42e93d16f54b9ca330064d2969219666cdf86b00aa5cbf1a1f50ec1cdc87b8818436064f006d711217f7928b3ae88d7dc605a6ee366838c63b37_0",
+    "captures": {
+      "$X": "User{name: \"safe\"}"
+    },
+    "message": "Capture User{name: \"safe\"}"
+  },
+  {
+    "rule": "capture-false-false",
+    "path": "targets/legacy_elixir_captures/controls/string_alias.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 11
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 18
+    },
+    "fingerprint": "e9f7acc0e2b0380991bfc53daa686d7e8ce5ee9aafd815452b5e8f628d0247e9acbb21cde2737bfd84642acae9ba9a72dd93917aa37daed16a588c2588dce41e_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-false-true",
+    "path": "targets/legacy_elixir_captures/controls/string_alias.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 11
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 18
+    },
+    "fingerprint": "bf7e89bad0db3a4b848381f510ecc5d56d647ce7d36eb2d6408d10a6527d2380f66a759c4cc38cb910b56d0dacab223e53a8f839f21057ad2ceb7246f4e4dac1_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture \"safe\""
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/controls/string_alias.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 11
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 18
+    },
+    "fingerprint": "83ceea4c1af9d14cbf7280181379ce17dd01ec8261adfae1a552592217947a9b8e46153407ba33706d6fe5ab0d6e323d09279ec6e6b114822b93d62ff7eaf686_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/controls/string_alias.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 11
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 18
+    },
+    "fingerprint": "084f9ad2606e44ff63a342322d8104ed5131b3751706ef0c281ebcf41750f7c6043bf34b53492d29183bfff3036784fc0378c662b9c58f65f23cb5ec3120e9a4_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture \"safe\""
+  },
+  {
+    "rule": "capture-false-false",
+    "path": "targets/legacy_elixir_captures/filters/struct_alias.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 12
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 19
+    },
+    "fingerprint": "1a2cea5dfad38988ff902f939d9cf02d04aa6d7e80a5218e073370caf720ca6d1f4baa0817fd8d573c6c2af5989b5e81c8c6e20b68b1c33a8e88523bb9f06056_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-false-true",
+    "path": "targets/legacy_elixir_captures/filters/struct_alias.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 12
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 19
+    },
+    "fingerprint": "d186c1bca9036581f8ac2f00860f498a0ce7ab6003a89079d79e3893c68880ab6148a6c4871be0b6742cae782e267a0dc3007dd6179bad37d23cb0bc3134ee45_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/filters/struct_alias.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 12
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 19
+    },
+    "fingerprint": "b205fc3eae683e2ad771b8562a93d5b10cfbddbc4e23bbb10d564719dbf447eccff310a643cde3126ad9f88abdf6867c3ba45e6e5087d2bd31f93482b1651d9a_0",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/filters/struct_alias.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 12
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 19
+    },
+    "fingerprint": "e97480625d123a94f6105341af4977ea2b93fdde829661d399796177b18981eb8629b3fca8abc77f14c5247db21ee88e92f088d76d51ffd3fcf4b6af44fc021c_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/filters/struct_alias.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 12
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 19
+    },
+    "fingerprint": "941e0d79938f703ddf67190e07da5b001da497de8d42eae118f5e0d358dc9b4e9245c238169cbb0f4bb4588284a3d70b5c9dc085e381b746af3a09b646ff3178_0",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "compare-alias",
+    "path": "targets/legacy_elixir_captures/filters/struct_alias.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 12
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 19
+    },
+    "fingerprint": "88d13bf3d0ce3e7e4b85e1ee2e68dc45822cd15f242813dbd4d574211d9d65eef9f961f76c8fdb8c39227f3844f03db09c6ae5a25c591d7bddf7b1d309181de2_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "compare-legacy",
+    "path": "targets/legacy_elixir_captures/filters/struct_alias.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 12
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 19
+    },
+    "fingerprint": "6e4d74a1c1d4f0afbfcda904e74c7ecfdb9f4377ac7ad5f731bba93eabb84dcec950e43806f41403ebd54800f68ecba430168af2dcf54950ec35e59e8ed3f75e_0",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "nested-struct",
+    "path": "targets/legacy_elixir_captures/filters/struct_alias.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 12
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 19
+    },
+    "fingerprint": "118d5cbed7247edc51ca505d93f247991898c973395ef4bb482864f675dae20fb375395f209c8864071e40cfefe453f954c115fbda0a244ec509295b8dd930c8_0",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "regex-alias",
+    "path": "targets/legacy_elixir_captures/filters/struct_alias.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 12
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 19
+    },
+    "fingerprint": "06e6db2d81b7132334200182cd71a229bf26e56b91687df836985dc9633c2477e24d096332dd1832f0ba9fc3ad70595a429f101ec7dd8ce3857fb79efd746fcd_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "regex-legacy",
+    "path": "targets/legacy_elixir_captures/filters/struct_alias.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 12
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 19
+    },
+    "fingerprint": "d608d842cd7c5a363f738c1cccbe8de9fe3f2b127844413d5a244cdf7e098b75d67311da4aab295eeb3a85d6133a1c067e4eab908013a63f9c1d4fadd914d7fe_0",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-false-false",
+    "path": "targets/legacy_elixir_captures/filters/struct_alias.ex",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 20
+    },
+    "end": {
+      "line": 3,
+      "col": 14,
+      "offset": 33
+    },
+    "fingerprint": "03952ecc8cec765f1194c54049ace0b824729913c0c81dbbdf4275d43aafb0fa7044b47ce2b6c9bf5ef819eda4d2b59c1d8e2efecc0107fb32eb86f7126b2137_0",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-false-true",
+    "path": "targets/legacy_elixir_captures/filters/struct_alias.ex",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 20
+    },
+    "end": {
+      "line": 3,
+      "col": 14,
+      "offset": 33
+    },
+    "fingerprint": "3170c29c4b21f570e751f15d9199157654fa73300a31420b791be9fb7ca3e790a554be302fe512bf123ea42315d5ac985f5f551a5dc13cefaa78022b0131bb3f_0",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/filters/struct_alias.ex",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 20
+    },
+    "end": {
+      "line": 3,
+      "col": 14,
+      "offset": 33
+    },
+    "fingerprint": "b205fc3eae683e2ad771b8562a93d5b10cfbddbc4e23bbb10d564719dbf447eccff310a643cde3126ad9f88abdf6867c3ba45e6e5087d2bd31f93482b1651d9a_1",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/filters/struct_alias.ex",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 20
+    },
+    "end": {
+      "line": 3,
+      "col": 14,
+      "offset": 33
+    },
+    "fingerprint": "941e0d79938f703ddf67190e07da5b001da497de8d42eae118f5e0d358dc9b4e9245c238169cbb0f4bb4588284a3d70b5c9dc085e381b746af3a09b646ff3178_1",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "compare-legacy",
+    "path": "targets/legacy_elixir_captures/filters/struct_alias.ex",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 20
+    },
+    "end": {
+      "line": 3,
+      "col": 14,
+      "offset": 33
+    },
+    "fingerprint": "6e4d74a1c1d4f0afbfcda904e74c7ecfdb9f4377ac7ad5f731bba93eabb84dcec950e43806f41403ebd54800f68ecba430168af2dcf54950ec35e59e8ed3f75e_1",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "nested-struct",
+    "path": "targets/legacy_elixir_captures/filters/struct_alias.ex",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 20
+    },
+    "end": {
+      "line": 3,
+      "col": 14,
+      "offset": 33
+    },
+    "fingerprint": "118d5cbed7247edc51ca505d93f247991898c973395ef4bb482864f675dae20fb375395f209c8864071e40cfefe453f954c115fbda0a244ec509295b8dd930c8_1",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "regex-legacy",
+    "path": "targets/legacy_elixir_captures/filters/struct_alias.ex",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 20
+    },
+    "end": {
+      "line": 3,
+      "col": 14,
+      "offset": 33
+    },
+    "fingerprint": "d608d842cd7c5a363f738c1cccbe8de9fe3f2b127844413d5a244cdf7e098b75d67311da4aab295eeb3a85d6133a1c067e4eab908013a63f9c1d4fadd914d7fe_1",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "independent",
+    "path": "targets/legacy_elixir_captures/filters/struct_alias.ex",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 34
+    },
+    "end": {
+      "line": 4,
+      "col": 11,
+      "offset": 44
+    },
+    "fingerprint": "03294f23c8c8864a0e7c6b21dffeeffa43ee057e40190e45d261a4924047cb5cf90987cc86bab43630d0ab3d1bb7b7221a05e1f2adb68059ce9ed54dd477310d_0",
+    "captures": {
+      "$X": "User{}",
+      "$Y": "User{}"
+    },
+    "message": "Capture User{} User{}"
+  },
+  {
+    "rule": "independent",
+    "path": "targets/legacy_elixir_captures/filters/struct_alias.ex",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 34
+    },
+    "end": {
+      "line": 4,
+      "col": 11,
+      "offset": 44
+    },
+    "fingerprint": "880c05952b874e65af6504451b6d20343b41b9a93b38e90630c88d32b52db63081faa7217bee13009e4ecc98d900f207c817a8504f1221df6cc944163ebd6916_0",
+    "captures": {
+      "$X": "User{}",
+      "$Y": "a"
+    },
+    "message": "Capture User{} a"
+  },
+  {
+    "rule": "independent",
+    "path": "targets/legacy_elixir_captures/filters/struct_alias.ex",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 34
+    },
+    "end": {
+      "line": 4,
+      "col": 11,
+      "offset": 44
+    },
+    "fingerprint": "9ca43ff70a4da8d8996dfdcfaae274a42698eda1c7394bd23465723a10416d4e548a61c4a88a7dbb8691e3221046c351303fb437266224263cfaf7a85f0cf889_0",
+    "captures": {
+      "$Y": "User{}",
+      "$X": "a"
+    },
+    "message": "Capture a User{}"
+  },
+  {
+    "rule": "independent",
+    "path": "targets/legacy_elixir_captures/filters/struct_alias.ex",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 34
+    },
+    "end": {
+      "line": 4,
+      "col": 11,
+      "offset": 44
+    },
+    "fingerprint": "7d55a0df314b49aec60a403ff311caf9990cb9ba96b1bf2d53a7ba0cb6a967a776a434aa319f6580687a51f09622015f6cd0e655631e143b1901c5edeb2e9707_0",
+    "captures": {
+      "$X": "a",
+      "$Y": "a"
+    },
+    "message": "Capture a a"
+  },
+  {
+    "rule": "repeated",
+    "path": "targets/legacy_elixir_captures/filters/struct_alias.ex",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 34
+    },
+    "end": {
+      "line": 4,
+      "col": 11,
+      "offset": 44
+    },
+    "fingerprint": "2efc5648825d5b68ba0bb4e0f10b443249e2170ac86ee1b3aa8f3a529a4acfdc7262179090b35c862bd5a38556e1dc8c755f6ab7eb607cbc54da1fafbea374ff_0",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{} $Y"
+  },
+  {
+    "rule": "repeated",
+    "path": "targets/legacy_elixir_captures/filters/struct_alias.ex",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 34
+    },
+    "end": {
+      "line": 4,
+      "col": 11,
+      "offset": 44
+    },
+    "fingerprint": "03c807cb59309dbd8d758088cb3408483f64dc39818c6ba0fbbe67889dbb15eaefaba545c900adde3ba25b8258b91576f0d307d5ec9c140a24168420cfea9072_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a $Y"
+  },
+  {
+    "rule": "independent",
+    "path": "targets/legacy_elixir_captures/filters/struct_alias.ex",
+    "start": {
+      "line": 5,
+      "col": 1,
+      "offset": 45
+    },
+    "end": {
+      "line": 5,
+      "col": 17,
+      "offset": 61
+    },
+    "fingerprint": "03294f23c8c8864a0e7c6b21dffeeffa43ee057e40190e45d261a4924047cb5cf90987cc86bab43630d0ab3d1bb7b7221a05e1f2adb68059ce9ed54dd477310d_1",
+    "captures": {
+      "$X": "User{}",
+      "$Y": "User{}"
+    },
+    "message": "Capture User{} User{}"
+  },
+  {
+    "rule": "independent",
+    "path": "targets/legacy_elixir_captures/filters/struct_alias.ex",
+    "start": {
+      "line": 5,
+      "col": 1,
+      "offset": 45
+    },
+    "end": {
+      "line": 5,
+      "col": 17,
+      "offset": 61
+    },
+    "fingerprint": "9ca43ff70a4da8d8996dfdcfaae274a42698eda1c7394bd23465723a10416d4e548a61c4a88a7dbb8691e3221046c351303fb437266224263cfaf7a85f0cf889_1",
+    "captures": {
+      "$X": "a",
+      "$Y": "User{}"
+    },
+    "message": "Capture a User{}"
+  },
+  {
+    "rule": "repeated",
+    "path": "targets/legacy_elixir_captures/filters/struct_alias.ex",
+    "start": {
+      "line": 5,
+      "col": 1,
+      "offset": 45
+    },
+    "end": {
+      "line": 5,
+      "col": 17,
+      "offset": 61
+    },
+    "fingerprint": "2efc5648825d5b68ba0bb4e0f10b443249e2170ac86ee1b3aa8f3a529a4acfdc7262179090b35c862bd5a38556e1dc8c755f6ab7eb607cbc54da1fafbea374ff_1",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{} $Y"
+  },
+  {
+    "rule": "independent",
+    "path": "targets/legacy_elixir_captures/filters/struct_alias.ex",
+    "start": {
+      "line": 6,
+      "col": 1,
+      "offset": 62
+    },
+    "end": {
+      "line": 6,
+      "col": 17,
+      "offset": 78
+    },
+    "fingerprint": "03294f23c8c8864a0e7c6b21dffeeffa43ee057e40190e45d261a4924047cb5cf90987cc86bab43630d0ab3d1bb7b7221a05e1f2adb68059ce9ed54dd477310d_2",
+    "captures": {
+      "$Y": "User{}",
+      "$X": "User{}"
+    },
+    "message": "Capture User{} User{}"
+  },
+  {
+    "rule": "independent",
+    "path": "targets/legacy_elixir_captures/filters/struct_alias.ex",
+    "start": {
+      "line": 6,
+      "col": 1,
+      "offset": 62
+    },
+    "end": {
+      "line": 6,
+      "col": 17,
+      "offset": 78
+    },
+    "fingerprint": "880c05952b874e65af6504451b6d20343b41b9a93b38e90630c88d32b52db63081faa7217bee13009e4ecc98d900f207c817a8504f1221df6cc944163ebd6916_1",
+    "captures": {
+      "$X": "User{}",
+      "$Y": "a"
+    },
+    "message": "Capture User{} a"
+  },
+  {
+    "rule": "repeated",
+    "path": "targets/legacy_elixir_captures/filters/struct_alias.ex",
+    "start": {
+      "line": 6,
+      "col": 1,
+      "offset": 62
+    },
+    "end": {
+      "line": 6,
+      "col": 17,
+      "offset": 78
+    },
+    "fingerprint": "2efc5648825d5b68ba0bb4e0f10b443249e2170ac86ee1b3aa8f3a529a4acfdc7262179090b35c862bd5a38556e1dc8c755f6ab7eb607cbc54da1fafbea374ff_2",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{} $Y"
+  },
+  {
+    "rule": "independent",
+    "path": "targets/legacy_elixir_captures/filters/struct_alias.ex",
+    "start": {
+      "line": 7,
+      "col": 1,
+      "offset": 79
+    },
+    "end": {
+      "line": 7,
+      "col": 18,
+      "offset": 96
+    },
+    "fingerprint": "de33f1eeb314557b82fcb5c50751ceaf14620e16bcafc3bf763e341ea2b75d9628195154934642d047fdb8525d44908f9ce705557e38913f1f21308b94f51412_0",
+    "captures": {
+      "$X": "User{}",
+      "$Y": "Admin{}"
+    },
+    "message": "Capture User{} Admin{}"
+  },
+  {
+    "rule": "independent",
+    "path": "targets/legacy_elixir_captures/filters/struct_alias.ex",
+    "start": {
+      "line": 7,
+      "col": 1,
+      "offset": 79
+    },
+    "end": {
+      "line": 7,
+      "col": 18,
+      "offset": 96
+    },
+    "fingerprint": "3583c7b8ccca0e28af2fb9ff68bb45ee46ac9ad9a2b591854846282059e2f17cbc0152239aa6a37d7ad2d561b1ad489fde8d877ecfb23079b2a56e232cf873e7_0",
+    "captures": {
+      "$X": "a",
+      "$Y": "Admin{}"
+    },
+    "message": "Capture a Admin{}"
+  },
+  {
+    "rule": "capture-false-false",
+    "path": "targets/legacy_elixir_captures/filters/with_fields.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 24
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 31
+    },
+    "fingerprint": "d6ea583fa3990febcb6301491a607bf275daec6e6946470743da6576e1ea198515841e2a884dea9c1385005350b30dd5f66e65a2dbdbc40d229f6401f970c572_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-false-true",
+    "path": "targets/legacy_elixir_captures/filters/with_fields.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 24
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 31
+    },
+    "fingerprint": "6870f55a1cbd729f3c5013afc232323730603c75d41dc96df3940b66bae8003b908406f922d2efb5efb4573d408fc932f23708e43270ba58a509bd834b8865f8_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/filters/with_fields.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 24
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 31
+    },
+    "fingerprint": "589544fa7e6c358d5e13280c5859216f5084c88f1a54a79648bea9e1a0f2847463038d9a3531514d62eeaf8046bb654edff8093c4b0b2c422672a5cc23836486_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/filters/with_fields.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 24
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 31
+    },
+    "fingerprint": "c28b44e2d1901c1afe54b1863900e5b15564fd10333204a695516126f46e283a8d17c74acc25448a6d03198e93cf0105bfd0158c447c7caa6fddda824f078071_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "compare-alias",
+    "path": "targets/legacy_elixir_captures/filters/with_fields.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 24
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 31
+    },
+    "fingerprint": "1790fcd5541898df523eadfe217f6eb26567b8b8c98dfe7a11179a0d65078c36a61fb52465f8f1b1e4d521f63a3a12ff6d70929d82a1bc5d363a233ab7d6977e_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "regex-alias",
+    "path": "targets/legacy_elixir_captures/filters/with_fields.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 24
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 31
+    },
+    "fingerprint": "14855aec6c3f036e8d93d722f5ab839fcf1452040a7c21a6acd4a1480630dc5c8455b502d626093825bc8a6ffd86c13a8047e1ea6988df4bb9c4fa9bb45b6156_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-false-false",
+    "path": "targets/legacy_elixir_captures/filters/with_fields.ex",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 32
+    },
+    "end": {
+      "line": 3,
+      "col": 26,
+      "offset": 57
+    },
+    "fingerprint": "9cfa995da949312e5d4eb354251654937f583b8461b88650bc6be068df0f1f692857823cdee112ab77f2774390b1d8d8e6d1d00aa79fc67c20756c37e82257c7_0",
+    "captures": {
+      "$X": "User{name: \"safe\"}"
+    },
+    "message": "Capture User{name: \"safe\"}"
+  },
+  {
+    "rule": "capture-false-true",
+    "path": "targets/legacy_elixir_captures/filters/with_fields.ex",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 32
+    },
+    "end": {
+      "line": 3,
+      "col": 26,
+      "offset": 57
+    },
+    "fingerprint": "85b93d852e2add3aef9280833f58790702f6caeeffb2a7a82f43552c2076a01e7b81aa88132abf8e03764e6ebbdbb96e7c6a30d5475df628c2e0356fd842d637_0",
+    "captures": {
+      "$X": "User{name: \"safe\"}"
+    },
+    "message": "Capture User{name: \"safe\"}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/filters/with_fields.ex",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 32
+    },
+    "end": {
+      "line": 3,
+      "col": 26,
+      "offset": 57
+    },
+    "fingerprint": "9ff574ca0cb5a823555d901aee466080eb8258a316afacba7a6f3a776edf6f7baa46e1bf49947f902d55a13197fdb1adf5c4bcd4851eb634260fb453a3a5e5af_0",
+    "captures": {
+      "$X": "User{name: \"safe\"}"
+    },
+    "message": "Capture User{name: \"safe\"}"
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/filters/with_fields.ex",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 32
+    },
+    "end": {
+      "line": 3,
+      "col": 26,
+      "offset": 57
+    },
+    "fingerprint": "929a64ae1808233ae4405437313eaef4669e50159bc2c18c2d3e25b671ffae2becaac70050471b1402d5e39dc04d127e784264ea539bc0946bccf7040a90db03_0",
+    "captures": {
+      "$X": "User{name: \"safe\"}"
+    },
+    "message": "Capture User{name: \"safe\"}"
+  },
+  {
+    "rule": "regex-legacy",
+    "path": "targets/legacy_elixir_captures/filters/with_fields.ex",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 32
+    },
+    "end": {
+      "line": 3,
+      "col": 26,
+      "offset": 57
+    },
+    "fingerprint": "af0096dc0ce212eca20907e0834a0b620d704be79d92536377894e0d2c852c73fb17b413e119aa91fcfa24059f1e90ae3fc2418c909067f0fd6256e1bbc7f884_0",
+    "captures": {
+      "$X": "User{name: \"safe\"}"
+    },
+    "message": "Capture User{name: \"safe\"}"
+  },
+  {
+    "rule": "capture-false-false",
+    "path": "targets/legacy_elixir_captures/occurrences/aliases_before_direct.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 12
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 19
+    },
+    "fingerprint": "e5d13ca64bc4df876d6e3ea736f1c5243799b2490607208c44ecdb99229f3ba8c65245f1d618032774e4d815a4e87d3459a7e11ba77380ccd1ddeae77a939265_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-false-true",
+    "path": "targets/legacy_elixir_captures/occurrences/aliases_before_direct.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 12
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 19
+    },
+    "fingerprint": "3759796c5f36386d7d8e74097558a4c7c500b48f5e3dd408601181ec8c699d611ffec8e271dfcdf809a36afb0d48f1b3bfa9c3231a626983f07db50d800376f3_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/occurrences/aliases_before_direct.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 12
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 19
+    },
+    "fingerprint": "312a78bd6e8c93d967b72844286f002cba7f1cad1ef651869aab913a999e215aca38c042135fb7f92fcd428ba8607ac0940f61421a03eefb18daad5b8fc25f07_0",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/occurrences/aliases_before_direct.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 12
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 19
+    },
+    "fingerprint": "3c8acdcb21ee96d9b5c14b6325aa110fd94bdcd57f40125f0fda178e31f7b80a328e20972077800876a124a6b7e6f8761beb3ee08fe1f174dd10fc0f76239148_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/occurrences/aliases_before_direct.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 12
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 19
+    },
+    "fingerprint": "769332c1a4f7ef27e4a21575e2597006b10b0b07af2fb758848a7a248fbb313e38623f04321dac24bf8f2f26e63844ccaeacf657ae6cf9607ef9e340e614515c_0",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-false-false",
+    "path": "targets/legacy_elixir_captures/occurrences/aliases_before_direct.ex",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 20
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 27
+    },
+    "fingerprint": "e5d13ca64bc4df876d6e3ea736f1c5243799b2490607208c44ecdb99229f3ba8c65245f1d618032774e4d815a4e87d3459a7e11ba77380ccd1ddeae77a939265_1",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-false-true",
+    "path": "targets/legacy_elixir_captures/occurrences/aliases_before_direct.ex",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 20
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 27
+    },
+    "fingerprint": "3759796c5f36386d7d8e74097558a4c7c500b48f5e3dd408601181ec8c699d611ffec8e271dfcdf809a36afb0d48f1b3bfa9c3231a626983f07db50d800376f3_1",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/occurrences/aliases_before_direct.ex",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 20
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 27
+    },
+    "fingerprint": "312a78bd6e8c93d967b72844286f002cba7f1cad1ef651869aab913a999e215aca38c042135fb7f92fcd428ba8607ac0940f61421a03eefb18daad5b8fc25f07_1",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/occurrences/aliases_before_direct.ex",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 20
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 27
+    },
+    "fingerprint": "3c8acdcb21ee96d9b5c14b6325aa110fd94bdcd57f40125f0fda178e31f7b80a328e20972077800876a124a6b7e6f8761beb3ee08fe1f174dd10fc0f76239148_1",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/occurrences/aliases_before_direct.ex",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 20
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 27
+    },
+    "fingerprint": "769332c1a4f7ef27e4a21575e2597006b10b0b07af2fb758848a7a248fbb313e38623f04321dac24bf8f2f26e63844ccaeacf657ae6cf9607ef9e340e614515c_1",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-false-false",
+    "path": "targets/legacy_elixir_captures/occurrences/aliases_before_direct.ex",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 28
+    },
+    "end": {
+      "line": 4,
+      "col": 14,
+      "offset": 41
+    },
+    "fingerprint": "aea825db2e660f21bdcbbfd3da8bff6849949bb924b0046a5ebbbf73bded74b8ad429be20aba128242492cd03f28ad3d132706f539c7fff954b83e4ec7a1cc5a_0",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-false-true",
+    "path": "targets/legacy_elixir_captures/occurrences/aliases_before_direct.ex",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 28
+    },
+    "end": {
+      "line": 4,
+      "col": 14,
+      "offset": 41
+    },
+    "fingerprint": "4ea55f14ff08254f1244617f175bed9cba3b3e024efe710efc7a477632856ed7f0b569f50e2ddb7d1921a500626cc8a29b4288ffb59880ef62935c6dc2c5497f_0",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/occurrences/aliases_before_direct.ex",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 28
+    },
+    "end": {
+      "line": 4,
+      "col": 14,
+      "offset": 41
+    },
+    "fingerprint": "312a78bd6e8c93d967b72844286f002cba7f1cad1ef651869aab913a999e215aca38c042135fb7f92fcd428ba8607ac0940f61421a03eefb18daad5b8fc25f07_2",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/occurrences/aliases_before_direct.ex",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 28
+    },
+    "end": {
+      "line": 4,
+      "col": 14,
+      "offset": 41
+    },
+    "fingerprint": "769332c1a4f7ef27e4a21575e2597006b10b0b07af2fb758848a7a248fbb313e38623f04321dac24bf8f2f26e63844ccaeacf657ae6cf9607ef9e340e614515c_2",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-false-false",
+    "path": "targets/legacy_elixir_captures/occurrences/aliases_before_direct.ex",
+    "start": {
+      "line": 5,
+      "col": 1,
+      "offset": 42
+    },
+    "end": {
+      "line": 5,
+      "col": 14,
+      "offset": 55
+    },
+    "fingerprint": "aea825db2e660f21bdcbbfd3da8bff6849949bb924b0046a5ebbbf73bded74b8ad429be20aba128242492cd03f28ad3d132706f539c7fff954b83e4ec7a1cc5a_1",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-false-true",
+    "path": "targets/legacy_elixir_captures/occurrences/aliases_before_direct.ex",
+    "start": {
+      "line": 5,
+      "col": 1,
+      "offset": 42
+    },
+    "end": {
+      "line": 5,
+      "col": 14,
+      "offset": 55
+    },
+    "fingerprint": "4ea55f14ff08254f1244617f175bed9cba3b3e024efe710efc7a477632856ed7f0b569f50e2ddb7d1921a500626cc8a29b4288ffb59880ef62935c6dc2c5497f_1",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/occurrences/aliases_before_direct.ex",
+    "start": {
+      "line": 5,
+      "col": 1,
+      "offset": 42
+    },
+    "end": {
+      "line": 5,
+      "col": 14,
+      "offset": 55
+    },
+    "fingerprint": "312a78bd6e8c93d967b72844286f002cba7f1cad1ef651869aab913a999e215aca38c042135fb7f92fcd428ba8607ac0940f61421a03eefb18daad5b8fc25f07_3",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/occurrences/aliases_before_direct.ex",
+    "start": {
+      "line": 5,
+      "col": 1,
+      "offset": 42
+    },
+    "end": {
+      "line": 5,
+      "col": 14,
+      "offset": 55
+    },
+    "fingerprint": "769332c1a4f7ef27e4a21575e2597006b10b0b07af2fb758848a7a248fbb313e38623f04321dac24bf8f2f26e63844ccaeacf657ae6cf9607ef9e340e614515c_3",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-false-false",
+    "path": "targets/legacy_elixir_captures/occurrences/direct_before_aliases.ex",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 1,
+      "col": 14,
+      "offset": 13
+    },
+    "fingerprint": "df8e7a26e7a8f61250d66ecbbfb58aac2aeea5f4ebc90fd05e3d22215e2525d7579bc33d213e5105df82ae28e88ef640bf2a124c4b6fee87e529203bf0064686_0",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-false-true",
+    "path": "targets/legacy_elixir_captures/occurrences/direct_before_aliases.ex",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 1,
+      "col": 14,
+      "offset": 13
+    },
+    "fingerprint": "b3d4cd509766516174016ae39fcc84477533fc0e2ce38a29cea2d81412a3f7b074e1d2b218a2fe68af696fa032802562f04ba996cc72de2ddff9113779cbd9d3_0",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/occurrences/direct_before_aliases.ex",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 1,
+      "col": 14,
+      "offset": 13
+    },
+    "fingerprint": "c36a9dccf7d7dfb40d15904f51ddc58839fc9f9c490edca4dde86ac40b7854902733f97e17355e48f411c7e9a02b5f5f315b613247cae777916ac8884249eb0f_0",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/occurrences/direct_before_aliases.ex",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 1,
+      "col": 14,
+      "offset": 13
+    },
+    "fingerprint": "98570fd2312478e54900b2b421ae0d2f981a971e72ef37ffc03b3ba3268f4efef1594c3e9f5c7448b12df266ac09b9dfe856f3dc0048eda06e7acd174ff91c14_0",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-false-false",
+    "path": "targets/legacy_elixir_captures/occurrences/direct_before_aliases.ex",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 26
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 33
+    },
+    "fingerprint": "d5b1953021802d202b36d7c0ba42b7aa8229f187c9bda531278429f8cf5934a30dcde62cd5d959475c09ca1e6ef743ff512ea188f0055f26f070d19ed78671f8_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-false-true",
+    "path": "targets/legacy_elixir_captures/occurrences/direct_before_aliases.ex",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 26
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 33
+    },
+    "fingerprint": "7263e5ec842dd91e8699f35d2466480f522ec0cabd9874509ff0530880414d9aa7ffbc0a0be8d57050f17fdb314b20b1f3fd441b76a6e20dd81295ce06baa58a_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/occurrences/direct_before_aliases.ex",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 26
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 33
+    },
+    "fingerprint": "c36a9dccf7d7dfb40d15904f51ddc58839fc9f9c490edca4dde86ac40b7854902733f97e17355e48f411c7e9a02b5f5f315b613247cae777916ac8884249eb0f_1",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/occurrences/direct_before_aliases.ex",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 26
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 33
+    },
+    "fingerprint": "e4efbf43b25fb9b3b03c72815dd54664d95bd0fadaa1aa9b2ffac73e89c8de3009bdd0859026ed7eeac7529baaca06c33683944c145d3c4ba1579b27f1ba50e2_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/occurrences/direct_before_aliases.ex",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 26
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 33
+    },
+    "fingerprint": "98570fd2312478e54900b2b421ae0d2f981a971e72ef37ffc03b3ba3268f4efef1594c3e9f5c7448b12df266ac09b9dfe856f3dc0048eda06e7acd174ff91c14_1",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-false-false",
+    "path": "targets/legacy_elixir_captures/occurrences/direct_before_aliases.ex",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 34
+    },
+    "end": {
+      "line": 4,
+      "col": 8,
+      "offset": 41
+    },
+    "fingerprint": "d5b1953021802d202b36d7c0ba42b7aa8229f187c9bda531278429f8cf5934a30dcde62cd5d959475c09ca1e6ef743ff512ea188f0055f26f070d19ed78671f8_1",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-false-true",
+    "path": "targets/legacy_elixir_captures/occurrences/direct_before_aliases.ex",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 34
+    },
+    "end": {
+      "line": 4,
+      "col": 8,
+      "offset": 41
+    },
+    "fingerprint": "7263e5ec842dd91e8699f35d2466480f522ec0cabd9874509ff0530880414d9aa7ffbc0a0be8d57050f17fdb314b20b1f3fd441b76a6e20dd81295ce06baa58a_1",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/occurrences/direct_before_aliases.ex",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 34
+    },
+    "end": {
+      "line": 4,
+      "col": 8,
+      "offset": 41
+    },
+    "fingerprint": "c36a9dccf7d7dfb40d15904f51ddc58839fc9f9c490edca4dde86ac40b7854902733f97e17355e48f411c7e9a02b5f5f315b613247cae777916ac8884249eb0f_2",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/occurrences/direct_before_aliases.ex",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 34
+    },
+    "end": {
+      "line": 4,
+      "col": 8,
+      "offset": 41
+    },
+    "fingerprint": "e4efbf43b25fb9b3b03c72815dd54664d95bd0fadaa1aa9b2ffac73e89c8de3009bdd0859026ed7eeac7529baaca06c33683944c145d3c4ba1579b27f1ba50e2_1",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/occurrences/direct_before_aliases.ex",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 34
+    },
+    "end": {
+      "line": 4,
+      "col": 8,
+      "offset": 41
+    },
+    "fingerprint": "98570fd2312478e54900b2b421ae0d2f981a971e72ef37ffc03b3ba3268f4efef1594c3e9f5c7448b12df266ac09b9dfe856f3dc0048eda06e7acd174ff91c14_2",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-false-false",
+    "path": "targets/legacy_elixir_captures/occurrences/direct_before_aliases.ex",
+    "start": {
+      "line": 5,
+      "col": 1,
+      "offset": 42
+    },
+    "end": {
+      "line": 5,
+      "col": 14,
+      "offset": 55
+    },
+    "fingerprint": "df8e7a26e7a8f61250d66ecbbfb58aac2aeea5f4ebc90fd05e3d22215e2525d7579bc33d213e5105df82ae28e88ef640bf2a124c4b6fee87e529203bf0064686_1",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-false-true",
+    "path": "targets/legacy_elixir_captures/occurrences/direct_before_aliases.ex",
+    "start": {
+      "line": 5,
+      "col": 1,
+      "offset": 42
+    },
+    "end": {
+      "line": 5,
+      "col": 14,
+      "offset": 55
+    },
+    "fingerprint": "b3d4cd509766516174016ae39fcc84477533fc0e2ce38a29cea2d81412a3f7b074e1d2b218a2fe68af696fa032802562f04ba996cc72de2ddff9113779cbd9d3_1",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/occurrences/direct_before_aliases.ex",
+    "start": {
+      "line": 5,
+      "col": 1,
+      "offset": 42
+    },
+    "end": {
+      "line": 5,
+      "col": 14,
+      "offset": 55
+    },
+    "fingerprint": "c36a9dccf7d7dfb40d15904f51ddc58839fc9f9c490edca4dde86ac40b7854902733f97e17355e48f411c7e9a02b5f5f315b613247cae777916ac8884249eb0f_3",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/occurrences/direct_before_aliases.ex",
+    "start": {
+      "line": 5,
+      "col": 1,
+      "offset": 42
+    },
+    "end": {
+      "line": 5,
+      "col": 14,
+      "offset": 55
+    },
+    "fingerprint": "98570fd2312478e54900b2b421ae0d2f981a971e72ef37ffc03b3ba3268f4efef1594c3e9f5c7448b12df266ac09b9dfe856f3dc0048eda06e7acd174ff91c14_3",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-false-false",
+    "path": "targets/legacy_elixir_captures/reassignment/alias_snapshot.ex",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 29
+    },
+    "end": {
+      "line": 4,
+      "col": 8,
+      "offset": 36
+    },
+    "fingerprint": "2a491b10ae9e894e742052549fa9d87e978e2b3bd907e4472c9c64100adb404166ad53ea4e3a87857537fdaf438327390c5e1d5a3f2eb3efc61964e5fa8e898e_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-false-true",
+    "path": "targets/legacy_elixir_captures/reassignment/alias_snapshot.ex",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 29
+    },
+    "end": {
+      "line": 4,
+      "col": 8,
+      "offset": 36
+    },
+    "fingerprint": "680c0ccdb95e5a10192fcfea8b2bc21b94634965903e06803bc94f8a5cd84ebf7f70ee67980be087cfa792202366e1095de3c38b15ebbd53c69842fe6a1e4472_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture \"safe\""
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/reassignment/alias_snapshot.ex",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 29
+    },
+    "end": {
+      "line": 4,
+      "col": 8,
+      "offset": 36
+    },
+    "fingerprint": "aeb20ef482bf342c11ad9ed1c1c96b8e9be1408284e2de13b2ef169b2798445ee37abc68cf2cd44b17071d02f18e90be713ccec44848b9c0ba6da4bf8edfb8d0_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/reassignment/alias_snapshot.ex",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 29
+    },
+    "end": {
+      "line": 4,
+      "col": 8,
+      "offset": 36
+    },
+    "fingerprint": "ccb5635319bbb4dbace00fe885662a050f70d71d19d27796cd3cbaaec27fdaec250f6083672758c357b0ce6c230b3a4828432ba5c4bc0f400cae9a86b7ad590c_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture \"safe\""
+  },
+  {
+    "rule": "capture-false-false",
+    "path": "targets/legacy_elixir_captures/reassignment/alias_snapshot.ex",
+    "start": {
+      "line": 5,
+      "col": 1,
+      "offset": 37
+    },
+    "end": {
+      "line": 5,
+      "col": 8,
+      "offset": 44
+    },
+    "fingerprint": "a011466596d4ee27b342b24f025847fb72a4101d5bbf2b858853ecd79a4a6bd32372e08d9d10d96c2a5f93e21fa82fd7e278070546ef42fc73d55c47f791c7f2_0",
+    "captures": {
+      "$X": "b"
+    },
+    "message": "Capture b"
+  },
+  {
+    "rule": "capture-false-true",
+    "path": "targets/legacy_elixir_captures/reassignment/alias_snapshot.ex",
+    "start": {
+      "line": 5,
+      "col": 1,
+      "offset": 37
+    },
+    "end": {
+      "line": 5,
+      "col": 8,
+      "offset": 44
+    },
+    "fingerprint": "b021c1bf4b1d22bbee322aac5a9da547e5c140d5ec192f638ee9d8857f34f367184364d3696a77237a32e1f2af018c785b3f1981db10debebda944ad1b653ae0_0",
+    "captures": {
+      "$X": "b"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/reassignment/alias_snapshot.ex",
+    "start": {
+      "line": 5,
+      "col": 1,
+      "offset": 37
+    },
+    "end": {
+      "line": 5,
+      "col": 8,
+      "offset": 44
+    },
+    "fingerprint": "c290426f6856102c4b37d2771c293968a8829b7452e01e6b4ed0c876c9638bc5c10706a254db5b1ef74858ed4333f8a3522ef204f626a450490633950e18bbc3_0",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/reassignment/alias_snapshot.ex",
+    "start": {
+      "line": 5,
+      "col": 1,
+      "offset": 37
+    },
+    "end": {
+      "line": 5,
+      "col": 8,
+      "offset": 44
+    },
+    "fingerprint": "056a4e967270560de1aa84b6c2d4ca60e1559ef71c8257d2a921ba1a716e84485fd85a0f07dca1a7788cf8c91ebacb551bd674ec3e8dee8873fe669996adb95c_0",
+    "captures": {
+      "$X": "b"
+    },
+    "message": "Capture b"
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/reassignment/alias_snapshot.ex",
+    "start": {
+      "line": 5,
+      "col": 1,
+      "offset": 37
+    },
+    "end": {
+      "line": 5,
+      "col": 8,
+      "offset": 44
+    },
+    "fingerprint": "2f405f297d4bfbed63dbf50fc0169335ba0eebd4266fdecb21dd43c613869bbe923bdb10051f02fcaece945b02082836981985ea48e95ffb3b7b99ba28f289c6_0",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-false-false",
+    "path": "targets/legacy_elixir_captures/reassignment/literal.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 12
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 19
+    },
+    "fingerprint": "a0a9db0205ca12a43078a4bab88735ef0be813e566f52081a636127920fa53b2d3ca95f0a17a518b6400883c09db344727dfdc4da73332ea1a611ae2b70f7a9c_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-false-true",
+    "path": "targets/legacy_elixir_captures/reassignment/literal.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 12
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 19
+    },
+    "fingerprint": "06720d4aba7af5b36cc557740fb9ea99815f0ee738ca771c663835edf6bb614c332426a90f8b8997c12deeb4e3095bae7f4d3a52927cda7b6b7b5632fb7aec8e_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/reassignment/literal.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 12
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 19
+    },
+    "fingerprint": "cc8350ce8e7f00654f4e0b5232e0a680c9bcd7cee96127a75c3251621ba0e48320f125560c8635ce757e3ca8a0524beeeb4a277b7da7afd79cc429226dc6d784_0",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/reassignment/literal.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 12
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 19
+    },
+    "fingerprint": "d233167549c34ef8c3ec9f4ac139c5a0690afe53e6fc3594dcb27941601153ccbddc197a4da93cd295a255a58518bc51be9008e10ed70fd692541465f289ca0c_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/reassignment/literal.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 12
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 19
+    },
+    "fingerprint": "53f0ac06539bedf9c2b951fd07fd7d36d738385eb2f812cfa7563d102932a9531093785816cd4bb42a1ac1cd56f36a0ab8a5d6f9ee00efaa937baa7ddfbbf043_0",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-false-false",
+    "path": "targets/legacy_elixir_captures/reassignment/literal.ex",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 31
+    },
+    "end": {
+      "line": 4,
+      "col": 8,
+      "offset": 38
+    },
+    "fingerprint": "a0a9db0205ca12a43078a4bab88735ef0be813e566f52081a636127920fa53b2d3ca95f0a17a518b6400883c09db344727dfdc4da73332ea1a611ae2b70f7a9c_1",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-false-true",
+    "path": "targets/legacy_elixir_captures/reassignment/literal.ex",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 31
+    },
+    "end": {
+      "line": 4,
+      "col": 8,
+      "offset": 38
+    },
+    "fingerprint": "06720d4aba7af5b36cc557740fb9ea99815f0ee738ca771c663835edf6bb614c332426a90f8b8997c12deeb4e3095bae7f4d3a52927cda7b6b7b5632fb7aec8e_1",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture \"safe\""
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/reassignment/literal.ex",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 31
+    },
+    "end": {
+      "line": 4,
+      "col": 8,
+      "offset": 38
+    },
+    "fingerprint": "d233167549c34ef8c3ec9f4ac139c5a0690afe53e6fc3594dcb27941601153ccbddc197a4da93cd295a255a58518bc51be9008e10ed70fd692541465f289ca0c_1",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/reassignment/literal.ex",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 31
+    },
+    "end": {
+      "line": 4,
+      "col": 8,
+      "offset": 38
+    },
+    "fingerprint": "05521cc2cc3cbc3a3622c085bc1ac648f5cb128cc09b7eb0118a925de4c960ff058cff535c60355a50764cd2cd617871680c1891c0a6bc58b597870e283867e4_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture \"safe\""
+  },
+  {
+    "rule": "capture-false-false",
+    "path": "targets/legacy_elixir_captures/reassignment/other_struct.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 12
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 19
+    },
+    "fingerprint": "ca644999982b855dae4632ae9311416fb80251fe44f938e7decaaf21e5cac70c33019cf7054a22c92d8d44cf5d5b99e55de143462c21d1aac8b79fc97c49947b_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-false-true",
+    "path": "targets/legacy_elixir_captures/reassignment/other_struct.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 12
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 19
+    },
+    "fingerprint": "64898c82f553b66fb0544f0aba3c953fa6958c7bfdfa59c8644dfcecfcff103544e6b64a95fb89b92e40d941fcd506a397771f4f057881dbf2b5a17171326a55_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/reassignment/other_struct.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 12
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 19
+    },
+    "fingerprint": "ba2a8987f83217687e9089f7a0901ba67218c7d63d7641735a3ed7b7c86ed1050318abeb5822f90fae51cb9ff5aad33849cde454524978a1e3405c646153c54f_0",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/reassignment/other_struct.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 12
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 19
+    },
+    "fingerprint": "49932f0fd4b32458568ef8c980a29e573fff5f149621ee0666e8962c863321862a7bba40a9b33e5156fe764d3bb158711f4fbf3f199d224e41260f6951d62176_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/reassignment/other_struct.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 12
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 19
+    },
+    "fingerprint": "edf9b3fe06a1367d6edb93606a6c7ea27880a02c7fd4c3db9e8393b12838a83ffd10239a2815b1da5ed172340dc6164698b8bd6e6bffc94b2cf9e80c321d1bf5_0",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-false-false",
+    "path": "targets/legacy_elixir_captures/reassignment/other_struct.ex",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 33
+    },
+    "end": {
+      "line": 4,
+      "col": 8,
+      "offset": 40
+    },
+    "fingerprint": "ca644999982b855dae4632ae9311416fb80251fe44f938e7decaaf21e5cac70c33019cf7054a22c92d8d44cf5d5b99e55de143462c21d1aac8b79fc97c49947b_1",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-false-true",
+    "path": "targets/legacy_elixir_captures/reassignment/other_struct.ex",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 33
+    },
+    "end": {
+      "line": 4,
+      "col": 8,
+      "offset": 40
+    },
+    "fingerprint": "64898c82f553b66fb0544f0aba3c953fa6958c7bfdfa59c8644dfcecfcff103544e6b64a95fb89b92e40d941fcd506a397771f4f057881dbf2b5a17171326a55_1",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture Admin{}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/reassignment/other_struct.ex",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 33
+    },
+    "end": {
+      "line": 4,
+      "col": 8,
+      "offset": 40
+    },
+    "fingerprint": "1a0954d9cfeda6d7a48a78dfe02a095b7ecd916c4250e7cf7e4bcd8329aaf45e2e63944f58960471296672cb0cc433c18a9f3db425d9b00d5f74eea119ed7d9b_0",
+    "captures": {
+      "$X": "Admin{}"
+    },
+    "message": "Capture Admin{}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/reassignment/other_struct.ex",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 33
+    },
+    "end": {
+      "line": 4,
+      "col": 8,
+      "offset": 40
+    },
+    "fingerprint": "49932f0fd4b32458568ef8c980a29e573fff5f149621ee0666e8962c863321862a7bba40a9b33e5156fe764d3bb158711f4fbf3f199d224e41260f6951d62176_1",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/reassignment/other_struct.ex",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 33
+    },
+    "end": {
+      "line": 4,
+      "col": 8,
+      "offset": 40
+    },
+    "fingerprint": "d4a77875fba607ed9bcc74222e66402086a3ded4b89aa8a10b8e3756b7b9ca53f36bb00f7a26b141dc7154f4fc53bb3b42d1b92efc762bfd7732c13d3a1a841d_0",
+    "captures": {
+      "$X": "Admin{}"
+    },
+    "message": "Capture Admin{}"
+  },
+  {
+    "rule": "capture-false-false",
+    "path": "targets/legacy_elixir_captures/reassignment/unknown.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 12
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 19
+    },
+    "fingerprint": "2a7afbe3fe0214b63aabbb4e2227ff57937c50c4db8888c3b003cbae617324e073f340de19a336ebf9349e21a264b3708551531ff409705444537eb008d917d2_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-false-true",
+    "path": "targets/legacy_elixir_captures/reassignment/unknown.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 12
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 19
+    },
+    "fingerprint": "07c80c454c49abe832e25dcd7ea2bf1fbb00478ccaa28437a1c5443b901610c425dafa7262b6f85a86faaaabc5493fad0fae00acc827258b7847527c2a4f2893_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/reassignment/unknown.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 12
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 19
+    },
+    "fingerprint": "e2dd270e1d1555c673f89b5975025be5e06cc75ebe76c26f025f3655fdfc9040ab150f1e5e4389a4bf445ec06fbd782a2419ebe40128f47d1a2946674fb5b081_0",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/reassignment/unknown.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 12
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 19
+    },
+    "fingerprint": "95a9b31be64fda79e3d43e4409c2031aa70344309849dfb1388da9313f28db044c169ac134650e24ac3a75c6e8ebeeeb066aed642a3bff1d8b04cac96aa5b460_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/reassignment/unknown.ex",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 12
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 19
+    },
+    "fingerprint": "2875a36fb34c3d78e9135d6fa9d9cfe3bc235d70bdab2ab2bba464ed3f7603b6f1faa40f0469330493dceb820995baa6e222993406aa4bda191ad56280e50953_0",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "capture-false-false",
+    "path": "targets/legacy_elixir_captures/reassignment/unknown.ex",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 34
+    },
+    "end": {
+      "line": 4,
+      "col": 8,
+      "offset": 41
+    },
+    "fingerprint": "2a7afbe3fe0214b63aabbb4e2227ff57937c50c4db8888c3b003cbae617324e073f340de19a336ebf9349e21a264b3708551531ff409705444537eb008d917d2_1",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-false-true",
+    "path": "targets/legacy_elixir_captures/reassignment/unknown.ex",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 34
+    },
+    "end": {
+      "line": 4,
+      "col": 8,
+      "offset": 41
+    },
+    "fingerprint": "07c80c454c49abe832e25dcd7ea2bf1fbb00478ccaa28437a1c5443b901610c425dafa7262b6f85a86faaaabc5493fad0fae00acc827258b7847527c2a4f2893_1",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture unknown()"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/reassignment/unknown.ex",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 34
+    },
+    "end": {
+      "line": 4,
+      "col": 8,
+      "offset": 41
+    },
+    "fingerprint": "95a9b31be64fda79e3d43e4409c2031aa70344309849dfb1388da9313f28db044c169ac134650e24ac3a75c6e8ebeeeb066aed642a3bff1d8b04cac96aa5b460_1",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "capture-true-false",
+    "path": "targets/legacy_elixir_captures/reassignment/unknown.ex",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 34
+    },
+    "end": {
+      "line": 4,
+      "col": 8,
+      "offset": 41
+    },
+    "fingerprint": "31a5a33e0f5f66fc8b58f6fc8b2b125724aea8e1fdee1a14456cc02bf024f3afac9cdcd67ae6653e0477332f777f99ce7cf54b921401a935a6520df4abca45dc_0",
+    "captures": {
+      "$X": "unknown()"
+    },
+    "message": "Capture unknown()"
+  },
+  {
+    "rule": "capture-true-true",
+    "path": "targets/legacy_elixir_captures/reassignment/unknown.ex",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 34
+    },
+    "end": {
+      "line": 4,
+      "col": 8,
+      "offset": 41
+    },
+    "fingerprint": "d0e9dd9ce0b07fd64ff0da84300d8cfaf6e30f818c7272a4fd80cf87a13356c197948ad1457f4ce39818b7ab5b18e3fd3e9bbbee5f2f7bca617b1f767d8d5b5a_0",
+    "captures": {
+      "$X": "unknown()"
+    },
+    "message": "Capture unknown()"
+  }
+]

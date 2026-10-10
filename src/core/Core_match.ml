@@ -43,10 +43,13 @@
  * from a pattern:, we should not merge them!
  *)
 
-type range_loc = Tok.location * Tok.location
-[@@deriving show, eq, ord]
+type range_loc = Tok.location * Tok.location [@@deriving show, eq, ord]
+type metavar_langs = (Metavariable.mvar * Lang.t option) list [@@deriving show]
 
 type t = {
+  (* Actual parser language, including rules applied to extensionless targets. *)
+  target_lang : Lang.t option; [@equal fun _a _b -> true]
+  metavar_langs : metavar_langs; [@equal fun _a _b -> true]
   (* rule (or mini rule) responsible for the pattern match found *)
   rule_id : rule_id; [@equal fun a b -> a.id = b.id]
   (* Indicates whether this match was produced during a run
@@ -248,3 +251,22 @@ let no_submatches pms =
 [@@profiling]
 
 let to_proprietary pm = { pm with engine_of_match = `PRO }
+
+let metavar_lang pm name =
+  match List.assoc_opt name pm.metavar_langs with
+  | Some lang -> lang
+  | None -> pm.target_lang
+
+let metavar_langs_for_bindings bindings matches =
+  List.map
+    (fun (name, value) ->
+      let origin =
+        List.find_opt
+          (fun pm ->
+            match List.assoc_opt name pm.env with
+            | Some original -> Common.phys_equal value original
+            | None -> false)
+          matches
+      in
+      (name, Option.bind origin (fun pm -> metavar_lang pm name)))
+    bindings

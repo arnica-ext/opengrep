@@ -137,20 +137,28 @@ let find_sinks_ranges formula_cache xconf xtarget rule (spec : R.taint_spec) =
     |> List_.map (fun (sink : R.taint_sink) -> (sink.sink_formula, sink)))
 [@@trace_trace]
 
+let find_modern_formula_matches formula_cache (xconf : Match_env.xconfig)
+    xtarget rule formula =
+  let get_matches () =
+    range_w_metas_of_formula
+      { xconf with legacy_elixir_captures = false }
+      xtarget rule formula
+  in
+  if xconf.legacy_elixir_captures then get_matches ()
+  else Formula_cache.cached_find_opt formula_cache formula ~get_matches
+
 let find_sanitizers_matches formula_cache (xconf : Match_env.xconfig)
     (xtarget : Xtarget.t) (rule : R.t) (specs : R.taint_sanitizer list) :
     (bool * RM.t * R.taint_sanitizer) list * ME.t list =
   specs
   |> concat_map_with_expls (fun (sanitizer : R.taint_sanitizer) ->
-         let ranges, expls =
-           Formula_cache.cached_find_opt formula_cache
-             sanitizer.sanitizer_formula (fun () ->
-               range_w_metas_of_formula xconf xtarget rule
-                 sanitizer.sanitizer_formula)
-         in
-         ( ranges
-           |> List_.map (fun x -> (sanitizer.R.not_conflicting, x, sanitizer)),
-           expls ))
+      let ranges, expls =
+        find_modern_formula_matches formula_cache xconf xtarget rule
+          sanitizer.sanitizer_formula
+      in
+      ( ranges
+        |> List_.map (fun x -> (sanitizer.R.not_conflicting, x, sanitizer)),
+        expls ))
 [@@trace_trace]
 
 (* Finds all matches of `pattern-propagators`. *)
@@ -159,62 +167,58 @@ let find_propagators_matches formula_cache (xconf : Match_env.xconfig)
     (propagators_spec : R.taint_propagator list) =
   propagators_spec
   |> List.concat_map (fun (p : R.taint_propagator) ->
-         let mvar_pfrom, tok_pfrom = p.from in
-         let mvar_pto, tok_pto = p.to_ in
-         let ranges_w_metavars, _expsTODO =
-           Formula_cache.cached_find_opt formula_cache p.propagator_formula
-             (fun () ->
-               range_w_metas_of_formula xconf xtarget rule p.propagator_formula)
-         in
-         (* Now, for each match of the propagator pattern, we try to construct
-          * a `propagator_match`. We just need to look up what code is captured
-          * by the metavariables `from` and `to`, and check if we can obtain good
-          * location info for that code (i.e., we have real tokens rather than
-          * fake ones). *)
-         ranges_w_metavars
-         |> List_.filter_map (fun rwm ->
-                (* The piece of code captured by the `from` metavariable.  *)
-                let* _mvar_from, mval_from =
-                  List.find_opt
-                    (fun (mvar, _mval) -> MV.equal_mvar mvar_pfrom mvar)
-                    rwm.RM.mvars
-                in
-                (* The piece of code captured by the `to` metavariable.  *)
-                let* _mvar_to, mval_to =
-                  List.find_opt
-                    (fun (mvar, _mval) -> MV.equal_mvar mvar_pto mvar)
-                    rwm.RM.mvars
-                in
-                (* TODO: log a warning when we cannot obtain a taint propagator due to
-                 * lacking range info. *)
-                match (Tok.loc_of_tok tok_pfrom, Tok.loc_of_tok tok_pto) with
-                | Error _, _
-                | _, Error _ ->
-                    None
-                | Ok loc_pfrom, Ok loc_pto ->
-                    let* mval_from_start_loc, mval_from_end_loc =
-                      AST_generic_helpers.range_of_any_opt
-                        (MV.mvalue_to_any mval_from)
-                    in
-                    let* mval_to_start_loc, mval_to_end_loc =
-                      AST_generic_helpers.range_of_any_opt
-                        (MV.mvalue_to_any mval_to)
-                    in
-                    let from =
-                      Range.range_of_token_locations mval_from_start_loc
-                        mval_from_end_loc
-                    in
-                    let to_ =
-                      Range.range_of_token_locations mval_to_start_loc
-                        mval_to_end_loc
-                    in
-                    let id =
-                      Common.spf "propagator:%d:%d:%d:%d:%d:%d"
-                        loc_pfrom.pos.bytepos loc_pto.pos.bytepos
-                        from.Range.start from.Range.end_ to_.Range.start
-                        to_.Range.end_
-                    in
-                    Some { id; rwm; from; to_; spec = p }))
+      let mvar_pfrom, tok_pfrom = p.from in
+      let mvar_pto, tok_pto = p.to_ in
+      let ranges_w_metavars, _expsTODO =
+        find_modern_formula_matches formula_cache xconf xtarget rule
+          p.propagator_formula
+      in
+      (* Now, for each match of the propagator pattern, we try to construct
+       * a `propagator_match`. We just need to look up what code is captured
+       * by the metavariables `from` and `to`, and check if we can obtain good
+       * location info for that code (i.e., we have real tokens rather than
+       * fake ones). *)
+      ranges_w_metavars
+      |> List_.filter_map (fun rwm ->
+          (* The piece of code captured by the `from` metavariable.  *)
+          let* _mvar_from, mval_from =
+            List.find_opt
+              (fun (mvar, _mval) -> MV.equal_mvar mvar_pfrom mvar)
+              rwm.RM.mvars
+          in
+          (* The piece of code captured by the `to` metavariable.  *)
+          let* _mvar_to, mval_to =
+            List.find_opt
+              (fun (mvar, _mval) -> MV.equal_mvar mvar_pto mvar)
+              rwm.RM.mvars
+          in
+          (* TODO: log a warning when we cannot obtain a taint propagator due to
+           * lacking range info. *)
+          match (Tok.loc_of_tok tok_pfrom, Tok.loc_of_tok tok_pto) with
+          | Error _, _
+          | _, Error _ ->
+              None
+          | Ok loc_pfrom, Ok loc_pto ->
+              let* mval_from_start_loc, mval_from_end_loc =
+                AST_generic_helpers.range_of_any_opt
+                  (MV.mvalue_to_any mval_from)
+              in
+              let* mval_to_start_loc, mval_to_end_loc =
+                AST_generic_helpers.range_of_any_opt (MV.mvalue_to_any mval_to)
+              in
+              let from =
+                Range.range_of_token_locations mval_from_start_loc
+                  mval_from_end_loc
+              in
+              let to_ =
+                Range.range_of_token_locations mval_to_start_loc mval_to_end_loc
+              in
+              let id =
+                Common.spf "propagator:%d:%d:%d:%d:%d:%d" loc_pfrom.pos.bytepos
+                  loc_pto.pos.bytepos from.Range.start from.Range.end_
+                  to_.Range.start to_.Range.end_
+              in
+              Some { id; rwm; from; to_; spec = p }))
 [@@trace_trace]
 
 (*****************************************************************************)

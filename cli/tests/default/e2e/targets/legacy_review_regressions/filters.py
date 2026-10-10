@@ -1,0 +1,7 @@
+a = wrap(source())
+a[0] = clean()
+sink(a)
+sink(a, a)
+sink(a, wrap(source()))
+sink(a, different())
+sink(wrap(source()), a)

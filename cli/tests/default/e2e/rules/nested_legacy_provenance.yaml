@@ -1,0 +1,29 @@
+rules:
+- id: single
+  languages:
+  - python
+  message: Capture $STMT $INNER
+  severity: WARNING
+  options:
+    symbolic_propagation: true
+  patterns:
+  - pattern: $STMT
+  - metavariable-pattern:
+      metavariable: $STMT
+      pattern: sink($INNER)
+- id: double
+  languages:
+  - python
+  message: Capture $STMT $INNER
+  severity: WARNING
+  options:
+    symbolic_propagation: true
+  patterns:
+  - pattern: $STMT
+  - metavariable-pattern:
+      metavariable: $STMT
+      patterns:
+      - pattern: $S
+      - metavariable-pattern:
+          metavariable: $S
+          pattern: sink($INNER)

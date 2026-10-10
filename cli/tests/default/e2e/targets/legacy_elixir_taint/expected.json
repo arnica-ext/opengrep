@@ -1,0 +1,534 @@
+[
+  {
+    "rule": "source-call-false",
+    "path": "targets/legacy_elixir_taint/branch.ex",
+    "start": {
+      "line": 4,
+      "col": 5,
+      "offset": 86
+    },
+    "end": {
+      "line": 4,
+      "col": 12,
+      "offset": 93
+    },
+    "fingerprint": "dbad783d9779345f2fbaf404d0d4d6f34fd67623983c4a08e8e6c175d4a8290ea293da13b2c2089cd953d9fcb091d6750bd58635ea154a4b94a29c8794d3fac4_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "source-call-false",
+    "path": "targets/legacy_elixir_taint/branch.ex",
+    "start": {
+      "line": 4,
+      "col": 5,
+      "offset": 86
+    },
+    "end": {
+      "line": 4,
+      "col": 12,
+      "offset": 93
+    },
+    "fingerprint": "9c0cc018ceef15424b501e2c8bec012a200adce26b69335089bd2b9768144e5ce10bc845555e9d7d6b179760ea502e89364fc11e64aa5fad00d4bf3b8f909d6a_0",
+    "captures": {
+      "$X": "if flag do: source()else: \"safe\""
+    },
+    "message": "Capture if flag, do: source(), else: \"safe\""
+  },
+  {
+    "rule": "source-call-true",
+    "path": "targets/legacy_elixir_taint/branch.ex",
+    "start": {
+      "line": 4,
+      "col": 5,
+      "offset": 86
+    },
+    "end": {
+      "line": 4,
+      "col": 12,
+      "offset": 93
+    },
+    "fingerprint": "f9704526c38f95ab50b961d225f043a011c1d83e6aa29a5b062af0a6654508728b1b4f18049001e3ea5e7ac2c2d5908f8e0bb08cc1e928c786583841513e5de7_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "source-call-true",
+    "path": "targets/legacy_elixir_taint/branch.ex",
+    "start": {
+      "line": 4,
+      "col": 5,
+      "offset": 86
+    },
+    "end": {
+      "line": 4,
+      "col": 12,
+      "offset": 93
+    },
+    "fingerprint": "ef174ed33c2724618f8bd9274dd13b9ff93b7b8494a8b8c35c24bd88aa550734f5928edca7e50e43de2bb2489057d2f0e5a6ab8ee51c77334418144af1af063b_0",
+    "captures": {
+      "$X": "if flag do: source()else: \"safe\""
+    },
+    "message": "Capture if flag, do: source(), else: \"safe\""
+  },
+  {
+    "rule": "struct-source-false",
+    "path": "targets/legacy_elixir_taint/call_vs_struct.ex",
+    "start": {
+      "line": 4,
+      "col": 5,
+      "offset": 54
+    },
+    "end": {
+      "line": 4,
+      "col": 12,
+      "offset": 61
+    },
+    "fingerprint": "89cc4a0a865c5f7c4e1232ff97b368e304702c987485c01c522a59bf7b592249fb55676c0b47621d69fe477cac3c9b45cdc63eb176746b6d60552459943b56a7_0",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "struct-source-false",
+    "path": "targets/legacy_elixir_taint/call_vs_struct.ex",
+    "start": {
+      "line": 4,
+      "col": 5,
+      "offset": 54
+    },
+    "end": {
+      "line": 4,
+      "col": 12,
+      "offset": 61
+    },
+    "fingerprint": "e5a3abe9e5dba43738b45f1b2c1a91d0dde215c15f4fc3ce0e49b12b6fb141f8ffc0cb10453824be1f5a03852f5c963b70abb30eaacf794ba284af875a3f528e_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "struct-source-true",
+    "path": "targets/legacy_elixir_taint/call_vs_struct.ex",
+    "start": {
+      "line": 4,
+      "col": 5,
+      "offset": 54
+    },
+    "end": {
+      "line": 4,
+      "col": 12,
+      "offset": 61
+    },
+    "fingerprint": "959ff2e1545933562e0debb5df688e30b0f4a3ee26c41d4b323b066c44a7144f5f9a43b6d9b7a04dce4f64a16ab6fcc0eafdd39fdf879551804ac7d0e891e009_0",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "struct-source-true",
+    "path": "targets/legacy_elixir_taint/call_vs_struct.ex",
+    "start": {
+      "line": 4,
+      "col": 5,
+      "offset": 54
+    },
+    "end": {
+      "line": 4,
+      "col": 12,
+      "offset": 61
+    },
+    "fingerprint": "bf402b36ed67b77603f372a0a8d1de98b973f987202480e49160e1ce1dbdd217aecc41363ace0459d51d08bc6a4dffd73d886a7a56a24e339591cc8957c25158_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "struct-source-false",
+    "path": "targets/legacy_elixir_taint/call_vs_struct.ex",
+    "start": {
+      "line": 5,
+      "col": 5,
+      "offset": 66
+    },
+    "end": {
+      "line": 5,
+      "col": 18,
+      "offset": 79
+    },
+    "fingerprint": "89cc4a0a865c5f7c4e1232ff97b368e304702c987485c01c522a59bf7b592249fb55676c0b47621d69fe477cac3c9b45cdc63eb176746b6d60552459943b56a7_1",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "struct-source-true",
+    "path": "targets/legacy_elixir_taint/call_vs_struct.ex",
+    "start": {
+      "line": 5,
+      "col": 5,
+      "offset": 66
+    },
+    "end": {
+      "line": 5,
+      "col": 18,
+      "offset": 79
+    },
+    "fingerprint": "959ff2e1545933562e0debb5df688e30b0f4a3ee26c41d4b323b066c44a7144f5f9a43b6d9b7a04dce4f64a16ab6fcc0eafdd39fdf879551804ac7d0e891e009_1",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "source-call-false",
+    "path": "targets/legacy_elixir_taint/closure.ex",
+    "start": {
+      "line": 4,
+      "col": 30,
+      "offset": 85
+    },
+    "end": {
+      "line": 4,
+      "col": 37,
+      "offset": 92
+    },
+    "fingerprint": "86a1033acf8e557d9ebf4e0b4947e580f4a8ac5d7b0324302825116acc68964e3bb2abdca3a78c81d019a7913348f0e1d8c90a23b634f6197bcad80444b3801a_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "source-call-false",
+    "path": "targets/legacy_elixir_taint/closure.ex",
+    "start": {
+      "line": 4,
+      "col": 30,
+      "offset": 85
+    },
+    "end": {
+      "line": 4,
+      "col": 37,
+      "offset": 92
+    },
+    "fingerprint": "10b52232f10b3f9608b0eea8137c48dea955b56f1e8891f708c62cfe58b8f3187b06433e842efd74a8b8abcf184d613be672d0862cbc825dc70870901a842a27_0",
+    "captures": {
+      "$X": "source()"
+    },
+    "message": "Capture source()"
+  },
+  {
+    "rule": "source-call-true",
+    "path": "targets/legacy_elixir_taint/closure.ex",
+    "start": {
+      "line": 4,
+      "col": 30,
+      "offset": 85
+    },
+    "end": {
+      "line": 4,
+      "col": 37,
+      "offset": 92
+    },
+    "fingerprint": "16de01734d3ffbabc5da08fbf3fd9c9e4967ab27d84278e430c84676f19528cb2900e42e3340cd77473f0972d942b066d9065644db34120155326ab5313e8823_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "source-call-true",
+    "path": "targets/legacy_elixir_taint/closure.ex",
+    "start": {
+      "line": 4,
+      "col": 30,
+      "offset": 85
+    },
+    "end": {
+      "line": 4,
+      "col": 37,
+      "offset": 92
+    },
+    "fingerprint": "d006b1a4a3624157a577b2ae9ee499958530e1a909288dc0b6e06ce9efaaaaadfa7cd64a513d4b6b9d4f5d8e1bb59bab4ac925664c9943bbf39741729c345f62_0",
+    "captures": {
+      "$X": "source()"
+    },
+    "message": "Capture source()"
+  },
+  {
+    "rule": "source-call-false",
+    "path": "targets/legacy_elixir_taint/field_sensitive.ex",
+    "start": {
+      "line": 4,
+      "col": 5,
+      "offset": 82
+    },
+    "end": {
+      "line": 4,
+      "col": 12,
+      "offset": 89
+    },
+    "fingerprint": "52f2b1db3896ba9812abec6c770538d0e19d85672f71349cbeca189f1ba272d5444434a3cdd401a7d20a8437700fac7a65d052442390dc0710188f5d0b6973b3_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "source-call-true",
+    "path": "targets/legacy_elixir_taint/field_sensitive.ex",
+    "start": {
+      "line": 4,
+      "col": 5,
+      "offset": 82
+    },
+    "end": {
+      "line": 4,
+      "col": 12,
+      "offset": 89
+    },
+    "fingerprint": "c61c195192b2a96aecf5fd0430f61a7105eb470c79ca76bb3f515a851fab9dfa6943baf51ef0dcc756f4d4db5d356d3e62f5d5bdc3b629366d3437322f75f797_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "source-call-false",
+    "path": "targets/legacy_elixir_taint/field_sensitive.ex",
+    "start": {
+      "line": 5,
+      "col": 5,
+      "offset": 94
+    },
+    "end": {
+      "line": 5,
+      "col": 17,
+      "offset": 106
+    },
+    "fingerprint": "255806ee1263faa9606d48c36006f4aba1203287747986fec90afadf2cfc0775d2b08bc0387bc32d5b7a894f9706c73e2dae2bd24d732c17a503038650099c83_0",
+    "captures": {
+      "$X": "a.data"
+    },
+    "message": "Capture a.data"
+  },
+  {
+    "rule": "source-call-true",
+    "path": "targets/legacy_elixir_taint/field_sensitive.ex",
+    "start": {
+      "line": 5,
+      "col": 5,
+      "offset": 94
+    },
+    "end": {
+      "line": 5,
+      "col": 17,
+      "offset": 106
+    },
+    "fingerprint": "536e638bd45ecb31bf6a8ce6c8fdf2be380e37123ac9211cbce679f36efbe5087fb1d489115013ed2e5203cf811871c949a3f7d087a6fd6e2fe2a6825cc7935e_0",
+    "captures": {
+      "$X": "a.data"
+    },
+    "message": "Capture a.data"
+  },
+  {
+    "rule": "source-call-false",
+    "path": "targets/legacy_elixir_taint/field_sensitive.ex",
+    "start": {
+      "line": 6,
+      "col": 5,
+      "offset": 111
+    },
+    "end": {
+      "line": 6,
+      "col": 17,
+      "offset": 123
+    },
+    "fingerprint": "4696319cc3fe1c191b8863bc65bd0bf2654ba4f011f50e14d28a346325bac36f2d00b9243cdc22f32d7c1fe4efb2ccc61b49259c24522262a4efa4d11612ac99_0",
+    "captures": {
+      "$X": "a.name"
+    },
+    "message": "Capture a.name"
+  },
+  {
+    "rule": "source-call-true",
+    "path": "targets/legacy_elixir_taint/field_sensitive.ex",
+    "start": {
+      "line": 6,
+      "col": 5,
+      "offset": 111
+    },
+    "end": {
+      "line": 6,
+      "col": 17,
+      "offset": 123
+    },
+    "fingerprint": "f9078d0d8540d9ab2739d9b2c79998e9f9b60566d9ae382ddd7ff216bf473faa977a32abbd429b498c5acc38cffaf9df9d01b0f791641d66fcaa05c71bd36217_0",
+    "captures": {
+      "$X": "a.name"
+    },
+    "message": "Capture a.name"
+  },
+  {
+    "rule": "struct-source-false",
+    "path": "targets/legacy_elixir_taint/overwritten.ex",
+    "start": {
+      "line": 5,
+      "col": 5,
+      "offset": 71
+    },
+    "end": {
+      "line": 5,
+      "col": 12,
+      "offset": 78
+    },
+    "fingerprint": "9ea471a3f7b009d5aa78d81b270fd8b949bbd75765977998c82f64dfd60992d25bb46a979e93b29730ba435f6d89850ab9438f1652d0d62e80a67198fab77f54_0",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "struct-source-false",
+    "path": "targets/legacy_elixir_taint/overwritten.ex",
+    "start": {
+      "line": 5,
+      "col": 5,
+      "offset": 71
+    },
+    "end": {
+      "line": 5,
+      "col": 12,
+      "offset": 78
+    },
+    "fingerprint": "8ba2bc7f969e9daf7869ce1d40229c1a434ace4d97bb59ce389765529c5a45b6b0d53d146a5e7275f5fdc4852a7b5b83d4a1c8a03c6381d416276564bd556473_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "struct-source-true",
+    "path": "targets/legacy_elixir_taint/overwritten.ex",
+    "start": {
+      "line": 5,
+      "col": 5,
+      "offset": 71
+    },
+    "end": {
+      "line": 5,
+      "col": 12,
+      "offset": 78
+    },
+    "fingerprint": "66d48e4a53fbe7e2c6a26aae0b116f8210caba48ee9eae0c4c20dbb49fbac8ec49f2c1dfefeeb7310d4047d948234a9eb13ab2d34586dac1f58d2f3497ea5986_0",
+    "captures": {
+      "$X": "User{}"
+    },
+    "message": "Capture User{}"
+  },
+  {
+    "rule": "struct-source-true",
+    "path": "targets/legacy_elixir_taint/overwritten.ex",
+    "start": {
+      "line": 5,
+      "col": 5,
+      "offset": 71
+    },
+    "end": {
+      "line": 5,
+      "col": 12,
+      "offset": 78
+    },
+    "fingerprint": "771a32e7779f3b2e755af88bba35bdf47e25de6fb59e1c440b0f10cfe79b1f0e741db7e986c5dfe03902dab1d7588cb00a002e0d85f6373d65b8ed866cf0c9ab_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "source-call-false",
+    "path": "targets/legacy_elixir_taint/positive.ex",
+    "start": {
+      "line": 4,
+      "col": 5,
+      "offset": 55
+    },
+    "end": {
+      "line": 4,
+      "col": 12,
+      "offset": 62
+    },
+    "fingerprint": "87093a525ede637b000dbbab39805c350171af63c8b6a604a4e2f5b580fe4edca8ba4e1a1e6135a1f6334668392ca5fc87040e0278178757ed513d6c99b21de2_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "source-call-false",
+    "path": "targets/legacy_elixir_taint/positive.ex",
+    "start": {
+      "line": 4,
+      "col": 5,
+      "offset": 55
+    },
+    "end": {
+      "line": 4,
+      "col": 12,
+      "offset": 62
+    },
+    "fingerprint": "853e6278a68b86c262fbf9590bd1648b3e337c5a4309ac9a71ccf7231b53665137b9d20e41354e81f08de125223af9499f95fa44488e8502ac3c17dc3128a7ec_0",
+    "captures": {
+      "$X": "source()"
+    },
+    "message": "Capture source()"
+  },
+  {
+    "rule": "source-call-true",
+    "path": "targets/legacy_elixir_taint/positive.ex",
+    "start": {
+      "line": 4,
+      "col": 5,
+      "offset": 55
+    },
+    "end": {
+      "line": 4,
+      "col": 12,
+      "offset": 62
+    },
+    "fingerprint": "ce43f507c976a1eb308d49216c5f3a9c770120aa185642640116060817ac9db4d67eade383e36e55bfd3876ba124cee612d86e29b62ac347556a39881a7ae9c0_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "source-call-true",
+    "path": "targets/legacy_elixir_taint/positive.ex",
+    "start": {
+      "line": 4,
+      "col": 5,
+      "offset": 55
+    },
+    "end": {
+      "line": 4,
+      "col": 12,
+      "offset": 62
+    },
+    "fingerprint": "cd8b1dd6956d0a9727d6eb8c91fa322255834367eeb138b9665a48f70dbfa6f994cef31a0999d51f2c902e639901dc173e3d690b6a252e0dd376176e9190eb1a_0",
+    "captures": {
+      "$X": "source()"
+    },
+    "message": "Capture source()"
+  }
+]

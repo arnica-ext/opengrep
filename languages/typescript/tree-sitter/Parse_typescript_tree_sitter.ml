@@ -686,7 +686,7 @@ and pattern (env : env) (x : CST.pattern) : (a_ident, a_pattern) Either.t =
       (* Wrap the binding inside an [Apply(Spread, [binding])] so the
        * destructure target preserves the [...rest] name. Mirrors how
        * spread elements are emitted in array/call-argument contexts. *)
-      Right (Apply (IdSpecial (Spread, tok), fb [ lhs ]))
+      Right (RestBinding (tok, lhs))
 
 (*
    This is a pattern for destructuring an object property.

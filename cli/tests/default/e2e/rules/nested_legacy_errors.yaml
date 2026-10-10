@@ -1,0 +1,73 @@
+rules:
+  - id: yaml-control
+    languages: [yaml]
+    message: Control
+    severity: WARNING
+    pattern-either:
+      - pattern: 'code: $X'
+      - pattern: 'wrapped: $X'
+      - pattern: 'missing: $X'
+      - pattern: 'healthy: true'
+  - id: elixir-control
+    languages: [elixir]
+    message: Control
+    severity: WARNING
+    pattern: sink(...)
+  - id: direct-parse
+    languages: [elixir]
+    message: Nested
+    severity: WARNING
+    patterns:
+      - pattern: sink($CODE)
+      - metavariable-pattern:
+          metavariable: $CODE
+          language: ruby
+          pattern: foo(...)
+  - id: double-parse
+    languages: [yaml]
+    message: Nested
+    severity: WARNING
+    patterns:
+      - pattern: 'code: $OUTER'
+      - metavariable-pattern:
+          metavariable: $OUTER
+          language: elixir
+          patterns:
+            - pattern: sink($CODE)
+            - metavariable-pattern:
+                metavariable: $CODE
+                language: ruby
+                pattern: foo(...)
+  - id: triple-parse
+    languages: [yaml]
+    message: Nested
+    severity: WARNING
+    patterns:
+      - pattern: 'wrapped: $OUTER'
+      - metavariable-pattern:
+          metavariable: $OUTER
+          language: elixir
+          patterns:
+            - pattern: wrap($BODY)
+            - metavariable-pattern:
+                metavariable: $BODY
+                patterns:
+                  - pattern: sink($CODE)
+                  - metavariable-pattern:
+                      metavariable: $CODE
+                      language: ruby
+                      pattern: foo(...)
+  - id: nested-matching-error
+    languages: [yaml]
+    message: Nested
+    severity: WARNING
+    patterns:
+      - pattern: 'missing: $OUTER'
+      - metavariable-pattern:
+          metavariable: $OUTER
+          language: elixir
+          patterns:
+            - pattern: sink($CODE)
+            - metavariable-pattern:
+                metavariable: $MISSING
+                pattern: foo(...)

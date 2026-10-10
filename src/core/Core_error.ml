@@ -200,6 +200,13 @@ let error_of_rule_error (err : Rule_error.t) : t =
 *)
 let known_exn_to_error ?(file : Fpath.t option) (e : Exception.t) : t option =
   match Exception.get_exn e with
+  | Unhandled_core_error error ->
+      let loc =
+        match error.loc with
+        | Some _ as loc -> loc
+        | None -> Option.map Tok.first_loc_of_file file
+      in
+      Some { error with loc }
   (* TODO: Move the cases handling Parsing_error.XXX to the Parsing_error
      module so that we can use it for the exception printers that are
      registered there. *)

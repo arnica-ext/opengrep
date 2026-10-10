@@ -1,0 +1,92 @@
+{
+  "rules": [
+    {
+      "id": "source-call-false",
+      "languages": [
+        "elixir"
+      ],
+      "mode": "taint",
+      "severity": "WARNING",
+      "message": "Capture $X",
+      "options": {
+        "symbolic_propagation": false
+      },
+      "pattern-sources": [
+        {
+          "pattern": "source()"
+        }
+      ],
+      "pattern-sinks": [
+        {
+          "pattern": "sink($X)"
+        }
+      ]
+    },
+    {
+      "id": "struct-source-false",
+      "languages": [
+        "elixir"
+      ],
+      "mode": "taint",
+      "severity": "WARNING",
+      "message": "Capture $X",
+      "options": {
+        "symbolic_propagation": false
+      },
+      "pattern-sources": [
+        {
+          "pattern": "%User{}"
+        }
+      ],
+      "pattern-sinks": [
+        {
+          "pattern": "sink($X)"
+        }
+      ]
+    },
+    {
+      "id": "source-call-true",
+      "languages": [
+        "elixir"
+      ],
+      "mode": "taint",
+      "severity": "WARNING",
+      "message": "Capture $X",
+      "options": {
+        "symbolic_propagation": true
+      },
+      "pattern-sources": [
+        {
+          "pattern": "source()"
+        }
+      ],
+      "pattern-sinks": [
+        {
+          "pattern": "sink($X)"
+        }
+      ]
+    },
+    {
+      "id": "struct-source-true",
+      "languages": [
+        "elixir"
+      ],
+      "mode": "taint",
+      "severity": "WARNING",
+      "message": "Capture $X",
+      "options": {
+        "symbolic_propagation": true
+      },
+      "pattern-sources": [
+        {
+          "pattern": "%User{}"
+        }
+      ],
+      "pattern-sinks": [
+        {
+          "pattern": "sink($X)"
+        }
+      ]
+    }
+  ]
+}

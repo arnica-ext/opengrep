@@ -1,0 +1,22 @@
+{
+  "rules": [
+    {
+      "id": "capture-php",
+      "languages": [
+        "php"
+      ],
+      "pattern": "$X",
+      "message": "capture",
+      "severity": "WARNING"
+    },
+    {
+      "id": "capture-docker",
+      "languages": [
+        "dockerfile"
+      ],
+      "pattern": "$X",
+      "message": "capture",
+      "severity": "WARNING"
+    }
+  ]
+}

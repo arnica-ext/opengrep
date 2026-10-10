@@ -208,6 +208,7 @@ let pms_of_effect ~lang ~match_on (effect_ : Effect.t) =
         taints_with_precondition = taints, requires;
         sink = { pm = sink_pm; _ } as sink;
         merged_env;
+        merged_metavar_langs;
         _;
       } -> (
       let taints =
@@ -250,25 +251,33 @@ let pms_of_effect ~lang ~match_on (effect_ : Effect.t) =
                 * already expect Semgrep (and DeepSemgrep) to report the match on `sink(x)`.
             *)
             let taint_trace = Some (lazy traces) in
-            [ { sink_pm with env = merged_env; taint_trace } ]
+            [
+              {
+                sink_pm with
+                env = merged_env;
+                metavar_langs = merged_metavar_langs;
+                taint_trace;
+              };
+            ]
         | `Source ->
             taint_sources
             |> List_.map (fun source ->
-                   let src, tokens, sink_trace = source in
-                   let src_pm, _ = T.pm_of_trace src.T.call_trace in
-                   let trace =
-                     {
-                       Taint_trace.source_trace =
-                         convert_taint_call_trace src.T.call_trace;
-                       tokens;
-                       sink_trace = convert_taint_call_trace sink_trace;
-                     }
-                   in
-                   {
-                     src_pm with
-                     env = merged_env;
-                     taint_trace = Some (lazy [ trace ]);
-                   }))
+                let src, tokens, sink_trace = source in
+                let src_pm, _ = T.pm_of_trace src.T.call_trace in
+                let trace =
+                  {
+                    Taint_trace.source_trace =
+                      convert_taint_call_trace src.T.call_trace;
+                    tokens;
+                    sink_trace = convert_taint_call_trace sink_trace;
+                  }
+                in
+                {
+                  src_pm with
+                  env = merged_env;
+                  metavar_langs = merged_metavar_langs;
+                  taint_trace = Some (lazy [ trace ]);
+                }))
 
 (*****************************************************************************)
 (* Main entry points *)
@@ -309,11 +318,10 @@ let get_arity params info lang =
   in
   List.length filtered_params
 
-let check_rule per_file_formula_cache (rule : R.taint_rule) match_hook
+let check_rule_once per_file_formula_cache (rule : R.taint_rule) match_hook
     ?(signature_db : Shape_and_sig.signature_database option)
     ?(builtin_signature_db : Shape_and_sig.builtin_signature_database option)
-    ?(shared_call_graph :
-        (Call_graph.G.t * (G.name * G.name) list) option =
+    ?(shared_call_graph : (Call_graph.G.t * (G.name * G.name) list) option =
       None) (xconf : Match_env.xconfig) (xtarget : Xtarget.t) =
   Log.info (fun m ->
       m
@@ -792,6 +800,43 @@ let check_rule per_file_formula_cache (rule : R.taint_rule) match_hook
       let report = { report with explanations } in
       (Some report, final_signature_db)
 
+let check_rule_with_legacy_cache legacy_cache formula_cache rule match_hook
+    ?signature_db ?builtin_signature_db ?shared_call_graph xconf xtarget =
+  if Match_env.needs_legacy_elixir_captures (rule :> R.t) xtarget then
+    let modern, signatures =
+      check_rule_once formula_cache rule Fun.id ?signature_db
+        ?builtin_signature_db ?shared_call_graph xconf xtarget
+    in
+    let legacy, _ =
+      check_rule_once (Lazy.force legacy_cache) rule Fun.id ?signature_db
+        ?builtin_signature_db ?shared_call_graph
+        { xconf with legacy_elixir_captures = true }
+        xtarget
+    in
+    let result =
+      match (modern, legacy) with
+      | Some modern, Some legacy ->
+          Some (Match_env.merge_legacy_results modern legacy)
+      | (Some _ as result), _
+      | _, (Some _ as result) ->
+          result
+      | None, None -> None
+    in
+    ( Option.map
+        (fun result ->
+          { result with RP.matches = match_hook result.RP.matches })
+        result,
+      signatures )
+  else
+    check_rule_once formula_cache rule match_hook ?signature_db
+      ?builtin_signature_db ?shared_call_graph xconf xtarget
+
+let check_rule formula_cache rule match_hook ?signature_db ?builtin_signature_db
+    ?shared_call_graph xconf xtarget =
+  let legacy_cache = lazy (Formula_cache.mk_specialized_formula_cache [ rule ]) in
+  check_rule_with_legacy_cache legacy_cache formula_cache rule match_hook
+    ?signature_db ?builtin_signature_db ?shared_call_graph xconf xtarget
+
 let check_rules ~match_hook
     ~(per_rule_boilerplate_fn :
        R.rule ->
@@ -861,6 +906,9 @@ let check_rules ~match_hook
   let per_file_formula_cache =
     Formula_cache.mk_specialized_formula_cache rules
   in
+  let legacy_formula_cache =
+    lazy (Formula_cache.mk_specialized_formula_cache rules)
+  in
 
   (* Collect all languages that have rules with taint_intrafile enabled *)
   let langs_needing_call_graph =
@@ -906,35 +954,36 @@ let check_rules ~match_hook
   let results =
     rules
     |> List.filter_map (fun rule ->
-           let xconf =
-             Match_env.adjust_xconfig_with_rule_options xconf rule.R.options
-           in
-           (* Only pass call graph and builtin db if taint_intrafile is enabled for this rule *)
-           let rule_shared_call_graph, rule_builtin_signature_db =
-             if xconf.config.taint_intrafile then
-               match Xlang.to_lang rule.R.target_analyzer with
-               | Ok lang ->
-                   ( LangMap.find_opt lang call_graph_by_lang,
-                     LangMap.find_opt lang builtin_db_by_lang )
-               | Error _ -> (None, None)
-             else (None, None)
-           in
-           per_rule_boilerplate_fn
-             (rule :> R.rule)
-             (fun () ->
-               Logs_.with_debug_trace ~__FUNCTION__
-                 ~pp_input:(fun _ ->
-                   "target: "
-                   ^ !!(xtarget.path.internal_path_to_content)
-                   ^ "\nruleid: "
-                   ^ (rule.id |> fst |> Rule_ID.to_string))
-                 (fun () ->
-                   let report, _signature_db =
-                     check_rule per_file_formula_cache rule match_hook
-                       ?builtin_signature_db:rule_builtin_signature_db
-                       ~shared_call_graph:rule_shared_call_graph xconf xtarget
-                   in
-                   report)))
+        let xconf =
+          Match_env.adjust_xconfig_with_rule_options xconf rule.R.options
+        in
+        (* Only pass call graph and builtin db if taint_intrafile is enabled for this rule *)
+        let rule_shared_call_graph, rule_builtin_signature_db =
+          if xconf.config.taint_intrafile then
+            match Xlang.to_lang rule.R.target_analyzer with
+            | Ok lang ->
+                ( LangMap.find_opt lang call_graph_by_lang,
+                  LangMap.find_opt lang builtin_db_by_lang )
+            | Error _ -> (None, None)
+          else (None, None)
+        in
+        per_rule_boilerplate_fn
+          (rule :> R.rule)
+          (fun () ->
+            Logs_.with_debug_trace ~__FUNCTION__
+              ~pp_input:(fun _ ->
+                "target: "
+                ^ !!(xtarget.path.internal_path_to_content)
+                ^ "\nruleid: "
+                ^ (rule.id |> fst |> Rule_ID.to_string))
+              (fun () ->
+                let report, _signature_db =
+                  check_rule_with_legacy_cache legacy_formula_cache
+                    per_file_formula_cache rule match_hook
+                    ?builtin_signature_db:rule_builtin_signature_db
+                    ~shared_call_graph:rule_shared_call_graph xconf xtarget
+                in
+                report)))
   in
 
   results

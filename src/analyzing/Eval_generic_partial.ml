@@ -36,6 +36,7 @@ type var = string * G.sid
 
 type env = {
   lang : Lang.t option;
+  legacy : bool;
   (* basic constant propagation of literals for semgrep *)
   constants : (var, G.svalue) Hashtbl.t;
   (* TODO: this is actually used only in Constant_propagation.ml, but
@@ -45,7 +46,8 @@ type env = {
 }
 
 let default_env lang =
-  { lang; constants = Hashtbl.create 100; attributes = Hashtbl.create 100 }
+  { lang; legacy = false; constants = Hashtbl.create 100;
+    attributes = Hashtbl.create 100 }
 
 (*****************************************************************************)
 (* Helpers *)
@@ -69,11 +71,6 @@ let find_id env id id_info =
       let s = H.str_of_ident id in
       Hashtbl.find_opt env.constants (s, sid)
   | __else__ -> None
-
-let find_name env name =
-  match name with
-  | Id (id, id_info) -> find_id env id id_info
-  | IdQualified _ -> None
 
 let fold_args1 f args =
   match args with
@@ -155,38 +152,37 @@ let concat_string_cst env s1 s2 =
 (* Entry point *)
 (*****************************************************************************)
 
+let svalue env info =
+  if env.legacy then !(info.id_legacy_svalue) else !(info.id_svalue)
+
 let rec eval (env : env) (x : G.expr) : G.svalue option =
   match x.e with
   | L x -> Some (Lit x)
-  | N (Id (_, { id_svalue = { contents = Some x }; _ }))
+  | N (Id (id, info)) -> (
+      match svalue env info with
+      | Some _ as value -> value
+      | None -> find_id env id info)
   | DotAccess
       ( { e = IdSpecial ((This | Self), _); _ },
         _,
-        FN (Id (_, { id_svalue = { contents = Some x }; _ })) ) ->
-      Some x
+        FN (Id (_, info)) ) ->
+      svalue env info
   (* ugly: terraform specific. *)
   | DotAccess
       ( { e = N (Id ((("local" | "var"), _), _)); _ },
         _,
-        FN (Id (_, { id_svalue = { contents = Some x }; _ })) )
+        FN (Id (_, info)) )
     when is_lang env Lang.Terraform ->
-      Some x
+      svalue env info
   (* id_svalue is populated when used with the pro engine. *)
-  | DotAccess (_, _, FN (Id (_, { id_svalue = { contents = Some x }; _ }))) ->
-      Some x
-  | N (IdQualified { name_info = { id_svalue = { contents = Some x }; _ }; _ })
-    ->
-      Some x
+  | DotAccess (_, _, FN (Id (_, info))) -> svalue env info
+  | N (IdQualified { name_info = info; _ }) -> svalue env info
   (* ugly: dockerfile specific *)
   | Call
       ( { e = N (Id (("!dockerfile_expand!", _), _)); _ },
-        ( _,
-          [
-            Arg { e = N (Id (_, { id_svalue = { contents = Some x }; _ })); _ };
-          ],
-          _ ) )
+        (_, [ Arg { e = N (Id (_, info)); _ } ], _) )
     when is_lang env Lang.Dockerfile ->
-      Some x
+      svalue env info
   | Conditional (_e1, e2, e3) ->
       let* v2 = eval env e2 in
       let* v3 = eval env e3 in
@@ -212,7 +208,6 @@ let rec eval (env : env) (x : G.expr) : G.svalue option =
   | Call (({ e = DotAccess (_, _, FN (Id _)); _ } as e), args) ->
       let* name = H.name_of_dot_access e in
       eval_call env name args
-  | N name -> find_name env name
   | _ -> None
 
 and eval_args env args =

@@ -7,7 +7,8 @@
  * by  the `metavariable-pattern`, for each instance of the match.
  *)
 val get_nested_metavar_pattern_bindings :
-  (Match_env.env ->
+  (revert_loc:(Tok.location -> Tok.location) ->
+  Match_env.env ->
   Rule.formula ->
   Range_with_metavars.t ->
   Range_with_metavars.t list) ->
@@ -18,4 +19,4 @@ val get_nested_metavar_pattern_bindings :
   (* Why is this xlang optional? *)
   Xlang.t option ->
   Rule.formula ->
-  Metavariable.bindings list
+  (Metavariable.bindings * Core_match.metavar_langs) list

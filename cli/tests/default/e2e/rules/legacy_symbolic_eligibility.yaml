@@ -1,0 +1,107 @@
+rules:
+  - id: symbolic-true
+    message: Capture $X $OUTER $INNER
+    severity: WARNING
+    languages:
+      - python
+      - javascript
+      - ruby
+    pattern: sink($X)
+    options:
+      symbolic_propagation: true
+  - id: symbolic-false
+    message: Capture $X $OUTER $INNER
+    severity: WARNING
+    languages:
+      - python
+      - javascript
+      - ruby
+    pattern: sink($X)
+    options:
+      symbolic_propagation: false
+  - id: symbolic-true-value
+    message: Capture value($X)
+    severity: WARNING
+    languages:
+      - python
+      - javascript
+      - ruby
+    pattern: sink($X)
+    options:
+      symbolic_propagation: true
+  - id: symbolic-false-value
+    message: Capture value($X)
+    severity: WARNING
+    languages:
+      - python
+      - javascript
+      - ruby
+    pattern: sink($X)
+    options:
+      symbolic_propagation: false
+  - id: repeated-0-false
+    languages:
+      - python
+    message: Capture $X $Y
+    severity: WARNING
+    paths:
+      include:
+        - repeated.py
+    options:
+      symbolic_propagation: true
+    pattern: sink($X, $X)
+  - id: repeated-0-true
+    languages:
+      - python
+    message: Capture value($X) value($Y)
+    severity: WARNING
+    paths:
+      include:
+        - repeated.py
+    options:
+      symbolic_propagation: true
+    pattern: sink($X, $X)
+  - id: repeated-1-false
+    languages:
+      - python
+    message: Capture $X $Y
+    severity: WARNING
+    paths:
+      include:
+        - repeated.py
+    options:
+      symbolic_propagation: true
+    pattern: sink($X, $Y)
+  - id: repeated-1-true
+    languages:
+      - python
+    message: Capture value($X) value($Y)
+    severity: WARNING
+    paths:
+      include:
+        - repeated.py
+    options:
+      symbolic_propagation: true
+    pattern: sink($X, $Y)
+  - id: repeated-2-false
+    languages:
+      - python
+    message: Capture $X $Y
+    severity: WARNING
+    paths:
+      include:
+        - repeated.py
+    options:
+      symbolic_propagation: true
+    pattern: sink(a, a, a, a)
+  - id: repeated-2-true
+    languages:
+      - python
+    message: Capture value($X) value($Y)
+    severity: WARNING
+    paths:
+      include:
+        - repeated.py
+    options:
+      symbolic_propagation: true
+    pattern: sink(a, a, a, a)

@@ -2,6 +2,7 @@ type var = string * AST_generic.sid
 
 type env = {
   lang : Lang.t option;
+  legacy : bool;
   constants : (var, AST_generic.svalue) Hashtbl.t;
   attributes : (var, AST_generic.attribute list) Hashtbl.t;
 }

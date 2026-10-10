@@ -329,17 +329,6 @@ let param (env : env) ((v1, v2, v3, v4) : CST.param) : param =
   let loc = (dashdash, snd value) in
   (loc, (dashdash, key, equal, value))
 
-let flag_param (env : env) ((v1, v2) : CST.flag_param) : copy_param =
-  let dashdash = token env v1 (* "--" *) in
-  let name = str env v2 (* pattern [a-z][-a-z]* *) in
-  let loc = (dashdash, snd name) in
-  CopyFlag (loc, (dashdash, name))
-
-let copy_or_add_param (env : env) x : copy_param =
-  match x with
-  | `Param x -> CopyParam (param env x)
-  | `Flag_param x -> flag_param env x
-
 let expose_port (env : env) (x : CST.expose_port) : expose_port =
   match x with
   | `Semg_ellips tok -> Expose_semgrep_ellipsis (token env tok (* "..." *))
@@ -661,10 +650,18 @@ let shell_fragment (env : env) (xs : CST.shell_fragment) : tok =
   List_.filter_map
     (fun x ->
       match x with
-      | `Here_marker_pat_ea34a52 (v1, _v2) ->
-          Some (token env v1)
+      | `Here_marker_pat_ea34a52 (_v1, _v2) ->
+          (* TODO:
+             R.Case (
+               "Here_marker_pat_ea34a52",
+               let v1 = (* heredoc_marker *) token env v1 in
+               let v2 = map_pat_ea34a52 env v2 in
+               R.Tuple [v1; v2]
+             )
+          *)
+          None
       | `Pat_b1120d3 tok
-      | `Pat_7f1e397 tok
+      | `Pat_f8ab07f tok
       | `Pat_eda9032 tok
       | `Pat_a667757 tok ->
           Some (token env tok))
@@ -781,47 +778,7 @@ let spaced_env_pair (env : env) ((v1, v2, v3) : CST.spaced_env_pair) : env_pair
     =
   let k = Ident (str env v1 (* pattern [a-zA-Z][a-zA-Z0-9_]*[a-zA-Z0-9] *)) in
   let blank = token env v2 (* pattern \s+ *) in
-  let value_element_fragments (xs : CST.env_value_element) =
-    List_.map
-      (fun x ->
-        match x with
-        | `Double_quoted_str x -> double_quoted_string env x
-        | `Single_quoted_str x -> single_quoted_string env x
-        | `Pat_9f6bbb9 tok -> Unquoted (str env tok)
-        | `BSLASHSPACE tok -> Unquoted (str env tok)
-        | `Expa x -> expansion env x)
-      xs
-  in
-  let v =
-    match v3 with
-    | `Double_quoted_str x ->
-        let frag = double_quoted_string env x in
-        (docker_string_fragment_loc frag, [ frag ])
-    | `Single_quoted_str x ->
-        let frag = single_quoted_string env x in
-        (docker_string_fragment_loc frag, [ frag ])
-    | `Unqu_str x -> unquoted_string env x
-    | `Opt_choice_double_quoted_str_rep1_requ_line_cont_opt_env_value_elem
-        (opt_first, continuations) ->
-        let first_fragments =
-          match opt_first with
-          | None -> []
-          | Some x -> snd (string env x)
-        in
-        let cont_fragments =
-          List.concat_map
-            (fun (_line_cont, opt_v) ->
-              match opt_v with
-              | None -> []
-              | Some xs -> value_element_fragments xs)
-            continuations
-        in
-        let fragments =
-          (first_fragments @ cont_fragments) |> collapse_unquoted_fragments
-        in
-        let loc = Tok_range.of_list docker_string_fragment_loc fragments in
-        (loc, fragments)
-  in
+  let v = string env v3 in
   let loc = ident_or_metavar_loc k in
   Env_pair (loc, k, blank, v)
 
@@ -833,8 +790,8 @@ let label_pair (env : env) (x : CST.label_pair) : label_pair =
         match v1 with
         | `Semg_meta tok ->
             Semgrep_metavar (str env tok (* pattern \$[A-Z_][A-Z_0-9]* *))
-        | `Pat_f266d6a tok ->
-            Key (Unquoted (str env tok (* pattern [-a-zA-Z0-9\._:]+ *)))
+        | `Pat_4128122 tok ->
+            Key (Unquoted (str env tok (* pattern [-a-zA-Z0-9\._]+ *)))
         | `Double_quoted_str x -> Key (double_quoted_string env x)
         | `Single_quoted_str x -> Key (single_quoted_string env x)
       in
@@ -842,26 +799,6 @@ let label_pair (env : env) (x : CST.label_pair) : label_pair =
       let value = string env v3 in
       let loc = key_or_metavar_loc key in
       Label_pair (loc, key, eq, value)
-
-let spaced_label_pair (env : env) ((v1, v2, v3) : CST.spaced_label_pair) :
-    label_pair =
-  let key = Key (Unquoted (str env v1 (* pattern [-a-zA-Z0-9\._:]+ *))) in
-  let blank = token env v2 (* pattern \s+ *) in
-  let value : docker_string =
-    match v3 with
-    | `Semg_meta tok ->
-        let tok = token env tok in
-        ((tok, tok), [ Frag_semgrep_metavar (Tok.content_of_tok tok, tok) ])
-    | `Double_quoted_str x ->
-        let fragment = double_quoted_string env x in
-        (docker_string_fragment_loc fragment, [ fragment ])
-    | `Single_quoted_str x ->
-        let fragment = single_quoted_string env x in
-        (docker_string_fragment_loc fragment, [ fragment ])
-    | `Unqu_str x -> unquoted_string env x
-  in
-  let loc = key_or_metavar_loc key in
-  Label_pair (loc, key, blank, value)
 
 let shell_command (env : env) (x : CST.shell_command) =
   match x with
@@ -963,7 +900,7 @@ let runlike_instruction (env : env) name params cmd =
 let add_or_copy (env : env) (v1, v2, src_paths, v4, heredoc_bodies) :
     add_or_copy =
   let name = str env v1 in
-  let param = List_.map (copy_or_add_param env) v2 in
+  let param = List_.map (param env) v2 in
   let src = reattach_heredoc_bodies env src_paths heredoc_bodies in
   (* heredocs are not allowed as the destination file name *)
   let dst =
@@ -1024,14 +961,10 @@ let rec instruction (env : env) (x : CST.instruction) : env * instruction =
           (env, Cmd (loc, name, params, cmd))
       | `Label_inst (v1, v2) ->
           let name = str env v1 (* pattern [lL][aA][bB][eE][lL] *) in
-          let pairs =
-            match v2 with
-            | `Rep1_label_pair xs -> List_.map (label_pair env) xs
-            | `Spaced_label_pair x -> [ spaced_label_pair env x ]
-          in
-          let loc = Tok_range.of_list label_pair_loc pairs in
+          let label_pairs = List_.map (label_pair env) v2 in
+          let loc = Tok_range.of_list label_pair_loc label_pairs in
           let loc = Tok_range.extend loc (snd name) in
-          (env, Label (loc, name, pairs))
+          (env, Label (loc, name, label_pairs))
       | `Expose_inst (v1, v2) ->
           let name = str env v1 (* pattern [eE][xX][pP][oO][sS][eE] *) in
           let port_protos =
@@ -1249,19 +1182,6 @@ let source_file (env : env) (xs : CST.source_file) =
    See https://github.com/camdencheek/tree-sitter-dockerfile/issues/22
    Appending a trailing newline to the input works around this segfault.
 *)
-(* Windows-style CRLF line endings cause tree-sitter-dockerfile to fail
-   parsing. We strip all \r characters before passing content to tree-sitter.
-   This is only needed for the Dockerfile parser because it's the only
-   tree-sitter parser that reads files manually via UFile.read_file and
-   Parse.string, rather than using Parse.file which handles CRLF natively.
-   The position mapping (line_col_to_pos) still works correctly because it
-   reads the original file where \r only appears at line ends, so column
-   positions for actual content are unaffected. *)
-let normalize_line_endings str =
-  if String.contains str '\r' then
-    String.concat "" (String.split_on_char '\r' str)
-  else str
-
 let ensure_trailing_newline str =
   if str <> "" then
     let len = String.length str in
@@ -1270,212 +1190,10 @@ let ensure_trailing_newline str =
     | _ -> str ^ "\n"
   else str
 
-(* Pre-process Dockerfile content before passing to tree-sitter.
-
-   This fixes three classes of issues that the grammar alone can't handle:
-
-   1. Trailing whitespace after a line-continuation backslash (e.g. "\ "
-      at end of line).  The grammar already accepts /\\[ \t]*\n/ as
-      line_continuation, but combine_sparse_toks in concat_shell_fragments
-      fills gaps with the fixed 2-byte string "\\\n".  When the original gap
-      is wider (e.g. 4 bytes for "\   \n") the byte-offset arithmetic goes
-      off, which can surface as a Tok.NoTokenLocation crash.  Stripping the
-      trailing whitespace makes every continuation token exactly "\\\n".
-
-   2. The "# escape=X" parser directive lets authors use an alternative
-      character (commonly the backtick on Windows/PowerShell Dockerfiles) as
-      the line-continuation marker.  tree-sitter's grammar hard-codes the
-      backslash, so we replace each occurrence of X at the end of a line
-      with '\' before handing off to tree-sitter.
-
-   3. A comment line inside a multi-line continuation is transparent to the
-      continuation: Docker removes it before execution, so
-
-        RUN echo a \
-        # comment
-        b
-
-      is equivalent to "RUN echo a b".  tree-sitter's extras mechanism
-      already handles comments between tokens, but the OCaml post-processing
-      code (concat_shell_fragments) relies on the gap between shell-fragment
-      tokens to reconstruct positions.  A comment line in that gap does not
-      carry a synthetic continuation, so the chain can break.  We replace
-      comment lines with spaces of the same byte count and, when inside a
-      continuation, append a '\' at the last position so tree-sitter sees an
-      unbroken chain of line_continuation extras.
-
-   Position safety: line_col_to_pos reads the *original* file and maps
-   (line, col) pairs to byte offsets.  Our transforms only modify characters
-   at or after the last real token on each line (trailing whitespace, comment
-   text, the escape character itself).  The (line, col) of every real token
-   is therefore unchanged between the original file and the preprocessed
-   content, so the position table remains valid.  line_continuation tokens
-   live in the tree-sitter extras bucket; the OCaml callback discards them
-   via the `_extras` parameter and never calls conv on their positions, so
-   the synthetic '\' we insert on replaced comment lines is also harmless.
-*)
-
-(* Matches "# escape=X" (case-insensitive, spaces optional around '=').
-   Group 1 captures the single non-whitespace escape character. *)
-let escape_directive_re =
-  Pcre2_.regexp ~flags:[ `CASELESS ] {|^#\s*escape\s*=\s*(\S)|}
-
-(* If line looks like "# escape=X", return Some X, otherwise None. *)
-let parse_escape_directive (line : string) : char option =
-  match Pcre2_.exec_noerr ~rex:escape_directive_re line with
-  | None -> None
-  | Some substrings -> Some (Pcre2.get_substring substrings 1).[0]
-
-(* Return the index of the last non-whitespace character in s, or -1. *)
-let last_nws_index (s : string) : int =
-  let is_ws c = Char.equal c ' ' || Char.equal c '\t' in
-  let rec go i = if i < 0 || not (is_ws s.[i]) then i else go (i - 1) in
-  go (String.length s - 1)
-
-type preprocess_state = {
-  escape_char : char;
-  in_header : bool;
-  in_continuation : bool;
-  (* Some '\'' or Some '"' when we are inside a shell quoted string that spans
-   * multiple lines; None otherwise.  We track this so that we can insert a
-   * Dockerfile line-continuation backslash at the end of lines that end
-   * inside a quoted string, turning the embedded newlines into explicit
-   * continuations that tree-sitter can handle.
-   * Only meaningful when in_continuation = true (see process_line). *)
-  in_quote : char option;
-}
-
-(* Scan [s] tracking shell quoting state, starting from [in_quote].
- * Returns Some c if the string ends inside a quote delimited by c, else None.
- *
- * Single-quoted strings ('...') have no escape sequences in POSIX shell, so
- * every ' unconditionally toggles the state.
- * Double-quoted strings ("...") treat backslash-quote as an escape so the
- * quote character does not close the string.  The guard [i + 1 < len] ensures
- * a backslash that is the last character of the trimmed line (a Dockerfile
- * line-continuation marker) is NOT treated as an escape, leaving the quote
- * open for the next continuation line.
- *
- * Note: this only fires when st.in_continuation is already true (see
- * process_line), so a quote that opens on a fresh instruction line and would
- * span to the next line without an explicit '\' is out of scope — that is an
- * outright shell error and not a pattern we need to recover from. *)
-let ends_in_quote in_quote s =
-  let len = String.length s in
-  let rec go i in_quote =
-    match in_quote with
-    | _ when i >= len -> in_quote
-    | None when Char.equal s.[i] '\'' || Char.equal s.[i] '"' -> go (i + 1) (Some s.[i])
-    | Some '"' when Char.equal s.[i] '\\' && i + 1 < len ->
-        go (i + 2) in_quote
-    | Some c when Char.equal s.[i] c -> go (i + 1) None
-    | _ -> go (i + 1) in_quote
-  in
-  go 0 in_quote
-
- (* Process one line (without its trailing '\n') and return the updated state
-  * together with the transformed line. *)
-let process_line (st : preprocess_state) (line : string) : preprocess_state * string =
-  let len = String.length line in
-  let lnws = last_nws_index line in
-
-  if lnws < 0 then
-    (* Blank / all-whitespace line: pass through verbatim, leave header zone.
-    * A blank line can never be inside a single-quoted string at the
-    *  Dockerfile level, so reset in_quote. *)
-    ({ st with in_header = false; in_quote = None }, line)
-  else if Char.equal line.[0] '#' then begin
-    (* Comment line or parser directive.
-     * in_quote is preserved: comment lines inside a continuation are
-     * transparent to quoting state (same as Docker specifies for continuation
-     * state). *)
-    match if st.in_header then parse_escape_directive line else None with
-    | Some c ->
-        (* Parser directive: record new escape char and keep line as-is. *)
-        ({ st with escape_char = c }, line)
-    | None when st.in_continuation ->
-        (* Comment inside a continuation: replace with spaces + backslash so
-         * tree-sitter sees an unbroken continuation chain.
-         * in_continuation is left unchanged: comment lines are transparent
-         * to continuation state, just as Docker specifies. *)
-        let out =
-          if len >= 1 then String.make (len - 1) ' ' ^ "\\"
-          else line
-        in
-        (st, out)
-    | None ->
-        (* Standalone comment or a '#'-line inside a heredoc body: leave as-is.
-         * tree-sitter's 'comment' extra handles ordinary Dockerfile comments.
-         * The heredoc external scanner handles '#!/bin/bash' etc. as
-         * HEREDOC_LINE tokens (external scanner has priority over extras). *)
-        (st, line)
-  end else begin
-    (* Regular instruction line. *)
-    let bytes = Bytes.of_string line in
-
-    (* Replace an alternative escape char at end of line with '\'. *)
-    if (not (Char.equal st.escape_char '\\'))
-       && Char.equal (Bytes.get bytes lnws) st.escape_char
-    then Bytes.set bytes lnws '\\';
-
-    (* Break a trailing "\\" pair so tree-sitter does not greedily consume it
-     * as a shell_fragment before recognising the final '\' as
-     * line_continuation. *)
-    if lnws >= 1
-       && Char.equal (Bytes.get bytes lnws) '\\'
-       && Char.equal (Bytes.get bytes (lnws - 1)) '\\'
-    then Bytes.set bytes (lnws - 1) ' ';
-
-    (* Strip trailing whitespace: emit only up to the last non-ws char so the
-     * continuation token is exactly "\\\n", matching combine_sparse_toks. *)
-    let out = Bytes.sub_string bytes 0 (lnws + 1) in
-    let continues = Char.equal out.[lnws] '\\' in
-
-    (* Update the quote state within an existing continuation chain.
-     * On a fresh instruction line (in_continuation = false) we reset to None:
-     * e.g. "MAINTAINER Bob l'éponge" must not trigger continuation insertion,
-     * and the same applies to a "..." value on a LABEL/ENV/ARG line. *)
-    let new_sq =
-      if st.in_continuation then ends_in_quote st.in_quote out
-      else None
-    in
-
-    if Option.is_some new_sq && not continues then
-      (* The line ends inside a quoted string and there is no explicit
-       * continuation yet. Add one so that tree-sitter treats the next line
-       * as part of the same instruction rather than as a parse error. *)
-      ( { escape_char = st.escape_char; in_header = false;
-          in_continuation = true; in_quote = new_sq },
-        out ^ "\\" )
-    else
-      ( { escape_char = st.escape_char; in_header = false;
-          in_continuation = continues; in_quote = new_sq },
-        out )
-  end
-
-let preprocess_dockerfile (content : string) : string =
-  let init = { escape_char = '\\'; in_header = true; in_continuation = false;
-               in_quote = None } in
-  let lines = String.split_on_char '\n' content in
-  let _state, rev_lines =
-    List.fold_left
-      (fun (st, acc) line ->
-        let st', out = process_line st line in
-        (st', out :: acc))
-      (init, [])
-      lines
-  in
-  String.concat "\n" (List.rev rev_lines)
-
 let parse file =
   H.wrap_parser
     (fun () ->
-      let contents =
-        UFile.read_file file
-        |> normalize_line_endings
-        |> ensure_trailing_newline
-        |> preprocess_dockerfile
-      in
+      let contents = UFile.read_file file |> ensure_trailing_newline in
       Tree_sitter_dockerfile.Parse.string ~src_file:!!file contents)
     (fun cst _extras ->
       let env =
@@ -1491,10 +1209,7 @@ let parse_pattern str =
   let input_kind = AST_bash.Pattern in
   H.wrap_parser
     (fun () ->
-      str
-      |> ensure_trailing_newline
-      |> preprocess_dockerfile
-      |> Tree_sitter_dockerfile.Parse.string)
+      str |> ensure_trailing_newline |> Tree_sitter_dockerfile.Parse.string)
     (fun cst _extras ->
       let file = Fpath.v "<pattern>" in
       let env =

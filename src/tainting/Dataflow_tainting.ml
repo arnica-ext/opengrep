@@ -242,8 +242,29 @@ let any_is_best_source ?(is_lval = false) env any =
              (not m.spec.source_exact)
              || TM.is_best_match env.func.best_matches m)
 
+let any_is_sink (taint_inst : Taint_rule_inst.t) any =
+  let matches = taint_inst.preds.is_sink any in
+  match (taint_inst.lang, any) with
+  | Lang.Ruby, G.E expr -> (
+      match AST_generic_helpers.ruby_array_access_callee expr with
+      | Some callee ->
+          let legacy_matches = taint_inst.preds.is_sink (G.E callee) in
+          let captures_callee (m : R.taint_sink TM.t) =
+            List.exists
+              (function
+                | _, Metavariable.E captured -> G.equal_expr captured callee
+                | _ -> false)
+              m.spec_pm.env
+          in
+          (* Root metavariables used to capture the synthetic [] method.
+             Keep that sink selection; sources and propagators use full ranges. *)
+          if List.exists captures_callee legacy_matches then legacy_matches
+          else matches
+      | None -> matches)
+  | _ -> matches
+
 let any_is_best_sink env any =
-  env.taint_inst.preds.is_sink any
+  any_is_sink env.taint_inst any
   |> List.filter (fun (tm : R.taint_sink TM.t) ->
          (* at-exit sinks are handled in 'check_tainted_at_exit_sinks' *)
          (not tm.spec.sink_at_exit) && TM.is_best_match env.func.best_matches tm)
@@ -263,7 +284,7 @@ let orig_is_best_sanitizer env orig =
 [@@profiling]
 
 let orig_is_sink (taint_inst : Taint_rule_inst.t) orig =
-  taint_inst.preds.is_sink (any_of_orig orig)
+  any_is_sink taint_inst (any_of_orig orig)
 
 let orig_is_best_sink env orig = any_is_best_sink env (any_of_orig orig)
 [@@profiling]
@@ -285,7 +306,7 @@ let lval_is_best_sanitizer env lval =
 
 let lval_is_sink env lval =
   let any = any_of_lval lval in
-  let sinks = env.taint_inst.preds.is_sink any in
+  let sinks = any_is_sink env.taint_inst any in
   sinks
   |> List.filter (fun (tm : R.taint_sink TM.t) ->
          (* at-exit sinks are handled in 'check_tainted_at_exit_sinks' *)
@@ -611,17 +632,28 @@ let effects_of_tainted_sink env taints_with_traces (sink : Effect.sink) :
       then
         taints_and_bindings
         |> List_.filter_map (fun (t, bindings) ->
-               let* merged_env =
-                 merge_source_sink_mvars env sink_pm.PM.env bindings
-               in
-               Some
-                 (Effect.ToSink
-                    {
-                      taints_with_precondition = ([ t ], R.get_sink_requires ts);
-                      sink;
-                      merged_env;
-                      guards = Effect_guard.top;
-                    }))
+            let* merged_env =
+              merge_source_sink_mvars env sink_pm.PM.env bindings
+            in
+            let source_matches =
+              match t.Effect.taint.T.orig with
+              | T.Src source -> [ fst (T.pm_of_trace source.call_trace) ]
+              | T.Var _
+              | T.Shape_var _
+              | T.Control ->
+                  []
+            in
+            Some
+              (Effect.ToSink
+                 {
+                   taints_with_precondition = ([ t ], R.get_sink_requires ts);
+                   sink;
+                   merged_env;
+                   merged_metavar_langs =
+                     PM.metavar_langs_for_bindings merged_env
+                       (sink_pm :: source_matches);
+                   guards = Effect_guard.top;
+                 }))
       else
         match
           taints_and_bindings |> List_.map snd |> merge_source_mvars env
@@ -629,6 +661,16 @@ let effects_of_tainted_sink env taints_with_traces (sink : Effect.sink) :
         with
         | None -> []
         | Some merged_env ->
+            let source_matches =
+              taints_with_traces
+              |> List.filter_map (fun { Effect.taint; _ } ->
+                  match taint.T.orig with
+                  | T.Src source -> Some (fst (T.pm_of_trace source.call_trace))
+                  | T.Var _
+                  | T.Shape_var _
+                  | T.Control ->
+                      None)
+            in
             [
               Effect.ToSink
                 {
@@ -636,6 +678,9 @@ let effects_of_tainted_sink env taints_with_traces (sink : Effect.sink) :
                     (List_.map fst taints_and_bindings, R.get_sink_requires ts);
                   sink;
                   merged_env;
+                  merged_metavar_langs =
+                    PM.metavar_langs_for_bindings merged_env
+                      (sink_pm :: source_matches);
                   guards = Effect_guard.top;
                 };
             ])
@@ -3063,7 +3108,7 @@ let pattern_leaves_with_offsets ~(lang : Lang.t) (pat : AST_generic.pattern) :
         (* Clojure [:keys] / [Assoc] destructure wraps its key-value
          * pairs in a [PatConstructor]; treat like a map destructure. *)
         List.fold_left (go_map_pair offset) acc pats
-    | G.PatRecord (_, fields, _) ->
+    | G.PatRecord { pr_fields = _, fields, _; _ } ->
         List.fold_left
           (fun acc (dot_ident, p) ->
             match List.rev dot_ident with

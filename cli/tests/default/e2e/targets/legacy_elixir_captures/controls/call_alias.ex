@@ -1,0 +1,2 @@
+a = make()
+sink(a)

@@ -181,7 +181,7 @@ and map_pattern (env : env) (x : CST.pattern) : G.pattern =
     let _, lb, v1, v2, _, rb = x in
     let fields = map_list_1 map_field_pattern v1 v2 in
 
-    G.PatRecord (token env lb, fields, token env rb)
+    G.record_pattern (token env lb, fields, token env rb)
   in
 
   match x with

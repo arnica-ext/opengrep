@@ -1,0 +1,1933 @@
+[
+  {
+    "rule": "csharp-false-false",
+    "path": "targets/legacy_review_regressions/aliases.cs",
+    "start": {
+      "line": 4,
+      "col": 5,
+      "offset": 50
+    },
+    "end": {
+      "line": 4,
+      "col": 12,
+      "offset": 57
+    },
+    "fingerprint": "18fdab2eb40fb21b38705d852a69483750b385bc14aa14ce5908ad8a54462c6abaadd6c57181283c92278b009011a1500f25812f621a2749f4b32de31fa74ec2_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "csharp-false-true",
+    "path": "targets/legacy_review_regressions/aliases.cs",
+    "start": {
+      "line": 4,
+      "col": 5,
+      "offset": 50
+    },
+    "end": {
+      "line": 4,
+      "col": 12,
+      "offset": 57
+    },
+    "fingerprint": "5abe95dd89054dd8ebbf37a89e8223caadea797b5cce72e764030a767104c13d39d129d344c19f478f35dd2687c0b6ce78b2ab4d044001480eef520cebe51d69_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "csharp-true-false",
+    "path": "targets/legacy_review_regressions/aliases.cs",
+    "start": {
+      "line": 4,
+      "col": 5,
+      "offset": 50
+    },
+    "end": {
+      "line": 4,
+      "col": 12,
+      "offset": 57
+    },
+    "fingerprint": "4db1743518f270e67e4b8fc3de4c4fda3b340b62d1280f03ca41124d9169dd0bcba0408dfcfc924200eca2a33e071994f983e2445291f1468f7148bfe4c4cee7_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "csharp-true-true",
+    "path": "targets/legacy_review_regressions/aliases.cs",
+    "start": {
+      "line": 4,
+      "col": 5,
+      "offset": 50
+    },
+    "end": {
+      "line": 4,
+      "col": 12,
+      "offset": 57
+    },
+    "fingerprint": "d303b6450fde11fe1622fa19f71c66f164519286779c12570c9d47273554852fd0573bc05dbdc63f9d3aff18c76b43439f5e392e1f6a3b0c3cea2cc463987e17_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "csharp-false-false",
+    "path": "targets/legacy_review_regressions/aliases.cs",
+    "start": {
+      "line": 5,
+      "col": 5,
+      "offset": 63
+    },
+    "end": {
+      "line": 5,
+      "col": 12,
+      "offset": 70
+    },
+    "fingerprint": "18fdab2eb40fb21b38705d852a69483750b385bc14aa14ce5908ad8a54462c6abaadd6c57181283c92278b009011a1500f25812f621a2749f4b32de31fa74ec2_1",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "csharp-false-true",
+    "path": "targets/legacy_review_regressions/aliases.cs",
+    "start": {
+      "line": 5,
+      "col": 5,
+      "offset": 63
+    },
+    "end": {
+      "line": 5,
+      "col": 12,
+      "offset": 70
+    },
+    "fingerprint": "5abe95dd89054dd8ebbf37a89e8223caadea797b5cce72e764030a767104c13d39d129d344c19f478f35dd2687c0b6ce78b2ab4d044001480eef520cebe51d69_1",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "csharp-true-false",
+    "path": "targets/legacy_review_regressions/aliases.cs",
+    "start": {
+      "line": 5,
+      "col": 5,
+      "offset": 63
+    },
+    "end": {
+      "line": 5,
+      "col": 12,
+      "offset": 70
+    },
+    "fingerprint": "4db1743518f270e67e4b8fc3de4c4fda3b340b62d1280f03ca41124d9169dd0bcba0408dfcfc924200eca2a33e071994f983e2445291f1468f7148bfe4c4cee7_1",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "csharp-true-true",
+    "path": "targets/legacy_review_regressions/aliases.cs",
+    "start": {
+      "line": 5,
+      "col": 5,
+      "offset": 63
+    },
+    "end": {
+      "line": 5,
+      "col": 12,
+      "offset": 70
+    },
+    "fingerprint": "d303b6450fde11fe1622fa19f71c66f164519286779c12570c9d47273554852fd0573bc05dbdc63f9d3aff18c76b43439f5e392e1f6a3b0c3cea2cc463987e17_1",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "csharp-false-false",
+    "path": "targets/legacy_review_regressions/aliases.cs",
+    "start": {
+      "line": 6,
+      "col": 5,
+      "offset": 76
+    },
+    "end": {
+      "line": 6,
+      "col": 20,
+      "offset": 91
+    },
+    "fingerprint": "5c6ea779622708de480ac1ca0cb7f4cd45b7f0e6bce044ca681cd06ab77c911b6c66dc03f13ecee0c66ed04d6e6f2cd8ce03d86f929f0cb8b73be6e156e21dbf_0",
+    "captures": {
+      "$X": "source[[0]]"
+    },
+    "message": "Capture source[0]"
+  },
+  {
+    "rule": "csharp-false-true",
+    "path": "targets/legacy_review_regressions/aliases.cs",
+    "start": {
+      "line": 6,
+      "col": 5,
+      "offset": 76
+    },
+    "end": {
+      "line": 6,
+      "col": 20,
+      "offset": 91
+    },
+    "fingerprint": "6708831aec8070be766be21ae2b4b47cc8fbc27fe2f467078f08f90f6cefa204588ee4478bb212486233b2bed45c744db29a0e359c8481afa62682385ea4150d_0",
+    "captures": {
+      "$X": "source[[0]]"
+    },
+    "message": "Capture source[0]"
+  },
+  {
+    "rule": "csharp-true-false",
+    "path": "targets/legacy_review_regressions/aliases.cs",
+    "start": {
+      "line": 6,
+      "col": 5,
+      "offset": 76
+    },
+    "end": {
+      "line": 6,
+      "col": 20,
+      "offset": 91
+    },
+    "fingerprint": "182a18dea3319439c58655211ed098c291df7b7a17f4789185d8c9bc8cd24ce735d12d31a8ac3de23c4f86003b290baf78d0baad5b93c7401944d84a02a79ed6_0",
+    "captures": {
+      "$X": "source[[0]]"
+    },
+    "message": "Capture source[0]"
+  },
+  {
+    "rule": "csharp-true-true",
+    "path": "targets/legacy_review_regressions/aliases.cs",
+    "start": {
+      "line": 6,
+      "col": 5,
+      "offset": 76
+    },
+    "end": {
+      "line": 6,
+      "col": 20,
+      "offset": 91
+    },
+    "fingerprint": "347e41b6cae06e3806c495be2bbf1040c978d05c3da046d50308f7450209bcfe8cd3d163321249f12af240bd1086fd9bb6d627edca75739c61171d0b8d098ee3_0",
+    "captures": {
+      "$X": "source[[0]]"
+    },
+    "message": "Capture source[0]"
+  },
+  {
+    "rule": "csharp-false-false",
+    "path": "targets/legacy_review_regressions/aliases.cs",
+    "start": {
+      "line": 8,
+      "col": 5,
+      "offset": 121
+    },
+    "end": {
+      "line": 8,
+      "col": 12,
+      "offset": 128
+    },
+    "fingerprint": "70a4cd130889e6c9c02ce8a6736edc9127ffb43f1288cb29ecfa7decbdc779fb47007f2a44bb6a4eeb97f541e05c013773caeb81e587d2312bdc849032c3a9d0_0",
+    "captures": {
+      "$X": "b"
+    },
+    "message": "Capture b"
+  },
+  {
+    "rule": "csharp-false-true",
+    "path": "targets/legacy_review_regressions/aliases.cs",
+    "start": {
+      "line": 8,
+      "col": 5,
+      "offset": 121
+    },
+    "end": {
+      "line": 8,
+      "col": 12,
+      "offset": 128
+    },
+    "fingerprint": "06b2abfdbeb9231d3fa3aff2138f7878b3fa7eaf8df530752495ee7d86e9a4b4b42e6d46289dad8701617f9608260e6bfb37b39c16f4749a3760cbf0c61d0f73_0",
+    "captures": {
+      "$X": "b"
+    },
+    "message": "Capture b"
+  },
+  {
+    "rule": "csharp-true-false",
+    "path": "targets/legacy_review_regressions/aliases.cs",
+    "start": {
+      "line": 8,
+      "col": 5,
+      "offset": 121
+    },
+    "end": {
+      "line": 8,
+      "col": 12,
+      "offset": 128
+    },
+    "fingerprint": "d0c1c2df1cabdbfd40e8a5dacabeb4f7c442d91115b4b0abcce236ddff9ceda72ebb7015787120d5c0e25f6dad76f41971c4dc859774493dc75cf27c89d11cc3_0",
+    "captures": {
+      "$X": "b"
+    },
+    "message": "Capture b"
+  },
+  {
+    "rule": "csharp-true-true",
+    "path": "targets/legacy_review_regressions/aliases.cs",
+    "start": {
+      "line": 8,
+      "col": 5,
+      "offset": 121
+    },
+    "end": {
+      "line": 8,
+      "col": 12,
+      "offset": 128
+    },
+    "fingerprint": "546b43c27f658e1fc1101cd3cdfe962aa158fb4bfbc0eedd94ba974eae61b206e6282cf6e7a79d8a236ec37bfc3d961e6cd5ab1a710aec2a4753256b0b1489ed_0",
+    "captures": {
+      "$X": "b"
+    },
+    "message": "Capture b"
+  },
+  {
+    "rule": "csharp-false-false",
+    "path": "targets/legacy_review_regressions/aliases.cs",
+    "start": {
+      "line": 9,
+      "col": 5,
+      "offset": 134
+    },
+    "end": {
+      "line": 9,
+      "col": 21,
+      "offset": 150
+    },
+    "fingerprint": "1e1028863f8a393d8066287d528cca23f5b8eda1e52ada7be17baeba9982f6c2e3a54b1f09311404e9c03fe392645473ee6aaee76d5b6e6a76ad9a5ac8926835_0",
+    "captures": {
+      "$X": "source?[?[?[0]]"
+    },
+    "message": "Capture source?[0]"
+  },
+  {
+    "rule": "csharp-false-true",
+    "path": "targets/legacy_review_regressions/aliases.cs",
+    "start": {
+      "line": 9,
+      "col": 5,
+      "offset": 134
+    },
+    "end": {
+      "line": 9,
+      "col": 21,
+      "offset": 150
+    },
+    "fingerprint": "1c1aee354d892ed5b89d9684308b5953c5ab5d7233a19c612220703d6cf581084121ffad0fbee66bb57426cb7eccf68028ebaeca8f5341612ab7795bb2d2d7f3_0",
+    "captures": {
+      "$X": "source?[?[?[0]]"
+    },
+    "message": "Capture source?[0]"
+  },
+  {
+    "rule": "csharp-true-false",
+    "path": "targets/legacy_review_regressions/aliases.cs",
+    "start": {
+      "line": 9,
+      "col": 5,
+      "offset": 134
+    },
+    "end": {
+      "line": 9,
+      "col": 21,
+      "offset": 150
+    },
+    "fingerprint": "48543dd66a7a912cd77694f4eb1edb30777a76b4fb13bdb5a461a398c3438808d860a315921fd0c20894e34ea969d45abd922368b9e979f3932925685b9fc06b_0",
+    "captures": {
+      "$X": "source?[?[?[0]]"
+    },
+    "message": "Capture source?[0]"
+  },
+  {
+    "rule": "csharp-true-true",
+    "path": "targets/legacy_review_regressions/aliases.cs",
+    "start": {
+      "line": 9,
+      "col": 5,
+      "offset": 134
+    },
+    "end": {
+      "line": 9,
+      "col": 21,
+      "offset": 150
+    },
+    "fingerprint": "711050e4c8e14c2314def3c591b8b4a7c3c4e8802482f932837e7bbb63b2b6cee456d53dad5d1e08cf3104784a6ec3a6de13cefa23d5c4cde50b9ea3eba277db_0",
+    "captures": {
+      "$X": "source?[?[?[0]]"
+    },
+    "message": "Capture source?[0]"
+  },
+  {
+    "rule": "csharp-false-false",
+    "path": "targets/legacy_review_regressions/aliases.cs",
+    "start": {
+      "line": 11,
+      "col": 5,
+      "offset": 182
+    },
+    "end": {
+      "line": 11,
+      "col": 12,
+      "offset": 189
+    },
+    "fingerprint": "30ea1706fd57aef8827df2c76ebbf72e96702bb12e0c0aa0a45c59b52e6939222037e57aaaeaae8905ba4293432dbb67fdfae06c31e6be716e7635982ae44bd5_0",
+    "captures": {
+      "$X": "c"
+    },
+    "message": "Capture c"
+  },
+  {
+    "rule": "csharp-false-true",
+    "path": "targets/legacy_review_regressions/aliases.cs",
+    "start": {
+      "line": 11,
+      "col": 5,
+      "offset": 182
+    },
+    "end": {
+      "line": 11,
+      "col": 12,
+      "offset": 189
+    },
+    "fingerprint": "5940a4f6d94a1ee3516b16e4e76461cf7b18a3d781f0c14df10cee3872ff8e05d156fed8e634d085a1d3ff82b74c7e15d901ea6772880afb4d5075b013e1111e_0",
+    "captures": {
+      "$X": "c"
+    },
+    "message": "Capture c"
+  },
+  {
+    "rule": "csharp-true-false",
+    "path": "targets/legacy_review_regressions/aliases.cs",
+    "start": {
+      "line": 11,
+      "col": 5,
+      "offset": 182
+    },
+    "end": {
+      "line": 11,
+      "col": 12,
+      "offset": 189
+    },
+    "fingerprint": "904a9aa1205ab84ae9c237146e090bfc3c97ceffcfebb786d337fb0344b313ac5fa5daded4eed3fd60357230ac1f23391b4a0a23aaec208551ba861b50fa83e2_0",
+    "captures": {
+      "$X": "c"
+    },
+    "message": "Capture c"
+  },
+  {
+    "rule": "csharp-true-true",
+    "path": "targets/legacy_review_regressions/aliases.cs",
+    "start": {
+      "line": 11,
+      "col": 5,
+      "offset": 182
+    },
+    "end": {
+      "line": 11,
+      "col": 12,
+      "offset": 189
+    },
+    "fingerprint": "e55e942b24c656eb0a694a3a56adb6df74c5477fd907f2d48ebeebe71b00506b4282103321eb01164ffc5be37a9606665909515f1077a3df6f699704315f93b2_0",
+    "captures": {
+      "$X": "c"
+    },
+    "message": "Capture c"
+  },
+  {
+    "rule": "csharp-false-false",
+    "path": "targets/legacy_review_regressions/aliases.cs",
+    "start": {
+      "line": 12,
+      "col": 5,
+      "offset": 195
+    },
+    "end": {
+      "line": 12,
+      "col": 23,
+      "offset": 213
+    },
+    "fingerprint": "1b7c665ef39e8deca762d0f2532185e89c74161f5dccb1192220970fae69539678d057b760ab8d01269258f4b7cd7c549ecdf1c43a14241587e6a35d4e56af4e_0",
+    "captures": {
+      "$X": "source[[0 1]]"
+    },
+    "message": "Capture source[0, 1]"
+  },
+  {
+    "rule": "csharp-false-true",
+    "path": "targets/legacy_review_regressions/aliases.cs",
+    "start": {
+      "line": 12,
+      "col": 5,
+      "offset": 195
+    },
+    "end": {
+      "line": 12,
+      "col": 23,
+      "offset": 213
+    },
+    "fingerprint": "c8edec1388ec6408c477ffa62b2408f40b50a6fd2189a59df02a745a85277bbae156a474a1332c607ffced0ff22294bd424f8f392dc6be12a283bbdcb8b56047_0",
+    "captures": {
+      "$X": "source[[0 1]]"
+    },
+    "message": "Capture source[0, 1]"
+  },
+  {
+    "rule": "csharp-true-false",
+    "path": "targets/legacy_review_regressions/aliases.cs",
+    "start": {
+      "line": 12,
+      "col": 5,
+      "offset": 195
+    },
+    "end": {
+      "line": 12,
+      "col": 23,
+      "offset": 213
+    },
+    "fingerprint": "db0b6f15000e389865897724d9fe2ea02fada7147441c3a48653faa025e84c3b677adf6a00d370dcceace2b9c217c78606a28d0278ca6770676a1cfef88bd233_0",
+    "captures": {
+      "$X": "source[[0 1]]"
+    },
+    "message": "Capture source[0, 1]"
+  },
+  {
+    "rule": "csharp-true-true",
+    "path": "targets/legacy_review_regressions/aliases.cs",
+    "start": {
+      "line": 12,
+      "col": 5,
+      "offset": 195
+    },
+    "end": {
+      "line": 12,
+      "col": 23,
+      "offset": 213
+    },
+    "fingerprint": "4951f75fed9a6a852135cdd1de289ac7f7a0d5f1db21ec1e14caab9af68080d2cef746b9b65b38dfe8bdb2c424edb9a7e11e36545a76b7ed73c069f5ec571a03_0",
+    "captures": {
+      "$X": "source[[0 1]]"
+    },
+    "message": "Capture source[0, 1]"
+  },
+  {
+    "rule": "ruby-false-false",
+    "path": "targets/legacy_review_regressions/aliases.rb",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 15
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 22
+    },
+    "fingerprint": "1511b10ca3a144557c7c57d1bc07effb1fbd209e833dc542c630ac81cf3536d288e6a04fb7a470b4e23ffca84278160d25dc51ba7cfdc22a4fa0fe1f3e23a58d_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "ruby-false-true",
+    "path": "targets/legacy_review_regressions/aliases.rb",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 15
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 22
+    },
+    "fingerprint": "883d01aca252c359091344d1de179142bb6032483b48c40c2a8bed7b883c89ba45c401510ae521446e11542d24c4a9e5775af856f1149763440eee429a6a5d8e_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture params[[[:x]"
+  },
+  {
+    "rule": "ruby-true-false",
+    "path": "targets/legacy_review_regressions/aliases.rb",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 15
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 22
+    },
+    "fingerprint": "251747931261b6901f2e8266f531bf026b78cd9b7668d6e9ce370fb5ccd112c64b8de6823de3d030ab5d709d778a7377e4afc2fd269d73d3afe8b5b42c691de5_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "ruby-true-false",
+    "path": "targets/legacy_review_regressions/aliases.rb",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 15
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 22
+    },
+    "fingerprint": "fa59542cd96b9b625dd2b0da3768a8a0ea11f63d27ca1f613324bbc877b840c49d4407aec96893b8e2e9dfc0c1342f3a1672817ece2d2a7b3a9c1cec837091a6_0",
+    "captures": {
+      "$X": "params[[[:x]"
+    },
+    "message": "Capture params[:x]"
+  },
+  {
+    "rule": "ruby-true-true",
+    "path": "targets/legacy_review_regressions/aliases.rb",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 15
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 22
+    },
+    "fingerprint": "159ec0aa72e3b0888664a033a8f63381ea1a607ee0a0ac8966947c4c3e1c5b33ec8281638e2d5426f73f34bf99bef0561c3b09156632604284789e7388425559_0",
+    "captures": {
+      "$X": "params[[[:x]"
+    },
+    "message": "Capture params[:x]"
+  },
+  {
+    "rule": "ruby-true-true",
+    "path": "targets/legacy_review_regressions/aliases.rb",
+    "start": {
+      "line": 2,
+      "col": 1,
+      "offset": 15
+    },
+    "end": {
+      "line": 2,
+      "col": 8,
+      "offset": 22
+    },
+    "fingerprint": "ab2b57d7c0b5a6546053b2485744bd73d99406d8fb3fb2caa302f1398ca7269691d1b541e31e203e9f073e2f13be57dbf42c3e496148d27c4babb9dd7a4b42a3_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture params[[[:x]"
+  },
+  {
+    "rule": "ruby-false-false",
+    "path": "targets/legacy_review_regressions/aliases.rb",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 39
+    },
+    "end": {
+      "line": 4,
+      "col": 8,
+      "offset": 46
+    },
+    "fingerprint": "1af40e0c7aede13089857a6904f098303700360421f5d51909ab820f344692b2ef5f0516ba8d4ef432643807502114c8811825da3ac5e985c7ed003a5e9c0002_0",
+    "captures": {
+      "$X": "b"
+    },
+    "message": "Capture b"
+  },
+  {
+    "rule": "ruby-false-true",
+    "path": "targets/legacy_review_regressions/aliases.rb",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 39
+    },
+    "end": {
+      "line": 4,
+      "col": 8,
+      "offset": 46
+    },
+    "fingerprint": "59a6579516d5750341a62a2babd0203857bac04c8129b91ab193ffa069bf95397c32458394458eb39ca547fb0e3a5951030c888dbd14d2e74d38c37c3658dd0c_0",
+    "captures": {
+      "$X": "b"
+    },
+    "message": "Capture params[[[\"y\"]"
+  },
+  {
+    "rule": "ruby-true-false",
+    "path": "targets/legacy_review_regressions/aliases.rb",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 39
+    },
+    "end": {
+      "line": 4,
+      "col": 8,
+      "offset": 46
+    },
+    "fingerprint": "b9e5fcef9e3d8bc4b98c9b385f1a340184bc5068d7955e798e2e76e47dcbb45a89467506f0c1aee6718a9679ba2ad0895cb7463f44a5fdc6863003896457a85c_0",
+    "captures": {
+      "$X": "b"
+    },
+    "message": "Capture b"
+  },
+  {
+    "rule": "ruby-true-false",
+    "path": "targets/legacy_review_regressions/aliases.rb",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 39
+    },
+    "end": {
+      "line": 4,
+      "col": 8,
+      "offset": 46
+    },
+    "fingerprint": "9bb9f28ed45be5f2bf2c523ea19cb8efc879c0ce631bc1079539ff5c55407a91cddc79c3c9a614cb415e286383ab9820bcd50ba0f66da307893e23ef5e9da9bb_0",
+    "captures": {
+      "$X": "params[[[\"y\"]"
+    },
+    "message": "Capture params[\"y\"]"
+  },
+  {
+    "rule": "ruby-true-true",
+    "path": "targets/legacy_review_regressions/aliases.rb",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 39
+    },
+    "end": {
+      "line": 4,
+      "col": 8,
+      "offset": 46
+    },
+    "fingerprint": "7b79e05e54329013a13bcfb3fb21385cfebc0d286e0cf3c53478f17842f0e48dba5b4211d780f9035f9bd38c4a5cea94cd0415a7779230d4e0a8829d2795b345_0",
+    "captures": {
+      "$X": "params[[[\"y\"]"
+    },
+    "message": "Capture params[\"y\"]"
+  },
+  {
+    "rule": "ruby-true-true",
+    "path": "targets/legacy_review_regressions/aliases.rb",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 39
+    },
+    "end": {
+      "line": 4,
+      "col": 8,
+      "offset": 46
+    },
+    "fingerprint": "bdfae921d1ed856e176544c9543c4d40bcfb79f9869276179f9c093fe81f06dccdf0c6c06d2b8ab47d7c395b991793d6a5b0f118e028cd37a0923a685794ac80_0",
+    "captures": {
+      "$X": "b"
+    },
+    "message": "Capture params[[[\"y\"]"
+  },
+  {
+    "rule": "ruby-false-false",
+    "path": "targets/legacy_review_regressions/aliases.rb",
+    "start": {
+      "line": 6,
+      "col": 1,
+      "offset": 66
+    },
+    "end": {
+      "line": 6,
+      "col": 8,
+      "offset": 73
+    },
+    "fingerprint": "4840850ab6d33bd5aa392709d31d9b0ac91280a309526415814991a689e8232c676a32833d7aa26df6471e6148d35e2dd2959282e1638f97ed9416a35e5ba3d2_0",
+    "captures": {
+      "$X": "c"
+    },
+    "message": "Capture c"
+  },
+  {
+    "rule": "ruby-false-true",
+    "path": "targets/legacy_review_regressions/aliases.rb",
+    "start": {
+      "line": 6,
+      "col": 1,
+      "offset": 66
+    },
+    "end": {
+      "line": 6,
+      "col": 8,
+      "offset": 73
+    },
+    "fingerprint": "c9dd1d1f30e1b86c7db1b894c3f67f62c247dd8e8563895301bc650a0b3df45a5acd43b0fa8a66d645fdd6e173f2cbdeade0c3b24504ccd14c84b93b6c0bbfb4_0",
+    "captures": {
+      "$X": "c"
+    },
+    "message": "Capture params[[[:x:y]"
+  },
+  {
+    "rule": "ruby-true-false",
+    "path": "targets/legacy_review_regressions/aliases.rb",
+    "start": {
+      "line": 6,
+      "col": 1,
+      "offset": 66
+    },
+    "end": {
+      "line": 6,
+      "col": 8,
+      "offset": 73
+    },
+    "fingerprint": "a8a817f030e0733252a3e3a07015db589497274f6a1492b04d78e54fee389a7598a82dc4d2389080325d1d8b3df597fa354213b306c936000ea8ecc8c021fcda_0",
+    "captures": {
+      "$X": "c"
+    },
+    "message": "Capture c"
+  },
+  {
+    "rule": "ruby-true-false",
+    "path": "targets/legacy_review_regressions/aliases.rb",
+    "start": {
+      "line": 6,
+      "col": 1,
+      "offset": 66
+    },
+    "end": {
+      "line": 6,
+      "col": 8,
+      "offset": 73
+    },
+    "fingerprint": "499990c39378cee796e8d54c5fde4082966386854341a647e7a4de3f00bc5ab2aa3b9bb1c41f93a842ed658d02428a038f52efae24bd56b0f63ab696d0cd0f36_0",
+    "captures": {
+      "$X": "params[[[:x:y]"
+    },
+    "message": "Capture params[:x, :y]"
+  },
+  {
+    "rule": "ruby-true-true",
+    "path": "targets/legacy_review_regressions/aliases.rb",
+    "start": {
+      "line": 6,
+      "col": 1,
+      "offset": 66
+    },
+    "end": {
+      "line": 6,
+      "col": 8,
+      "offset": 73
+    },
+    "fingerprint": "a9669b6e26716129a3d07d2c98e062e83f36989a1c34fcae5f2beaea8d03d02d4227608c868eb5e916ea0466e74225551ec9aa814cf6446aa8a0a28f76377f5b_0",
+    "captures": {
+      "$X": "params[[[:x:y]"
+    },
+    "message": "Capture params[:x, :y]"
+  },
+  {
+    "rule": "ruby-true-true",
+    "path": "targets/legacy_review_regressions/aliases.rb",
+    "start": {
+      "line": 6,
+      "col": 1,
+      "offset": 66
+    },
+    "end": {
+      "line": 6,
+      "col": 8,
+      "offset": 73
+    },
+    "fingerprint": "a54c93d2b18e0ea9f647dd99d71d0414c9be1b4ee3706b98b44f32b0094d99022fd9aa77aac42c1e672225c8725bf0a481459061f9509b39d250abff4403a80f_0",
+    "captures": {
+      "$X": "c"
+    },
+    "message": "Capture params[[[:x:y]"
+  },
+  {
+    "rule": "ruby-false-false",
+    "path": "targets/legacy_review_regressions/aliases.rb",
+    "start": {
+      "line": 8,
+      "col": 1,
+      "offset": 93
+    },
+    "end": {
+      "line": 8,
+      "col": 8,
+      "offset": 100
+    },
+    "fingerprint": "06448ce5970fb5f5db0727d29058ac67bb4231cc510f68c60c3f9d7a5a6b2245849429ab525ee3cf2992d85d295a3ae71b1f39cb0a5fd905e8e5796ecd41e414_0",
+    "captures": {
+      "$X": "d"
+    },
+    "message": "Capture d"
+  },
+  {
+    "rule": "ruby-false-true",
+    "path": "targets/legacy_review_regressions/aliases.rb",
+    "start": {
+      "line": 8,
+      "col": 1,
+      "offset": 93
+    },
+    "end": {
+      "line": 8,
+      "col": 8,
+      "offset": 100
+    },
+    "fingerprint": "29294b3b9a4b61e51d17c264ae26fde7e6ca92e5449082eda9d0d413c0f2a86893133a557bb8e1a947f04e3c3fc550dfc5d3bdc3a9543c1a1b3b97f470799277_0",
+    "captures": {
+      "$X": "d"
+    },
+    "message": "Capture params[[[:x][[[:y]"
+  },
+  {
+    "rule": "ruby-true-false",
+    "path": "targets/legacy_review_regressions/aliases.rb",
+    "start": {
+      "line": 8,
+      "col": 1,
+      "offset": 93
+    },
+    "end": {
+      "line": 8,
+      "col": 8,
+      "offset": 100
+    },
+    "fingerprint": "46d7df676b3e2ac268aac9600d3b2c9045269015b9a1404f30ac5fcab9e8cb0f20a39c979fd4e1477ed897c661be4b7c1d7ba14536090123445c61b6e6901c01_0",
+    "captures": {
+      "$X": "d"
+    },
+    "message": "Capture d"
+  },
+  {
+    "rule": "ruby-true-false",
+    "path": "targets/legacy_review_regressions/aliases.rb",
+    "start": {
+      "line": 8,
+      "col": 1,
+      "offset": 93
+    },
+    "end": {
+      "line": 8,
+      "col": 8,
+      "offset": 100
+    },
+    "fingerprint": "a372bbf0aa7f1159a3a9e0d22f4ba976e92b09bbc299288388231388a4513b0ea811178a3e0dfe461256fb7fbd623f88f329603d1b0c56551772e2e74f21834b_0",
+    "captures": {
+      "$X": "params[[[:x][[[:y]"
+    },
+    "message": "Capture params[:x][:y]"
+  },
+  {
+    "rule": "ruby-true-true",
+    "path": "targets/legacy_review_regressions/aliases.rb",
+    "start": {
+      "line": 8,
+      "col": 1,
+      "offset": 93
+    },
+    "end": {
+      "line": 8,
+      "col": 8,
+      "offset": 100
+    },
+    "fingerprint": "ed76d90b2ac2bac9dec26399a8945fbe2b4cdffa96dce17c0bdf3c1b8af802221e7bb12f642c3b996ef760acc537392a8df7dc04cd076997f69dbb6cab7eeaa1_0",
+    "captures": {
+      "$X": "params[[[:x][[[:y]"
+    },
+    "message": "Capture params[:x][:y]"
+  },
+  {
+    "rule": "ruby-true-true",
+    "path": "targets/legacy_review_regressions/aliases.rb",
+    "start": {
+      "line": 8,
+      "col": 1,
+      "offset": 93
+    },
+    "end": {
+      "line": 8,
+      "col": 8,
+      "offset": 100
+    },
+    "fingerprint": "7a28515b08262be10023eebc1a705aea4e26162fd6cb5708f62fbdf6e4da44ec8aa18c1e063cedbe038ecf16ce4db492abfcb3cd9cddc29b9c01fa71e91ff80a_0",
+    "captures": {
+      "$X": "d"
+    },
+    "message": "Capture params[[[:x][[[:y]"
+  },
+  {
+    "rule": "ruby-false-false",
+    "path": "targets/legacy_review_regressions/aliases.rb",
+    "start": {
+      "line": 10,
+      "col": 1,
+      "offset": 118
+    },
+    "end": {
+      "line": 10,
+      "col": 8,
+      "offset": 125
+    },
+    "fingerprint": "63e78e5b9862500904e2fc98b51567aea53bcfbf7229d190354dfe80f8946781e3cc27039135b50f69ef84dde8455949892fb412fc3d62ab07edb44c40ee07f9_0",
+    "captures": {
+      "$X": "e"
+    },
+    "message": "Capture e"
+  },
+  {
+    "rule": "ruby-false-true",
+    "path": "targets/legacy_review_regressions/aliases.rb",
+    "start": {
+      "line": 10,
+      "col": 1,
+      "offset": 118
+    },
+    "end": {
+      "line": 10,
+      "col": 8,
+      "offset": 125
+    },
+    "fingerprint": "acc34f8574476617ad5c855d08447159d568b7a3521c0e3063b862bdae362acbf834bc0e250334a03bc1214ae37306237e3bba84fc52cfbd7b49a900b1f2787d_0",
+    "captures": {
+      "$X": "e"
+    },
+    "message": "Capture e"
+  },
+  {
+    "rule": "ruby-true-false",
+    "path": "targets/legacy_review_regressions/aliases.rb",
+    "start": {
+      "line": 10,
+      "col": 1,
+      "offset": 118
+    },
+    "end": {
+      "line": 10,
+      "col": 8,
+      "offset": 125
+    },
+    "fingerprint": "ad5442069756ef60a953c6655203067fadd78c4e9336b958eee40e496b81aec4f801e271367a8e65fb88a6378e4d74d049b3d0fc84812dca8f899158245c8004_0",
+    "captures": {
+      "$X": "e"
+    },
+    "message": "Capture e"
+  },
+  {
+    "rule": "ruby-true-true",
+    "path": "targets/legacy_review_regressions/aliases.rb",
+    "start": {
+      "line": 10,
+      "col": 1,
+      "offset": 118
+    },
+    "end": {
+      "line": 10,
+      "col": 8,
+      "offset": 125
+    },
+    "fingerprint": "90198eafa38064f470d0242a9f3e6dcb7644191597d7ff715d1cb3d9f8c03f903f31266b52bd317a33257e95c8900c0ad8c583e62dad37d11926f95b5a1ee12b_0",
+    "captures": {
+      "$X": "e"
+    },
+    "message": "Capture e"
+  },
+  {
+    "rule": "ruby-false-false",
+    "path": "targets/legacy_review_regressions/aliases.rb",
+    "start": {
+      "line": 12,
+      "col": 1,
+      "offset": 135
+    },
+    "end": {
+      "line": 12,
+      "col": 8,
+      "offset": 142
+    },
+    "fingerprint": "09c311ddc68ad134dc45896c6a069822f36b718d3c996dc218bad34b7313d84e15877eee8a9ef63e390ec415e51487c8782f5dcc4a26e9e9e511c1725da02cd3_0",
+    "captures": {
+      "$X": "f"
+    },
+    "message": "Capture f"
+  },
+  {
+    "rule": "ruby-false-true",
+    "path": "targets/legacy_review_regressions/aliases.rb",
+    "start": {
+      "line": 12,
+      "col": 1,
+      "offset": 135
+    },
+    "end": {
+      "line": 12,
+      "col": 8,
+      "offset": 142
+    },
+    "fingerprint": "f3ccc82ce30635e0a112a4f3d17ceecfdad9724d09af18d3dcabdbc220ed869082c2892cf43c3b35f34b228cb40ccfd2042fa3732f472c2ff5b03e82eb2bbd39_0",
+    "captures": {
+      "$X": "f"
+    },
+    "message": "Capture f"
+  },
+  {
+    "rule": "ruby-true-false",
+    "path": "targets/legacy_review_regressions/aliases.rb",
+    "start": {
+      "line": 12,
+      "col": 1,
+      "offset": 135
+    },
+    "end": {
+      "line": 12,
+      "col": 8,
+      "offset": 142
+    },
+    "fingerprint": "6b28d16409a87e352a415755918bc61495ae04ad710eb9c07b85ab6bf7033617a242fcda8527ebfa6a23eff14f706c00f6a112e19b1cfbb0ff9648586c240530_0",
+    "captures": {
+      "$X": "f"
+    },
+    "message": "Capture f"
+  },
+  {
+    "rule": "ruby-true-true",
+    "path": "targets/legacy_review_regressions/aliases.rb",
+    "start": {
+      "line": 12,
+      "col": 1,
+      "offset": 135
+    },
+    "end": {
+      "line": 12,
+      "col": 8,
+      "offset": 142
+    },
+    "fingerprint": "b2dc590a210626c97c11c33ba30be3f48e36fc3593faa98c7683ad50581d4a5a058721858a2a3d4588c0ab573735e485cda809d799a1241d5fd1887a5e094bb4_0",
+    "captures": {
+      "$X": "f"
+    },
+    "message": "Capture f"
+  },
+  {
+    "rule": "ruby-false-false",
+    "path": "targets/legacy_review_regressions/aliases.rb",
+    "start": {
+      "line": 14,
+      "col": 1,
+      "offset": 156
+    },
+    "end": {
+      "line": 14,
+      "col": 8,
+      "offset": 163
+    },
+    "fingerprint": "ff7d733dff19d0defe713a2a675fba8cc3c9ca1d25eeb6ff2da748911f826262eeba9e36de795b73cee9799bf8e3a6b3b2b0515cc6696e96c0e95f43c8e7de9d_0",
+    "captures": {
+      "$X": "g"
+    },
+    "message": "Capture g"
+  },
+  {
+    "rule": "ruby-false-true",
+    "path": "targets/legacy_review_regressions/aliases.rb",
+    "start": {
+      "line": 14,
+      "col": 1,
+      "offset": 156
+    },
+    "end": {
+      "line": 14,
+      "col": 8,
+      "offset": 163
+    },
+    "fingerprint": "016b19b732bea325fb9492c7084f7172daac23c0e36dd5e6b4d62ef247138af929dcc0a6da40ccbcecd2fe9a6ccd6b4a4b38ffaf85233b9c31dd5ac4908cb324_0",
+    "captures": {
+      "$X": "g"
+    },
+    "message": "Capture g"
+  },
+  {
+    "rule": "ruby-true-false",
+    "path": "targets/legacy_review_regressions/aliases.rb",
+    "start": {
+      "line": 14,
+      "col": 1,
+      "offset": 156
+    },
+    "end": {
+      "line": 14,
+      "col": 8,
+      "offset": 163
+    },
+    "fingerprint": "34660dfdbfeef2f6cd9f1668346b819c2bf159a6692f5680553415faa0cf11d8254e7783b11bee09ddf23cac97d30da9d0b12fd0ee2b5041a5ecf1f383be1b96_0",
+    "captures": {
+      "$X": "g"
+    },
+    "message": "Capture g"
+  },
+  {
+    "rule": "ruby-true-true",
+    "path": "targets/legacy_review_regressions/aliases.rb",
+    "start": {
+      "line": 14,
+      "col": 1,
+      "offset": 156
+    },
+    "end": {
+      "line": 14,
+      "col": 8,
+      "offset": 163
+    },
+    "fingerprint": "c4d3b1d691fb403de4f0dbca65532183e7c9be892e8ec0573ef93f059700243f83c78a4c799bcc6441d4f37dc3f93b9d261929e794952b075990d60398d81030_0",
+    "captures": {
+      "$X": "g"
+    },
+    "message": "Capture g"
+  },
+  {
+    "rule": "ruby-false-false",
+    "path": "targets/legacy_review_regressions/aliases.rb",
+    "start": {
+      "line": 16,
+      "col": 1,
+      "offset": 181
+    },
+    "end": {
+      "line": 16,
+      "col": 8,
+      "offset": 188
+    },
+    "fingerprint": "e88a8b632f855fbd7f1b86be4b7d227aa3ef975c012400da3e966abaa5e4d8fffda8b600a130e986673d807ce460a84af6b6a12a9e17d1c7aaebd6b715f61a2b_0",
+    "captures": {
+      "$X": "h"
+    },
+    "message": "Capture h"
+  },
+  {
+    "rule": "ruby-false-true",
+    "path": "targets/legacy_review_regressions/aliases.rb",
+    "start": {
+      "line": 16,
+      "col": 1,
+      "offset": 181
+    },
+    "end": {
+      "line": 16,
+      "col": 8,
+      "offset": 188
+    },
+    "fingerprint": "9da064aa37a03dd6c34f4a36a25532e5579c34a66d9e061b6771320bf53265360ccb168f99eaea08e85fff53eb9bb339c2e368ae1347a009c1d09a80e8738243_0",
+    "captures": {
+      "$X": "h"
+    },
+    "message": "Capture receiver.foo"
+  },
+  {
+    "rule": "ruby-true-false",
+    "path": "targets/legacy_review_regressions/aliases.rb",
+    "start": {
+      "line": 16,
+      "col": 1,
+      "offset": 181
+    },
+    "end": {
+      "line": 16,
+      "col": 8,
+      "offset": 188
+    },
+    "fingerprint": "8536577d9f7e44712c0c4d201d685be81356177e8b4400b89cd14333dc1d6f2b0a293678422858754ce9c9ddfca7b91a6c69fbab284c0d6e79647d46b22649a5_0",
+    "captures": {
+      "$X": "h"
+    },
+    "message": "Capture h"
+  },
+  {
+    "rule": "ruby-true-false",
+    "path": "targets/legacy_review_regressions/aliases.rb",
+    "start": {
+      "line": 16,
+      "col": 1,
+      "offset": 181
+    },
+    "end": {
+      "line": 16,
+      "col": 8,
+      "offset": 188
+    },
+    "fingerprint": "93a1c03107998009dcb1105d3bd63a69d9c54eb1ec95e647f581e112cefe6cfc02416eaf0283f161eafe4dec956e23d476f0f3f97a2d37a77b8fa0e213e54a77_0",
+    "captures": {
+      "$X": "receiver.foo"
+    },
+    "message": "Capture receiver.foo"
+  },
+  {
+    "rule": "ruby-true-true",
+    "path": "targets/legacy_review_regressions/aliases.rb",
+    "start": {
+      "line": 16,
+      "col": 1,
+      "offset": 181
+    },
+    "end": {
+      "line": 16,
+      "col": 8,
+      "offset": 188
+    },
+    "fingerprint": "b9d0a550b8e2e04e1c4f5f254abf6f9aef677ea3cc7380295860ea399d12a70caf03272491f77233b401487cdb160cb8b3b1e34e7568d1774f8b3dbf0eff9721_0",
+    "captures": {
+      "$X": "receiver.foo"
+    },
+    "message": "Capture receiver.foo"
+  },
+  {
+    "rule": "ruby-false-false",
+    "path": "targets/legacy_review_regressions/aliases.rb",
+    "start": {
+      "line": 18,
+      "col": 1,
+      "offset": 208
+    },
+    "end": {
+      "line": 18,
+      "col": 8,
+      "offset": 215
+    },
+    "fingerprint": "7d49989c5031a9243b85decd3000a0cae9982d3b840518d65e8c41b07f722bf87b0c2297e360c71fdb5c32c21423d1e2699be39b4f8e316fb6b657e4c63c76c5_0",
+    "captures": {
+      "$X": "i"
+    },
+    "message": "Capture i"
+  },
+  {
+    "rule": "ruby-false-true",
+    "path": "targets/legacy_review_regressions/aliases.rb",
+    "start": {
+      "line": 18,
+      "col": 1,
+      "offset": 208
+    },
+    "end": {
+      "line": 18,
+      "col": 8,
+      "offset": 215
+    },
+    "fingerprint": "b885ed0d68372dbd664b26e1bc85c0d373da92bacf4bbeaf723395d438a16d5172b403072ecb8d6d715fa1bfde64c8f95b4468fd271714c9458b7b5b580c44aa_0",
+    "captures": {
+      "$X": "i"
+    },
+    "message": "Capture receiver.foo()"
+  },
+  {
+    "rule": "ruby-true-false",
+    "path": "targets/legacy_review_regressions/aliases.rb",
+    "start": {
+      "line": 18,
+      "col": 1,
+      "offset": 208
+    },
+    "end": {
+      "line": 18,
+      "col": 8,
+      "offset": 215
+    },
+    "fingerprint": "5f195c1de3fe3bd50eee270130f946e24f23e056da80898d0c4b1ce341c37392f368ad636b8ae88b92ba3c72598a5c6f5563cdc2b713d9b88c85b02f1c5a10f7_0",
+    "captures": {
+      "$X": "i"
+    },
+    "message": "Capture i"
+  },
+  {
+    "rule": "ruby-true-false",
+    "path": "targets/legacy_review_regressions/aliases.rb",
+    "start": {
+      "line": 18,
+      "col": 1,
+      "offset": 208
+    },
+    "end": {
+      "line": 18,
+      "col": 8,
+      "offset": 215
+    },
+    "fingerprint": "fd3bed2d3ab1e3c8f3eb2e87f006113982fa3cc920791b4b49d638c9f427edab29bc2c6853f1c12493fed4e1b40c94b9198cade3d96cabc4acced481eb6b31f1_0",
+    "captures": {
+      "$X": "receiver.foo()"
+    },
+    "message": "Capture receiver.foo()"
+  },
+  {
+    "rule": "ruby-true-true",
+    "path": "targets/legacy_review_regressions/aliases.rb",
+    "start": {
+      "line": 18,
+      "col": 1,
+      "offset": 208
+    },
+    "end": {
+      "line": 18,
+      "col": 8,
+      "offset": 215
+    },
+    "fingerprint": "dc671a15d22bc07a2f1a164e08224680197d37a66e72be87dc11727ab91ac754c7b08f6b6efa7bc57a685089e88b68cb2c3aa98d33cceedbea60934d517d4bca_0",
+    "captures": {
+      "$X": "receiver.foo()"
+    },
+    "message": "Capture receiver.foo()"
+  },
+  {
+    "rule": "embedded-constant",
+    "path": "targets/legacy_review_regressions/embedded.py",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 4,
+      "col": 5,
+      "offset": 54
+    },
+    "fingerprint": "bb915643e05a279c6b0b3ab7f506eaf63dd8b83576d94a352d85bbab879c911ff84129315e83f50f01d44926e8824d228af9c9f54658dc95119cd3cfebecfc0a_0",
+    "captures": {
+      "$SRC": "\"\"\"a = wrap(source())\na[0] = clean()\nsink(a)\n\"\"\""
+    },
+    "message": "Capture"
+  },
+  {
+    "rule": "embedded-message",
+    "path": "targets/legacy_review_regressions/embedded.py",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 4,
+      "col": 5,
+      "offset": 54
+    },
+    "fingerprint": "09446fbddfc534e8ba80ab5cd92d9cc73e7ce2b5086e6933eff700fe91db042b34ddd58c9e1c96735c7047ef9caa4894805d7053341c8ecdcfc14c09ef523e4c_0",
+    "captures": {
+      "$SRC": "\"\"\"a = wrap(source())\na[0] = clean()\nsink(a)\n\"\"\"",
+      "$INNER": "wrap(source())"
+    },
+    "message": "Capture  = wrap(source"
+  },
+  {
+    "rule": "embedded-message",
+    "path": "targets/legacy_review_regressions/embedded.py",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 4,
+      "col": 5,
+      "offset": 54
+    },
+    "fingerprint": "4560292bfc3d053c7f8e3d80d6e9062cd832d6b509a0c59c54b8055d2e5b9ebb81aea831efe83ac38a4b653a7f6f1d25fb21f37c5d4fa8bfe5e3fe8e4d9a7603_0",
+    "captures": {
+      "$SRC": "\"\"\"a = wrap(source())\na[0] = clean()\nsink(a)\n\"\"\""
+    },
+    "message": "Capture $INNER"
+  },
+  {
+    "rule": "embedded-message",
+    "path": "targets/legacy_review_regressions/embedded.py",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 4,
+      "col": 5,
+      "offset": 54
+    },
+    "fingerprint": "642f9e8b78a84dcec5f56819dcf0a959b881763283e72ae71e0ed8d1d8fe433c93d3192d22a3a366d87ab2e69e4c1ab797a477dd46170cd3752fd22eb3d0f471_0",
+    "captures": {
+      "$SRC": "\"\"\"a = wrap(source())\na[0] = clean()\nsink(a)\n\"\"\"",
+      "$INNER": "a"
+    },
+    "message": "Capture n"
+  },
+  {
+    "rule": "compare-alias",
+    "path": "targets/legacy_review_regressions/filters.py",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 34
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 41
+    },
+    "fingerprint": "9d1157e79922d66cb39ff45fa86920f1572ac1060cbf2d8250ea53a9b39591b0be59f1af69dae5ccc1a20c77c2c485d9e574808179878986e07107aca301bddd_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "compare-value",
+    "path": "targets/legacy_review_regressions/filters.py",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 34
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 41
+    },
+    "fingerprint": "7df3e5acbb95ffcb9124a225c3be0ae436ad69e510872daeae7dc54ebe03f6eba22c478f7d549b4d9e1d3fb9e954209c6316a5fd9bda886074442fb095e10237_0",
+    "captures": {
+      "$X": "wrap(source())"
+    },
+    "message": "Capture wrap(source())"
+  },
+  {
+    "rule": "nested-alias",
+    "path": "targets/legacy_review_regressions/filters.py",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 34
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 41
+    },
+    "fingerprint": "b5067d3378064563ad3c8a80c4bfe338ada24cc6eff4763f91eac7b0df895ec5ef7b737e92afaf8a1b2a7d6054a8b549abe9a22dfb6c80a8544ec50ef97c0b6e_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "nested-value",
+    "path": "targets/legacy_review_regressions/filters.py",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 34
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 41
+    },
+    "fingerprint": "ed7bab4491bcb20a189b158b1889469a0317724bf36eef76b4b26f61fa7f63eb13dd46bdf65db3fe6a50059cb66619517f5a9a1e41d8c5305e6bf18a051ba8c7_0",
+    "captures": {
+      "$X": "wrap(source())"
+    },
+    "message": "Capture wrap(source())"
+  },
+  {
+    "rule": "plain",
+    "path": "targets/legacy_review_regressions/filters.py",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 34
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 41
+    },
+    "fingerprint": "cf378bb28acbf90a08f05aeb542d7fd8c97182ab147594b91e33c1514952eaf7ce536a1a788df1e805b97a6791027815b6527e13b2faa0e9416c3e333fb6cf56_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "plain",
+    "path": "targets/legacy_review_regressions/filters.py",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 34
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 41
+    },
+    "fingerprint": "2072352d8ad91f9c681e432f8f1ccaebb9c790e79f3310fc483aaf64d37a93209f0a5a5a2c00c3808662d536e9895649dc600c8e1bff341766f9e485159a6ee0_0",
+    "captures": {
+      "$X": "wrap(source())"
+    },
+    "message": "Capture wrap(source())"
+  },
+  {
+    "rule": "regex-alias",
+    "path": "targets/legacy_review_regressions/filters.py",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 34
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 41
+    },
+    "fingerprint": "b6139c1cd5625a7f90c8cd014d668bd7a4b5a29bcf3ed51293bf1f9d30b87a83245f764f51b18253d2c88b6eecaffddee839b4eb65bb6f65413ab51042b8ccc1_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "regex-value",
+    "path": "targets/legacy_review_regressions/filters.py",
+    "start": {
+      "line": 3,
+      "col": 1,
+      "offset": 34
+    },
+    "end": {
+      "line": 3,
+      "col": 8,
+      "offset": 41
+    },
+    "fingerprint": "9c5859495a3a93e508caa932c92eb9c86b678be53dfcd868232181df35230449083023a5f82fa63846322496b2ae1eb6b643fa9d1e63d77f1b2ff70a1a14741c_0",
+    "captures": {
+      "$X": "wrap(source())"
+    },
+    "message": "Capture wrap(source())"
+  },
+  {
+    "rule": "focus",
+    "path": "targets/legacy_review_regressions/filters.py",
+    "start": {
+      "line": 3,
+      "col": 6,
+      "offset": 39
+    },
+    "end": {
+      "line": 3,
+      "col": 7,
+      "offset": 40
+    },
+    "fingerprint": "2a1f7c56b5ae5bc387230d2638b7f6a13cb64a3c9e52419361efc406cd5471bcdb2fd6ae5f4f647ae381fa6cc35c3e60ac6e8ce05a6fc682261dce242786322e_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a"
+  },
+  {
+    "rule": "independent",
+    "path": "targets/legacy_review_regressions/filters.py",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 42
+    },
+    "end": {
+      "line": 4,
+      "col": 11,
+      "offset": 52
+    },
+    "fingerprint": "0117d5955b9d24d8ac5049d2bdbf722dbad30be0c6267d53e14d4626d0db459263e1d56fd47348eed124ea9ee8749074c19812b78776c73bc7e19a2b9676a829_0",
+    "captures": {
+      "$X": "a",
+      "$Y": "a"
+    },
+    "message": "Capture a a"
+  },
+  {
+    "rule": "independent",
+    "path": "targets/legacy_review_regressions/filters.py",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 42
+    },
+    "end": {
+      "line": 4,
+      "col": 11,
+      "offset": 52
+    },
+    "fingerprint": "f7340c0471ee0702e02c55ab3d478e675bb68e4e2e6eda212a2525707de2a6ed97b2b952d59a70cf86a706e11379bced27e4242945333cc18dc04cf95a563a35_0",
+    "captures": {
+      "$Y": "wrap(source())",
+      "$X": "a"
+    },
+    "message": "Capture a wrap(source())"
+  },
+  {
+    "rule": "independent",
+    "path": "targets/legacy_review_regressions/filters.py",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 42
+    },
+    "end": {
+      "line": 4,
+      "col": 11,
+      "offset": 52
+    },
+    "fingerprint": "6d294f52728c71ede03897716d496c7a414f7f6988caf5b88d7dc6f99031ce891eef32d5a8b77705ad65dfac1b660fd474ad065b2715acbc1adf090901bd5b7d_0",
+    "captures": {
+      "$X": "wrap(source())",
+      "$Y": "a"
+    },
+    "message": "Capture wrap(source()) a"
+  },
+  {
+    "rule": "independent",
+    "path": "targets/legacy_review_regressions/filters.py",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 42
+    },
+    "end": {
+      "line": 4,
+      "col": 11,
+      "offset": 52
+    },
+    "fingerprint": "afe4e7f4f2bd959a0464c2fd43bc1294f9e38fd8508c5916a47cb378b282f292aa83db517116c4b438a22807eb9c15f62ab08c7ef6b62be7714d8ce5570b73f2_0",
+    "captures": {
+      "$X": "wrap(source())",
+      "$Y": "wrap(source())"
+    },
+    "message": "Capture wrap(source()) wrap(source())"
+  },
+  {
+    "rule": "repeated",
+    "path": "targets/legacy_review_regressions/filters.py",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 42
+    },
+    "end": {
+      "line": 4,
+      "col": 11,
+      "offset": 52
+    },
+    "fingerprint": "d46800ad66ff6d6fbf9a52664e791fe74f6482e4fb024f1597a1c63b152d33735f39502233f9e1faa17d299ea89900f6c17007e8a57c14ccf0158e431fad16dc_0",
+    "captures": {
+      "$X": "a"
+    },
+    "message": "Capture a $Y"
+  },
+  {
+    "rule": "repeated",
+    "path": "targets/legacy_review_regressions/filters.py",
+    "start": {
+      "line": 4,
+      "col": 1,
+      "offset": 42
+    },
+    "end": {
+      "line": 4,
+      "col": 11,
+      "offset": 52
+    },
+    "fingerprint": "5c645c669f42a5c3a58d49b5ace8c9c3dd3518fe229e91b49690d26b29fdb777db1d3a24a9c7df4868e85c9679668b46d63c39277a00bd61292f1ffe23532794_0",
+    "captures": {
+      "$X": "wrap(source())"
+    },
+    "message": "Capture wrap(source()) $Y"
+  },
+  {
+    "rule": "independent",
+    "path": "targets/legacy_review_regressions/filters.py",
+    "start": {
+      "line": 5,
+      "col": 1,
+      "offset": 53
+    },
+    "end": {
+      "line": 5,
+      "col": 24,
+      "offset": 76
+    },
+    "fingerprint": "f7340c0471ee0702e02c55ab3d478e675bb68e4e2e6eda212a2525707de2a6ed97b2b952d59a70cf86a706e11379bced27e4242945333cc18dc04cf95a563a35_1",
+    "captures": {
+      "$X": "a",
+      "$Y": "wrap(source())"
+    },
+    "message": "Capture a wrap(source())"
+  },
+  {
+    "rule": "independent",
+    "path": "targets/legacy_review_regressions/filters.py",
+    "start": {
+      "line": 5,
+      "col": 1,
+      "offset": 53
+    },
+    "end": {
+      "line": 5,
+      "col": 24,
+      "offset": 76
+    },
+    "fingerprint": "afe4e7f4f2bd959a0464c2fd43bc1294f9e38fd8508c5916a47cb378b282f292aa83db517116c4b438a22807eb9c15f62ab08c7ef6b62be7714d8ce5570b73f2_1",
+    "captures": {
+      "$X": "wrap(source())",
+      "$Y": "wrap(source())"
+    },
+    "message": "Capture wrap(source()) wrap(source())"
+  },
+  {
+    "rule": "repeated",
+    "path": "targets/legacy_review_regressions/filters.py",
+    "start": {
+      "line": 5,
+      "col": 1,
+      "offset": 53
+    },
+    "end": {
+      "line": 5,
+      "col": 24,
+      "offset": 76
+    },
+    "fingerprint": "5c645c669f42a5c3a58d49b5ace8c9c3dd3518fe229e91b49690d26b29fdb777db1d3a24a9c7df4868e85c9679668b46d63c39277a00bd61292f1ffe23532794_1",
+    "captures": {
+      "$X": "wrap(source())"
+    },
+    "message": "Capture wrap(source()) $Y"
+  },
+  {
+    "rule": "independent",
+    "path": "targets/legacy_review_regressions/filters.py",
+    "start": {
+      "line": 6,
+      "col": 1,
+      "offset": 77
+    },
+    "end": {
+      "line": 6,
+      "col": 21,
+      "offset": 97
+    },
+    "fingerprint": "0c221f4ebf90f851fd826915364f1295097e4f777a33556fc68b5f352dcb2159423e42fafdd88cd78c69914b1a93d17488ad14c6c775f41140737ff8db502ac4_0",
+    "captures": {
+      "$X": "a",
+      "$Y": "different()"
+    },
+    "message": "Capture a different()"
+  },
+  {
+    "rule": "independent",
+    "path": "targets/legacy_review_regressions/filters.py",
+    "start": {
+      "line": 6,
+      "col": 1,
+      "offset": 77
+    },
+    "end": {
+      "line": 6,
+      "col": 21,
+      "offset": 97
+    },
+    "fingerprint": "e21c6092914800d5062ad7be6317eda0491d82ee999e8590ae3ad8a223b9140d92608da9dc69814496edc9999dca4064e8b40c081dc45178c0e79c4adf8875ce_0",
+    "captures": {
+      "$X": "wrap(source())",
+      "$Y": "different()"
+    },
+    "message": "Capture wrap(source()) different()"
+  },
+  {
+    "rule": "independent",
+    "path": "targets/legacy_review_regressions/filters.py",
+    "start": {
+      "line": 7,
+      "col": 1,
+      "offset": 98
+    },
+    "end": {
+      "line": 7,
+      "col": 24,
+      "offset": 121
+    },
+    "fingerprint": "6d294f52728c71ede03897716d496c7a414f7f6988caf5b88d7dc6f99031ce891eef32d5a8b77705ad65dfac1b660fd474ad065b2715acbc1adf090901bd5b7d_1",
+    "captures": {
+      "$X": "wrap(source())",
+      "$Y": "a"
+    },
+    "message": "Capture wrap(source()) a"
+  },
+  {
+    "rule": "independent",
+    "path": "targets/legacy_review_regressions/filters.py",
+    "start": {
+      "line": 7,
+      "col": 1,
+      "offset": 98
+    },
+    "end": {
+      "line": 7,
+      "col": 24,
+      "offset": 121
+    },
+    "fingerprint": "afe4e7f4f2bd959a0464c2fd43bc1294f9e38fd8508c5916a47cb378b282f292aa83db517116c4b438a22807eb9c15f62ab08c7ef6b62be7714d8ce5570b73f2_2",
+    "captures": {
+      "$Y": "wrap(source())",
+      "$X": "wrap(source())"
+    },
+    "message": "Capture wrap(source()) wrap(source())"
+  },
+  {
+    "rule": "repeated",
+    "path": "targets/legacy_review_regressions/filters.py",
+    "start": {
+      "line": 7,
+      "col": 1,
+      "offset": 98
+    },
+    "end": {
+      "line": 7,
+      "col": 24,
+      "offset": 121
+    },
+    "fingerprint": "5c645c669f42a5c3a58d49b5ace8c9c3dd3518fe229e91b49690d26b29fdb777db1d3a24a9c7df4868e85c9679668b46d63c39277a00bd61292f1ffe23532794_2",
+    "captures": {
+      "$X": "wrap(source())"
+    },
+    "message": "Capture wrap(source()) $Y"
+  }
+]

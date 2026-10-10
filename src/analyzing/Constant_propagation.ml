@@ -95,7 +95,7 @@ let is_private attr =
 (* [base] is set while peeling the receiver of a subscript/field store: a
    Container there is a temporary literal (`[x][0] = v`), not a
    destructuring target, and the variables inside it are not written. *)
-let rec lvars_in_lhs ?(base = false) expr =
+let rec lvars_in_lhs ~legacy ?(base = false) expr =
   match expr.e with
   | N (Id (id, { id_resolved = { contents = Some (_kind, sid) }; _ }))
   | DotAccess
@@ -104,15 +104,16 @@ let rec lvars_in_lhs ?(base = false) expr =
         FN (Id (id, { id_resolved = { contents = Some (_kind, sid) }; _ })) ) ->
       [ (id, sid) ]
   | Container ((Tuple | Array), (_, es, _)) when not base ->
-      List.concat_map lvars_in_lhs es
+      List.concat_map (lvars_in_lhs ~legacy) es
   (* A store through a subscript or a field (`a[i] = v`, `a.f = v`,
      `a[i].f = v`) mutates the container/object held by the base variable,
      so it must count as a write to it: otherwise `a = {}; a[k] = v` leaves
      `a` "assigned just once" and its stale initial value gets propagated
      into later reads of `a`. *)
   | ArrayAccess (e, _)
-  | DotAccess (e, _, _) ->
-      lvars_in_lhs ~base:true e
+  | DotAccess (e, _, _)
+    when not legacy ->
+      lvars_in_lhs ~legacy ~base:true e
   | __else__ -> []
 
 class ['self] no_cycles_in_sym_prop_visitor =
@@ -214,7 +215,25 @@ let constant_propagation_and_evaluate_literal ?lang =
  * safe to do the const propagation.
  *)
 
-class ['self] stats_of_prog_visitor =
+(* Reproduce the pre-1.30 basic traversal only in the reporting pass. *)
+class virtual ['self] basic_visitor legacy =
+  object (self : 'self)
+    inherit ['self] Iter_with_context.iter_with_context as super
+
+    method! visit_expr (env, ctx) x =
+      match (legacy, x.e) with
+      | true, ArrayAccess (base, (_, index, _)) ->
+          self#with_context_visit_expr (env, ctx) base;
+          self#with_context_visit_expr
+            (env, { ctx with in_lvalue = false })
+            index
+      | true, (Assign (lhs, _, rhs) | AssignOp (lhs, _, rhs)) ->
+          self#with_context_visit_expr (env, { ctx with in_lvalue = true }) lhs;
+          self#with_context_visit_expr (env, ctx) rhs
+      | _ -> super#visit_expr (env, ctx) x
+  end
+
+class ['self] stats_of_prog_visitor legacy =
   let get_stat_or_create var h =
     try Hashtbl.find h var with
     | Not_found ->
@@ -223,7 +242,7 @@ class ['self] stats_of_prog_visitor =
         stat
   in
   object (_self : 'self)
-    inherit [_] Iter_with_context.iter_with_context as super
+    inherit [_] basic_visitor legacy as super
 
     method! with_context_visit_definition (env, ctx) x =
       (* We need to override 'with_context_visit_definition' instead of
@@ -274,7 +293,7 @@ class ['self] stats_of_prog_visitor =
       | Assign (* v = ... *) (lhs, _, _e2)
       | AssignOp (* v += ... *) (lhs, _, _e2) ->
           (* TODO: What if there is an asignment inside the `lhs` ? *)
-          lvars_in_lhs lhs
+          lvars_in_lhs ~legacy lhs
           |> List.iter (fun (id, sid) ->
                  let var = (H.str_of_ident id, sid) in
                  let stat = get_stat_or_create var env.var_stats in
@@ -312,10 +331,14 @@ class ['self] stats_of_prog_visitor =
       super#visit_expr (env, ctx) x
   end
 
-let stats_of_prog_visitor_instance = new stats_of_prog_visitor
-let stats_of_prog prog : stats =
+let stats_of_prog_visitor_instance = new stats_of_prog_visitor false
+let legacy_stats_of_prog_visitor_instance = new stats_of_prog_visitor true
+
+let stats_of_prog ~legacy prog : stats =
   let stats = new_stats () in
-  let visitor = stats_of_prog_visitor_instance 
+  let visitor =
+    if legacy then legacy_stats_of_prog_visitor_instance
+    else stats_of_prog_visitor_instance
   in
   visitor#visit_program (stats, Iter_with_context.initial_context) prog;
   stats
@@ -433,9 +456,12 @@ type propagate_basic_visitor_funcs = {
 let hook_propagate_basic_visitor : propagate_basic_visitor_funcs option ref =
   ref None
 
-class ['self] propagate_basic_visitor lang stats =
+let set_svalue ~legacy info value =
+  Dataflow_svalue.set_svalue_ref ~legacy info value
+
+class ['self] propagate_basic_visitor legacy lang stats =
   object (_self : 'self)
-    inherit [_] Iter_with_context.iter_with_context as super
+    inherit [_] basic_visitor legacy as super
 
     val lang = lang
     val stats = stats
@@ -486,7 +512,7 @@ class ['self] propagate_basic_visitor lang stats =
             || assigned_just_once && Eval.is_lang env Lang.Java
                && List.exists is_private attrs
           then (
-            id_flags := IdFlags.set_final !id_flags;
+            if not legacy then id_flags := IdFlags.set_final !id_flags;
             match (Eval.eval env e, e.e) with
             (* When the name already has an svalue computed, just use
              * that. DeepSemgrep assigns svalues sometimes in its naming
@@ -499,18 +525,20 @@ class ['self] propagate_basic_visitor lang stats =
                will simply not have an `svalue` if they are non-propagated as well.
             *)
             | None, _
-              when Dataflow_svalue.is_symbolic_expr e
+              when Dataflow_svalue.is_symbolic_expr ~legacy e
                    && no_cycles_in_sym_prop sid e ->
                 add_constant_env id (sid, Sym e) env
             | None, _ -> ());
           super#visit_definition (env, ctx) x
       | entity, ClassDef c ->
-          let x' = entity, ClassDef (H.reorder_fields_in_class_definition c) in
-          !hook_propagate_basic_visitor
+          let x' =
+            (entity, ClassDef (H.reorder_fields_in_class_definition c))
+          in
+          (if legacy then None else !hook_propagate_basic_visitor)
           |> Option.iter (fun v -> v.visit_definition (env, ctx) x');
           super#visit_definition (env, ctx) x'
       | _ ->
-          !hook_propagate_basic_visitor
+          (if legacy then None else !hook_propagate_basic_visitor)
           |> Option.iter (fun v -> v.visit_definition (env, ctx) x);
           super#visit_definition (env, ctx) x
 
@@ -519,7 +547,7 @@ class ['self] propagate_basic_visitor lang stats =
       (match name with
       | Id (id, id_info) ->
           let/ svalue = Eval.find_id env id id_info in
-          Dataflow_svalue.set_svalue_ref id_info svalue
+          set_svalue ~legacy id_info svalue
       | __else__ -> ());
       super#visit_NamedAttr (env, ctx) tok name args
 
@@ -531,14 +559,14 @@ class ['self] propagate_basic_visitor lang stats =
           ({ e = IdSpecial ((This | Self), _); _ }, _, FN (Id (id, id_info)))
         when not ctx.in_lvalue ->
           let/ svalue = Eval.find_id env id id_info in
-          Dataflow_svalue.set_svalue_ref id_info svalue
+          set_svalue ~legacy id_info svalue
       (* ugly: dockerfile specific *)
       | Call
           ( { e = N (Id (("!dockerfile_expand!", _), _)); _ },
             (_, [ Arg { e = N (Id (id, id_info)); _ } ], _) )
         when not ctx.in_lvalue ->
           let/ svalue = Eval.find_id env id id_info in
-          Dataflow_svalue.set_svalue_ref id_info svalue
+          set_svalue ~legacy id_info svalue
       (* ugly: terraform specific.
        * coupling: with eval() above
        *)
@@ -549,7 +577,7 @@ class ['self] propagate_basic_visitor lang stats =
         when lang = Lang.Terraform && not ctx.in_lvalue ->
           let var = (prefix ^ "." ^ str, terraform_sid) in
           let/ svalue = Hashtbl.find_opt env.constants var in
-          Dataflow_svalue.set_svalue_ref id_info svalue
+          set_svalue ~legacy id_info svalue
       | Assign
           (* Assign that is really a hidden VarDef (e.g., in Python) *)
           ( {
@@ -603,12 +631,12 @@ class ['self] propagate_basic_visitor lang stats =
                   && (ctx.in_static_block || in_unique_constructor))
             && is_resolved_name kind sid
           then (
-            id_flags := IdFlags.set_final !id_flags;
+            if not legacy then id_flags := IdFlags.set_final !id_flags;
             match opt_svalue with
             | Some svalue -> add_constant_env id (sid, svalue) env
             | None ->
                 if
-                  Dataflow_svalue.is_symbolic_expr rexp
+                  Dataflow_svalue.is_symbolic_expr ~legacy rexp
                   && no_cycles_in_sym_prop sid rexp
                 then add_constant_env id (sid, Sym rexp) env;
                 ());
@@ -616,34 +644,40 @@ class ['self] propagate_basic_visitor lang stats =
              sends [rexp] back through [self#visit_expr], so an RHS that is
              exactly an Id (q = SOME_CONST) gets its svalue stamped, like the
              same id in argument position would. *)
-          super#visit_expr (env, ctx) x
+          super#visit_expr (env, ctx) (if legacy then rexp else x)
       | __else__ -> super#visit_expr (env, ctx) x
   end
 
 (* !Note that this assumes Naming_AST.resolve has been called before! *)
 let propagate_basic lang prog =
   Log.debug (fun m -> m ~tags "Constant_propagation.propagate_basic program");
-  let (env : Eval.env) = Eval.default_env (Some lang) in
+  let run legacy =
+    let env = { (Eval.default_env (Some lang)) with legacy } in
 
-  (* right now this is used only for Terraform *)
-  add_special_constants env lang prog;
+    (* right now this is used only for Terraform *)
+    add_special_constants env lang prog;
 
-  (* step1: first pass const analysis for languages without 'const/final' *)
-  let stats = stats_of_prog prog in
+    (* step1: first pass const analysis for languages without 'const/final' *)
+    let stats = stats_of_prog ~legacy prog in
 
-  (* step2: second pass where we actually propagate when we can *)
-  (* XXX: Moved to class, since there seems to be a race condition with
-   * immediate objects when instantiated in parallel. *)
-  let visitor = new propagate_basic_visitor lang stats
+    (* step2: second pass where we actually propagate when we can *)
+    (* XXX: Moved to class, since there seems to be a race condition with
+     * immediate objects when instantiated in parallel. *)
+    let visitor = new propagate_basic_visitor legacy lang stats
+    in
+    visitor#visit_program (env, Iter_with_context.initial_context) prog
   in
-  visitor#visit_program (env, Iter_with_context.initial_context) prog;
-  ()
+  run true;
+  run false
 [@@profiling] [@@trace_trace]
 
 let propagate_dataflow_one_function lang fun_cfg =
   (* Exposed to help DeepSemgrep *)
   let mapping = Dataflow_svalue.fixpoint lang fun_cfg in
-  Dataflow_svalue.update_svalue fun_cfg.cfg mapping
+  Dataflow_svalue.update_svalue fun_cfg.cfg mapping;
+  if Lang.equal lang Lang.Elixir then
+    let mapping = Dataflow_svalue.fixpoint ~legacy:true lang fun_cfg in
+    Dataflow_svalue.update_svalue ~legacy:true fun_cfg.cfg mapping
 
 let propagate_dataflow lang ast =
   Log.debug (fun m -> m ~tags "Constant_propagation.propagate_dataflow program");

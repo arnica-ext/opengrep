@@ -6,6 +6,9 @@ exception NotAnExpr
 
 val expr_to_pattern : AST_generic.expr -> AST_generic.pattern
 
+(* The pre-ArrayAccess Ruby callee, for legacy matching and sink captures. *)
+val ruby_array_access_callee : AST_generic.expr -> AST_generic.expr option
+
 (* This executes some simplifications, such as not producing
    ExprStmt (StmtExpr ...)
 *)
@@ -139,6 +142,13 @@ val set_e_range : Tok.t -> Tok.t -> AST_generic.expr -> unit
  * any list is empty). *)
 val set_e_range_with_anys : AST_generic.any list -> AST_generic.expr -> unit
 val ii_of_any : AST_generic.any -> Tok.t list
+val ii_of_any_for_reporting : AST_generic.any -> Tok.t list
+
+class ['self] reporting_visitor : object ('self)
+  inherit ['self] AST_generic.iter_no_id_info
+  method visit_tok : Tok.t list ref -> AST_generic.tok -> unit
+end
+
 val info_of_any : AST_generic.any -> Tok.t
 
 (* may raise NoTokenLocation *)
@@ -151,6 +161,11 @@ val nearest_any_of_pos :
   AST_generic.program ->
   int ->
   (AST_generic.any * (Tok.location * Tok.location)) option
+
+(* One instance per transformation; saved syntax can share subtrees. *)
+class ['self] map_with_originals : object ('self)
+  inherit ['self] AST_generic.map
+end
 
 val fix_token_locations_any :
   (Tok.location -> Tok.location) -> AST_generic.any -> AST_generic.any

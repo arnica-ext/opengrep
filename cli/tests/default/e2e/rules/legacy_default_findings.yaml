@@ -1,0 +1,38 @@
+{
+  "rules": [
+    {
+      "id": "eval-detected",
+      "message": "Detected the use of eval(). eval() can be dangerous if used to evaluate dynamic content. If this content can be input from outside the program, this may be a code injection vulnerability. Ensure evaluated content is not definable by external sources.",
+      "languages": [
+        "javascript",
+        "typescript"
+      ],
+      "severity": "WARNING",
+      "patterns": [
+        {
+          "pattern-not": "eval(\"...\")"
+        },
+        {
+          "pattern": "eval(...)"
+        }
+      ]
+    },
+    {
+      "id": "bypass-tls-verification",
+      "message": "Checks for setting the environment variable NODE_TLS_REJECT_UNAUTHORIZED to 0, which disables TLS verification. This should only be used for debugging purposes. Setting the option rejectUnauthorized to false bypasses verification against the list of trusted CAs, which also leads to insecure transport. These options lead to vulnerability to MTM attacks, and should not be used.",
+      "severity": "WARNING",
+      "languages": [
+        "javascript",
+        "typescript"
+      ],
+      "pattern-either": [
+        {
+          "pattern": "process.env[\"NODE_TLS_REJECT_UNAUTHORIZED\"] = 0;\n"
+        },
+        {
+          "pattern": "{rejectUnauthorized:false}\n"
+        }
+      ]
+    }
+  ]
+}

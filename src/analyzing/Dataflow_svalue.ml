@@ -139,21 +139,30 @@ let result_of_function_call_constant lang f args =
  * [tests/tainting_rules/python/pruner_symbolic.{py,yaml}] pins the
  * prunable surface for each kind currently propagated; a regression
  * here will surface as a fixture failure. *)
-let rec is_symbolic_expr expr =
+let rec is_symbolic_expr ?(legacy = false) expr =
   match expr.G.e with
+  | _ when legacy && Option.is_some expr.e_original -> (
+      match expr.e_original with
+      | Some (G.E original) -> is_symbolic_expr ~legacy original
+      | _ -> false)
+  | G.OtherExpr
+      (("PipelineCall", _), [ G.E { e_original = Some (G.E original); _ } ])
+    when legacy ->
+      is_symbolic_expr ~legacy original
   | G.L _ -> true
   | G.N _ -> true
   | G.IdSpecial _ -> true
   | G.Cast (_, _, e)
   | G.DotAccess (e, _, FN _) ->
-      is_symbolic_expr e
-  | G.ArrayAccess (e1, (_, e2, _)) -> is_symbolic_expr e1 && is_symbolic_expr e2
+      is_symbolic_expr ~legacy e
+  | G.ArrayAccess (e1, (_, e2, _)) ->
+      is_symbolic_expr ~legacy e1 && is_symbolic_expr ~legacy e2
   | G.Call (e, (_, args, _)) ->
-      is_symbolic_expr e && List.for_all is_symbolic_arg args
+      is_symbolic_expr ~legacy e && List.for_all (is_symbolic_arg ~legacy) args
   | G.New (_, _, _, args) ->
       let args = Tok.unbracket args in
-      List.for_all is_symbolic_arg args
-  | G.Record (_, fields, _) -> List.for_all is_symbolic_field fields
+      List.for_all (is_symbolic_arg ~legacy) args
+  | G.Record (_, fields, _) -> List.for_all (is_symbolic_field ~legacy) fields
   (* Sequence containers: allow propagation of literal list/tuple/array/set
    * expressions as symbolic values. Clojure's calling convention wraps every
    * call's arguments into a single list (see AST_to_IL's Clojure case), so
@@ -166,27 +175,27 @@ let rec is_symbolic_expr expr =
    * alias ([opts = {cb: handler, data: x}; my_hof(opts)]) through the
    * variable's [id_svalue] and recover the concrete callback at each
    * field key. *)
-  | G.Container
-      ((G.List | G.Tuple | G.Array | G.Set | G.Dict), (_, exprs, _)) ->
-      List.for_all is_symbolic_expr exprs
+  | G.Container ((G.List | G.Tuple | G.Array | G.Set | G.Dict), (_, exprs, _))
+    when not legacy ->
+      List.for_all (is_symbolic_expr ~legacy) exprs
   (* Lambda literals: carry the function identity via sym-prop so that an
    * assignment like [cb = (lambda x: ...)] leaves [cb.id_svalue] pointing at
    * the lambda expression. Lets HOF callee-resolution recover the lambda's
    * signature without relying on the [_tmp_lambda_N] naming convention that
    * AST_to_IL inserts. *)
-  | G.Lambda _ -> true
+  | G.Lambda _ when not legacy -> true
   | __else__ -> false
 
-and is_symbolic_arg arg =
+and is_symbolic_arg ~legacy arg =
   match arg with
-  | G.Arg e -> is_symbolic_expr e
+  | G.Arg e -> is_symbolic_expr ~legacy e
   | G.ArgKwd (_, e)
   | G.ArgKwdOptional (_, e) ->
-      is_symbolic_expr e
+      is_symbolic_expr ~legacy e
   | G.ArgType _ -> true
   | G.OtherArg _ -> false
 
-and is_symbolic_field field =
+and is_symbolic_field ~legacy field =
   match field with
   | G.F
       {
@@ -195,20 +204,23 @@ and is_symbolic_field field =
             ({ name = G.EN _; _ }, G.FieldDefColon { vinit = Some expr; _ });
         _;
       } ->
-      is_symbolic_expr expr
+      is_symbolic_expr ~legacy expr
   | __else__ -> false
 
-let sym_prop eorig =
+let sym_prop ~legacy eorig =
   match eorig with
-  | SameAs e_gen when is_symbolic_expr e_gen -> G.Sym e_gen
+  | SameAs e_gen when is_symbolic_expr ~legacy e_gen -> G.Sym e_gen
   | ___else___ -> G.NotCst
 
-let eval_or_sym_prop env exp =
+let eval_or_sym_prop ~legacy env exp =
   match Eval.eval env exp with
-  | G.NotCst -> sym_prop exp.eorig
+  | G.NotCst -> sym_prop ~legacy exp.eorig
   | c -> c
 
-let no_cycles_in_svalue (id_info : G.id_info) svalue =
+let svalue_ref ~legacy (info : G.id_info) =
+  if legacy then info.id_legacy_svalue else info.id_svalue
+
+let no_cycles_in_svalue ~legacy (id_info : G.id_info) svalue =
   let for_all_id_info : (G.id_info -> bool) -> G.any -> bool =
     (* Check that all id_info's satisfy a given condition. We use refs so that
      * we can have a single visitor for all calls, given that the old
@@ -224,7 +236,7 @@ let no_cycles_in_svalue (id_info : G.id_info) svalue =
 
         method! visit_id_info env ii =
           ok := !ok && !ff ii;
-          (match !(ii.id_svalue) with
+          (match !(svalue_ref ~legacy ii) with
           | Some (Sym e) when !ok ->
               (* Following `id_svalue`s can explode in pathological cases,
                * see 'tests/rules/sym_prop_explosion.js', so we need to
@@ -261,18 +273,19 @@ let no_cycles_in_svalue (id_info : G.id_info) svalue =
         (fun ii ->
           (* Note the use of physical equality, we are looking for the *same*
            * id_svalue ref, that tells us it's the same variable occurrence. *)
-          not (phys_equal id_info.id_svalue ii.id_svalue))
+          not (phys_equal (svalue_ref ~legacy id_info) (svalue_ref ~legacy ii)))
         (G.E e)
   | G.NotCst
   | G.Cst _
   | G.Lit _ ->
       true
 
-let set_svalue_ref id_info c' =
-  if no_cycles_in_svalue id_info c' then
-    match !(id_info.id_svalue) with
-    | None -> id_info.id_svalue := Some c'
-    | Some c -> id_info.id_svalue := Some (Eval.refine c c')
+let set_svalue_ref ?(legacy = false) id_info c' =
+  let value = svalue_ref ~legacy id_info in
+  if no_cycles_in_svalue ~legacy id_info c' then
+    match !value with
+    | None -> value := Some c'
+    | Some c -> value := Some (Eval.refine c c')
   else
     Log.debug (fun m ->
         m ~tags "Cycle check failed for %s := ..." (G.show_id_info id_info))
@@ -378,11 +391,12 @@ let transfer_of_assume (assume : bool) (cond : IL.exp_kind)
   | Some hook -> hook assume cond inp
 
 let rec transfer :
+    legacy:bool ->
     lang:Lang.t ->
     enter_env:G.svalue Var_env.t ->
     fun_cfg:F.fun_cfg ->
     G.svalue Var_env.transfn =
- fun ~lang ~enter_env ~fun_cfg
+ fun ~legacy ~lang ~enter_env ~fun_cfg
      (* the transfer function to update the mapping at node index ni *)
        mapping ni ->
   let flow = fun_cfg.cfg in
@@ -406,7 +420,7 @@ let rec transfer :
     | TrueNode cond -> transfer_of_assume true cond.e inp'
     | FalseNode cond -> transfer_of_assume false cond.e inp'
     | NInstr instr -> (
-        let eval_env = Eval.mk_env lang inp' in
+        let eval_env = Eval.mk_env ~legacy lang inp' in
 
         (* Pre-step: a [Call] / [CallSpecial] / [New] may mutate a
          * container passed as an argument via the callee's parameter.
@@ -426,11 +440,11 @@ let rec transfer :
         match instr.i with
         | Assign ({ base = Var var; rev_offset = [] }, exp) ->
             (* var = exp *)
-            let cexp = eval_or_sym_prop eval_env exp in
+            let cexp = eval_or_sym_prop ~legacy eval_env exp in
             update_env_with inp' var cexp
         | AssignAnon ({ base = Var var; rev_offset = [] }, Lambda _) ->
             (* var = <lambda>: propagate the lambda expr as var's svalue. *)
-            update_env_with inp' var (sym_prop instr.iorig)
+            update_env_with inp' var (sym_prop ~legacy instr.iorig)
         | Call (Some { base = Var var; rev_offset = [] }, func, args) -> (
             let args_val =
               List_.map
@@ -447,11 +461,11 @@ let rec transfer :
                     (* Call to an arbitrary function, we are intraprocedural so we cannot
                      * propagate actual constants in this case, but we can propagate the
                      * call itself as a symbolic expression. *)
-                    let ccall = sym_prop instr.iorig in
+                    let ccall = sym_prop ~legacy instr.iorig in
                     update_env_with inp' var ccall
                 | Some cexp -> update_env_with inp' var cexp))
         | New ({ base = Var var; rev_offset = [] }, _ty, _ii, _args) ->
-            update_env_with inp' var (sym_prop instr.iorig)
+            update_env_with inp' var (sym_prop ~legacy instr.iorig)
         | CallSpecial
             (Some { base = Var var; rev_offset = [] }, (special, _), args) ->
             let args = List_.map IL_helpers.exp_of_arg args in
@@ -465,7 +479,7 @@ let rec transfer :
             let cexp =
               (* If we don't know how to evaluate this function, or if the
                * evaluation fails, then we do sym-prop. *)
-              if cexp =*= G.NotCst then sym_prop instr.iorig else cexp
+              if cexp =*= G.NotCst then sym_prop ~legacy instr.iorig else cexp
             in
             update_env_with inp' var cexp
         | Call
@@ -490,10 +504,10 @@ let rec transfer :
             | None -> inp'
             | Some lvar -> VarMap.remove (IL.str_of_name lvar) inp'))
   in
-  let out' = do_lambdas lang fun_cfg.lambdas out' node in
+  let out' = do_lambdas ~legacy lang fun_cfg.lambdas out' node in
   { D.in_env = inp'; out_env = out' }
 
-and do_lambdas lang lambdas in_env node =
+and do_lambdas ~legacy lang lambdas in_env node =
   (* In svalue-analysis we only need to visit lambdas at definition site,
    * we simply propagate svalues into the lambda's body, but whatever
    * happens inside the lambda is not visible outside it. *)
@@ -501,8 +515,8 @@ and do_lambdas lang lambdas in_env node =
   | NInstr { i = AssignAnon (lval, Lambda _); _ } -> (
       match LV.lval_is_lambda lambdas lval with
       | Some (_name, lambda_cfg) ->
-          let mapping = fixpoint_with_env lang in_env lambda_cfg in
-          update_svalue lambda_cfg.cfg mapping;
+          let mapping = fixpoint_with_env ~legacy lang in_env lambda_cfg in
+          update_svalue ~legacy lambda_cfg.cfg mapping;
           let lambda_env =
             mapping.(lambda_cfg.cfg.exit).Dataflow_core.out_env
           in
@@ -534,45 +548,50 @@ and do_lambdas lang lambdas in_env node =
       | None -> in_env)
   | __else__ -> in_env
 
-and fixpoint_with_env lang enter_env fun_cfg =
+and fixpoint_with_env ~legacy lang enter_env fun_cfg =
   let flow = fun_cfg.cfg in
   let mapping, timeout =
     DataflowX.fixpoint ~timeout:Limits_semgrep.svalue_prop_FIXPOINT_TIMEOUT
       ~eq_env:(Var_env.eq_env Eval.eq)
       ~init:(DataflowX.new_node_array flow (Var_env.empty_inout ()))
-      ~trans:(transfer ~lang ~enter_env ~fun_cfg)
+      ~trans:(transfer ~legacy ~lang ~enter_env ~fun_cfg)
         (* svalue is a forward analysis! *)
       ~forward:true ~flow
   in
-  if timeout =*= `Timeout then
-    Log.warn (fun m -> m "Fixpoint timeout while performing svalue-propagation");
+  if timeout =*= `Timeout then (
+    if legacy then
+      raise
+        (Core_error.Unhandled_core_error
+           (Core_error.mk_error
+              ~msg:
+                "Legacy fingerprint propagation timed out; scan aborted to \
+                 preserve finding identities"
+              FatalError));
+    Log.warn (fun m -> m "Fixpoint timeout while performing svalue-propagation"));
   mapping
 
 (*****************************************************************************)
 (* Entry point *)
 (*****************************************************************************)
 
-and (fixpoint : Lang.t -> IL.fun_cfg -> mapping) =
- fun lang fun_cfg ->
+and fixpoint ?(legacy = false) lang fun_cfg =
   let enter_env = VarMap.empty in
-  fixpoint_with_env lang enter_env fun_cfg
+  fixpoint_with_env ~legacy lang enter_env fun_cfg
 
-and update_svalue (flow : F.cfg) mapping =
+and update_svalue ?(legacy = false) (flow : F.cfg) mapping =
   flow.graph#nodes#keys
   |> List.iter (fun ni ->
-         let ni_info = mapping.(ni) in
+      let ni_info = mapping.(ni) in
 
-         let node = flow.graph#nodes#assoc ni in
+      let node = flow.graph#nodes#assoc ni in
 
-         (* Update RHS svalue according to the input env. *)
-         LV.rlvals_of_node node.n
-         |> List.iter (function
-              | { base = Var var; _ } -> (
-                  match
-                    VarMap.find_opt (IL.str_of_name var) ni_info.D.in_env
-                  with
-                  | None -> ()
-                  | Some c -> set_svalue_ref var.id_info c)
-              | ___else___ -> ())
-         (* Should not update the LHS svalue since in x = E, x is a "ref",
-          * and it should not be substituted for the value it holds. *))
+      (* Update RHS svalue according to the input env. *)
+      LV.rlvals_of_node node.n
+      |> List.iter (function
+        | { base = Var var; _ } -> (
+            match VarMap.find_opt (IL.str_of_name var) ni_info.D.in_env with
+            | None -> ()
+            | Some c -> set_svalue_ref ~legacy var.id_info c)
+        | ___else___ -> ())
+      (* Should not update the LHS svalue since in x = E, x is a "ref",
+       * and it should not be substituted for the value it holds. *))

@@ -312,6 +312,12 @@ and expr (x : expr) =
       let attrs_any = List_.map (fun attr -> G.At attr) more_attrs in
       H.set_e_range_with_anys (G.Dk (G.FuncDef def) :: attrs_any) e;
       e
+  | RestBinding (tok, binding) ->
+      let result =
+        G.Call (G.IdSpecial (G.Spread, tok) |> G.e, fb [ G.Arg (expr binding) ])
+        |> G.e
+      in
+      { result with e_original = Some (G.Tk tok) }
   | Apply (IdSpecial v1, v2) ->
       let x = special v1 in
       let v2 = bracket (list expr) v2 in

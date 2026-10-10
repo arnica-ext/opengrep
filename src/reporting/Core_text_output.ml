@@ -39,14 +39,19 @@ module Out = Semgrep_output_v1_j
  * '$x = print FOO' would then be transformed into $x=printFOO, hence
  * this function
  *)
-let rec join_with_space_if_needed xs =
-  match xs with
-  | [] -> ""
-  | [ x ] -> x
-  | x :: y :: xs ->
-      if x =~ ".*[a-zA-Z0-9_]$" && y =~ "^[a-zA-Z0-9_]" then
-        x ^ " " ^ join_with_space_if_needed (y :: xs)
-      else x ^ join_with_space_if_needed (y :: xs)
+let join_with_space_if_needed xs =
+  let buffer = Buffer.create 256 in
+  let rec add = function
+    | [] -> ()
+    | [ x ] -> Buffer.add_string buffer x
+    | x :: ((y :: _) as rest) ->
+        Buffer.add_string buffer x;
+        if x =~ ".*[a-zA-Z0-9_]$" && y =~ "^[a-zA-Z0-9_]" then
+          Buffer.add_char buffer ' ';
+        add rest
+  in
+  add xs;
+  Buffer.contents buffer
 
 (*****************************************************************************)
 (* Print_aux *)

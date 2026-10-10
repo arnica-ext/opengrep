@@ -1,0 +1,1 @@
+pair(params[:name], "eval(args[0]);")

@@ -538,7 +538,7 @@ let check_targets_with_rules ?(print_summary = true)
       | Error exn ->
           (* TOADAPT? Runner_exit.exit_semgrep (Unknown_exception e) instead *)
           Exception.reraise exn
-      | Ok result ->
+      | Ok result -> (
           let (res : Core_runner.result) =
             Core_runner.mk_result
               ~inline:conf.core_runner_conf.inline_metavariables
@@ -627,7 +627,14 @@ let check_targets_with_rules ?(print_summary = true)
                """
                return False
           *)
-          Ok (rules, res, cli_output))
+          match
+            List.find_opt
+              (fun error -> error.Out.error_type =*= Out.FatalError)
+              res.core.errors
+          with
+          | Some error ->
+              Error (Cli_json_output.exit_code_of_error_type error.error_type)
+          | None -> Ok (rules, res, cli_output)))
 
 (*****************************************************************************)
 (* Run the real 'scan' subcommand *)

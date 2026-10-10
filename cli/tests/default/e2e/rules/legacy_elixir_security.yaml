@@ -1,0 +1,417 @@
+{
+  "rules": [
+    {
+      "id": "legacy-text",
+      "languages": [
+        "elixir"
+      ],
+      "message": "Capture $X",
+      "severity": "WARNING",
+      "patterns": [
+        {
+          "pattern": "sink($X)"
+        },
+        {
+          "metavariable-regex": {
+            "metavariable": "$X",
+            "regex": "^User"
+          }
+        }
+      ]
+    },
+    {
+      "id": "modern-text",
+      "languages": [
+        "elixir"
+      ],
+      "message": "Capture $X",
+      "severity": "WARNING",
+      "patterns": [
+        {
+          "pattern": "sink($X)"
+        },
+        {
+          "metavariable-regex": {
+            "metavariable": "$X",
+            "regex": "^%User"
+          }
+        }
+      ]
+    },
+    {
+      "id": "contradictory-text",
+      "languages": [
+        "elixir"
+      ],
+      "message": "Capture $X",
+      "severity": "WARNING",
+      "patterns": [
+        {
+          "pattern": "sink($X)"
+        },
+        {
+          "metavariable-regex": {
+            "metavariable": "$X",
+            "regex": "^User"
+          }
+        },
+        {
+          "metavariable-regex": {
+            "metavariable": "$X",
+            "regex": "^%User"
+          }
+        }
+      ]
+    },
+    {
+      "id": "taint-control",
+      "languages": [
+        "elixir"
+      ],
+      "message": "Capture $X",
+      "severity": "WARNING",
+      "mode": "taint",
+      "pattern-sources": [
+        {
+          "pattern": "source()"
+        }
+      ],
+      "pattern-sinks": [
+        {
+          "patterns": [
+            {
+              "pattern": "sink($X)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "taint-legacy-sink",
+      "languages": [
+        "elixir"
+      ],
+      "message": "Capture $X",
+      "severity": "WARNING",
+      "mode": "taint",
+      "pattern-sources": [
+        {
+          "pattern": "source()"
+        }
+      ],
+      "pattern-sinks": [
+        {
+          "patterns": [
+            {
+              "pattern": "sink($X)"
+            },
+            {
+              "metavariable-regex": {
+                "metavariable": "$X",
+                "regex": "^User"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "taint-modern-sink",
+      "languages": [
+        "elixir"
+      ],
+      "message": "Capture $X",
+      "severity": "WARNING",
+      "mode": "taint",
+      "pattern-sources": [
+        {
+          "pattern": "source()"
+        }
+      ],
+      "pattern-sinks": [
+        {
+          "patterns": [
+            {
+              "pattern": "sink($X)"
+            },
+            {
+              "metavariable-regex": {
+                "metavariable": "$X",
+                "regex": "^%User"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "legacy-sanitizer",
+      "languages": [
+        "elixir"
+      ],
+      "message": "Capture $X",
+      "severity": "WARNING",
+      "mode": "taint",
+      "pattern-sources": [
+        {
+          "pattern": "source()"
+        }
+      ],
+      "pattern-sinks": [
+        {
+          "pattern": "sink($X)"
+        }
+      ],
+      "pattern-sanitizers": [
+        {
+          "patterns": [
+            {
+              "pattern": "$X"
+            },
+            {
+              "metavariable-pattern": {
+                "metavariable": "$X",
+                "pattern": "%User{data: ...}"
+              }
+            },
+            {
+              "metavariable-regex": {
+                "metavariable": "$X",
+                "regex": "^User"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "modern-sanitizer",
+      "languages": [
+        "elixir"
+      ],
+      "message": "Capture $X",
+      "severity": "WARNING",
+      "mode": "taint",
+      "pattern-sources": [
+        {
+          "pattern": "source()"
+        }
+      ],
+      "pattern-sinks": [
+        {
+          "pattern": "sink($X)"
+        }
+      ],
+      "pattern-sanitizers": [
+        {
+          "patterns": [
+            {
+              "pattern": "$X"
+            },
+            {
+              "metavariable-pattern": {
+                "metavariable": "$X",
+                "pattern": "%User{data: ...}"
+              }
+            },
+            {
+              "metavariable-regex": {
+                "metavariable": "$X",
+                "regex": "^%User"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "original-label-filter",
+      "languages": [
+        "elixir"
+      ],
+      "message": "Capture $X",
+      "severity": "WARNING",
+      "mode": "taint",
+      "pattern-sources": [
+        {
+          "pattern": "source()",
+          "label": "A"
+        },
+        {
+          "patterns": [
+            {
+              "pattern": "$X"
+            },
+            {
+              "metavariable-pattern": {
+                "metavariable": "$X",
+                "pattern": "%User{data: ...}"
+              }
+            },
+            {
+              "metavariable-regex": {
+                "metavariable": "$X",
+                "regex": "^User"
+              }
+            }
+          ],
+          "label": "B"
+        }
+      ],
+      "pattern-sinks": [
+        {
+          "pattern": "sink($X)",
+          "requires": "A and not B"
+        }
+      ]
+    },
+    {
+      "id": "expanded-label-filter",
+      "languages": [
+        "elixir"
+      ],
+      "message": "Capture $X",
+      "severity": "WARNING",
+      "mode": "taint",
+      "pattern-sources": [
+        {
+          "pattern": "source()",
+          "label": "A"
+        },
+        {
+          "patterns": [
+            {
+              "pattern": "$X"
+            },
+            {
+              "metavariable-pattern": {
+                "metavariable": "$X",
+                "pattern": "%User{data: ...}"
+              }
+            },
+            {
+              "metavariable-regex": {
+                "metavariable": "$X",
+                "regex": "^%?User"
+              }
+            }
+          ],
+          "label": "B"
+        }
+      ],
+      "pattern-sinks": [
+        {
+          "pattern": "sink($X)",
+          "requires": "A and not B"
+        }
+      ]
+    },
+    {
+      "languages": [
+        "elixir"
+      ],
+      "message": "Capture $X",
+      "severity": "WARNING",
+      "id": "struct-is-not-call",
+      "patterns": [
+        {
+          "pattern": "$F(...)"
+        },
+        {
+          "metavariable-regex": {
+            "metavariable": "$F",
+            "regex": "^User$"
+          }
+        }
+      ]
+    },
+    {
+      "languages": [
+        "elixir"
+      ],
+      "message": "Capture $X",
+      "severity": "WARNING",
+      "id": "struct-is-not-taint-call",
+      "mode": "taint",
+      "pattern-sources": [
+        {
+          "patterns": [
+            {
+              "pattern": "$F(...)"
+            },
+            {
+              "metavariable-regex": {
+                "metavariable": "$F",
+                "regex": "^User$"
+              }
+            }
+          ]
+        }
+      ],
+      "pattern-sinks": [
+        {
+          "pattern": "sink($X)"
+        }
+      ]
+    },
+    {
+      "languages": [
+        "elixir"
+      ],
+      "message": "Capture $X",
+      "severity": "WARNING",
+      "id": "source-sanitizer-cache",
+      "mode": "taint",
+      "pattern-sources": [
+        {
+          "pattern": "source()"
+        },
+        {
+          "patterns": [
+            {
+              "pattern": "$X"
+            },
+            {
+              "metavariable-pattern": {
+                "metavariable": "$X",
+                "pattern": "%User{data: ...}"
+              }
+            },
+            {
+              "metavariable-regex": {
+                "metavariable": "$X",
+                "regex": "^%User"
+              }
+            }
+          ]
+        }
+      ],
+      "pattern-sinks": [
+        {
+          "pattern": "sink($X)"
+        }
+      ],
+      "pattern-sanitizers": [
+        {
+          "patterns": [
+            {
+              "pattern": "$X"
+            },
+            {
+              "metavariable-pattern": {
+                "metavariable": "$X",
+                "pattern": "%User{data: ...}"
+              }
+            },
+            {
+              "metavariable-regex": {
+                "metavariable": "$X",
+                "regex": "^%User"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -112,6 +112,7 @@ type tin = {
    *)
   lang : Lang.t;
   config : Rule_options.t;
+  legacy_elixir_captures : bool;
   deref_sym_vals : int;
   wildcard_imports : AST_generic.dotted_ident list;
 }
@@ -438,6 +439,7 @@ let default_environment lang config =
     lang;
     config;
     deref_sym_vals = 0;
+    legacy_elixir_captures = false;
     wildcard_imports = [];
   }
 

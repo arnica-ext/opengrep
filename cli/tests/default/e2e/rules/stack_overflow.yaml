@@ -1,0 +1,20 @@
+rules:
+  - id: recursive-capture
+    languages: [c]
+    message: recursive capture
+    severity: WARNING
+    pattern: $FUNC(..., <... $VAR ...>, ...)
+  - id: string-copy
+    languages: [c]
+    message: string copy
+    severity: WARNING
+    pattern: strcpy($DST, $SRC)
+  - id: recursive-taint-capture
+    languages: [c]
+    message: recursive taint capture
+    severity: WARNING
+    mode: taint
+    pattern-sources:
+      - pattern: malloc(...)
+    pattern-sinks:
+      - pattern: $FUNC(..., <... $VAR ...>, ...)

@@ -162,6 +162,9 @@ let (mk_visitor : visitor_in -> visitor_out) =
     (* tweak *)
     let k x =
       match x with
+      | RestBinding (tok, binding) ->
+          v_tok tok;
+          v_expr binding
       | ObjAccessEllipsis (v1, v2) ->
           v_expr v1;
           v_tok v2

@@ -1,0 +1,1 @@
+fun f(a: Thing) { sink(a.let { x -> g(x) }.let { x -> g(x) }.let { x -> g(x) }.let { x -> g(x) }.let { x -> g(x) }.let { x -> g(x) }.let { x -> g(x) }.let { x -> g(x) }.let { x -> g(x) }.let { x -> g(x) }.let { x -> g(x) }.let { x -> g(x) }.let { x -> g(x) }.let { x -> g(x) }) }

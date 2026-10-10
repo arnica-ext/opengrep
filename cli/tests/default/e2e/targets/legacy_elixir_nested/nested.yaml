@@ -1,0 +1,4 @@
+code: |
+  a = %User{}
+  sink(a)
+  sink(%User{})

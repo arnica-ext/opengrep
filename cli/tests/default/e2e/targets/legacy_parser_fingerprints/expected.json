@@ -1,0 +1,4483 @@
+{
+  "results": [
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-array-comment.dockerfile",
+      "start": {
+        "line": 2,
+        "col": 1,
+        "offset": 76
+      },
+      "end": {
+        "line": 2,
+        "col": 12,
+        "offset": 87
+      },
+      "fingerprint": "ea326cf47b505df364b1687c1ec24c249872e2e516951e27aaed32cef763945e9eb3c9cadc3be763054e8a84c4a72acd5c0be694ddf11aee740776dfc87aa87f_0",
+      "captures": {
+        "$X": "FROM FROM alpine alpine"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-array-comment.dockerfile",
+      "start": {
+        "line": 5,
+        "col": 1,
+        "offset": 98
+      },
+      "end": {
+        "line": 5,
+        "col": 15,
+        "offset": 112
+      },
+      "fingerprint": "0ca834f9dcd80c05fa140b2a695097b781338caf0c5f9bb90453b039276c2208b5948d9a988efc03462bef056108f994d1e8868f1de891b1dc405c8224ae2ad9_0",
+      "captures": {
+        "$X": "CMD CMD[\"a\"\"b\"]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-array-comment.dockerfile",
+      "start": {
+        "line": 9,
+        "col": 1,
+        "offset": 178
+      },
+      "end": {
+        "line": 9,
+        "col": 34,
+        "offset": 211
+      },
+      "fingerprint": "a4b70f78597243731ae5e62ef5aa918dc5a9d6a49af886fa43fc5e0ba9a04e4ace212f5d1cbbf5825661424a8ea1f28890c22203493e3e7d3f50afd28857d765_0",
+      "captures": {
+        "$X": "CMD CMD[\"echo\"\"not-a#comment [x]\"]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-array-comment.dockerfile",
+      "start": {
+        "line": 12,
+        "col": 1,
+        "offset": 222
+      },
+      "end": {
+        "line": 14,
+        "col": 10,
+        "offset": 281
+      },
+      "fingerprint": "0ca834f9dcd80c05fa140b2a695097b781338caf0c5f9bb90453b039276c2208b5948d9a988efc03462bef056108f994d1e8868f1de891b1dc405c8224ae2ad9_1",
+      "captures": {
+        "$X": "CMD CMD[\"a\"\"b\"]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-array-comment.dockerfile",
+      "start": {
+        "line": 17,
+        "col": 1,
+        "offset": 292
+      },
+      "end": {
+        "line": 19,
+        "col": 10,
+        "offset": 332
+      },
+      "fingerprint": "84fb2fead93464f242f3eb748518cfbf7d9d6f2004aabde0826340fca30041d9a14d480704d61b7f347e30a40bea62c10398022c6234988756b61cf021acb9e9_0",
+      "captures": {
+        "$X": "CMD CMD[\"a\"]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-array-comment.dockerfile",
+      "start": {
+        "line": 21,
+        "col": 1,
+        "offset": 334
+      },
+      "end": {
+        "line": 21,
+        "col": 14,
+        "offset": 347
+      },
+      "fingerprint": "86ce5e0d3ffc672c14fa80337d24f633328179ddaf9d50c066e453d4025e6298b21ce4b07f8b1e2eba5764beab41f013fe500db59e8898f024c8492eba2597db_0",
+      "captures": {
+        "$X": "CMD CMD[]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-array-escapes.dockerfile",
+      "start": {
+        "line": 1,
+        "col": 1,
+        "offset": 0
+      },
+      "end": {
+        "line": 1,
+        "col": 12,
+        "offset": 11
+      },
+      "fingerprint": "ddabdeff70e89be8aded000798068fb581cbd3e57605628af472b7a32dd3ea8f362a7e8befd5f8ffd895350dd8476324e2c63a61accff817b4a131b1da282c39_0",
+      "captures": {
+        "$X": "FROM FROM alpine alpine"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-array-escapes.dockerfile",
+      "start": {
+        "line": 4,
+        "col": 1,
+        "offset": 22
+      },
+      "end": {
+        "line": 4,
+        "col": 25,
+        "offset": 46
+      },
+      "fingerprint": "242f132304ec724bba448be409c0af2c64eab3330323bec3f6c30d190a28ea884e092b252a1e0d12f949ff4c6562072f7848f8b3b2b630b7325049738bcf5a25_0",
+      "captures": {
+        "$X": "ENTRYPOINT ENTRYPOINT[\"\u00e9A\uffff\uabcd\"]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-array-escapes.dockerfile",
+      "start": {
+        "line": 7,
+        "col": 1,
+        "offset": 57
+      },
+      "end": {
+        "line": 7,
+        "col": 30,
+        "offset": 86
+      },
+      "fingerprint": "b6a625ead10840fe0c02d114cadbbba29accbfc487fe25ccdc9e68ef07422b732d09d6ed7a40bbd0cbc10b8b412ce2aa1f1a309d3fc10745c4212af601fe5bc8_0",
+      "captures": {
+        "$X": "ENTRYPOINT ENTRYPOINT[\"\\\\\"\"\\\"\"\"\\/\"]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-array-escapes.dockerfile",
+      "start": {
+        "line": 10,
+        "col": 1,
+        "offset": 142
+      },
+      "end": {
+        "line": 10,
+        "col": 20,
+        "offset": 161
+      },
+      "fingerprint": "dc40d41689771cb92501df807c5133bf1e9a04daca4e820721e8a1a0022d7af604343d10ac6f5e4d1bef170b3e61f2a707aaa160dedba33fcf70dd11d44edf02_0",
+      "captures": {
+        "$X": "ENTRYPOINT ENTRYPOINT[\"\"]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-array-escapes.dockerfile",
+      "start": {
+        "line": 13,
+        "col": 1,
+        "offset": 215
+      },
+      "end": {
+        "line": 13,
+        "col": 22,
+        "offset": 236
+      },
+      "fingerprint": "dc40d41689771cb92501df807c5133bf1e9a04daca4e820721e8a1a0022d7af604343d10ac6f5e4d1bef170b3e61f2a707aaa160dedba33fcf70dd11d44edf02_1",
+      "captures": {
+        "$X": "ENTRYPOINT ENTRYPOINT[\"\"]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-array-escapes.dockerfile",
+      "start": {
+        "line": 16,
+        "col": 1,
+        "offset": 292
+      },
+      "end": {
+        "line": 16,
+        "col": 20,
+        "offset": 311
+      },
+      "fingerprint": "dc40d41689771cb92501df807c5133bf1e9a04daca4e820721e8a1a0022d7af604343d10ac6f5e4d1bef170b3e61f2a707aaa160dedba33fcf70dd11d44edf02_2",
+      "captures": {
+        "$X": "ENTRYPOINT ENTRYPOINT[\"\"]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-array-escapes.dockerfile",
+      "start": {
+        "line": 19,
+        "col": 1,
+        "offset": 383
+      },
+      "end": {
+        "line": 19,
+        "col": 19,
+        "offset": 401
+      },
+      "fingerprint": "406c0ff721affcdff7a1ecf155975cae17276c6ad230629423263f3b7e5d0e5f2555cad9a2a38ced65f822d5fc54b056d671e2b52b3829f4d993e8cb16ba236c_0",
+      "captures": {
+        "$X": "ENTRYPOINT ENTRYPOINT[\"a\"]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-array-semgrep.dockerfile",
+      "start": {
+        "line": 1,
+        "col": 1,
+        "offset": 0
+      },
+      "end": {
+        "line": 1,
+        "col": 12,
+        "offset": 11
+      },
+      "fingerprint": "1361d6cde6db2d02ff2b7f3716efc77808c55eec200c3662b5bcd5f444fbe3224488dd1108f44284bd2d5c3b7c7bf591156048a4f31fbae2c7f5a5b6dac9cde1_0",
+      "captures": {
+        "$X": "FROM FROM alpine alpine"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-array-semgrep.dockerfile",
+      "start": {
+        "line": 4,
+        "col": 1,
+        "offset": 22
+      },
+      "end": {
+        "line": 4,
+        "col": 10,
+        "offset": 31
+      },
+      "fingerprint": "edb69e05910b68f252efac0399371a8f39821cfca59a7fb6cc284cb3d5740f41a0eb1c6d5c141bcbde716afc7460dbba340221072a717bd8a259097ca3530860_0",
+      "captures": {
+        "$X": "RUN RUN[\"b\"]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-array-semgrep.dockerfile",
+      "start": {
+        "line": 7,
+        "col": 1,
+        "offset": 42
+      },
+      "end": {
+        "line": 7,
+        "col": 15,
+        "offset": 56
+      },
+      "fingerprint": "a58a28ae7901a2b28329e44650df481419d35fdc7641a616a174156d37e060be099cc53dc0f39f96af2e9e7298650fce726991995e0b88c54be931888a456c28_0",
+      "captures": {
+        "$X": "RUN RUN[\"a\"\"b\"]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-array-semgrep.dockerfile",
+      "start": {
+        "line": 10,
+        "col": 1,
+        "offset": 67
+      },
+      "end": {
+        "line": 10,
+        "col": 20,
+        "offset": 86
+      },
+      "fingerprint": "057ce1744bb1f549f62a44b59545a79da513d0a03b054616794ad8bc87829efbb9e225afeef7c2ae29727a2ebb89e2b928ea7ef90f199312cb457f9d04069763_0",
+      "captures": {
+        "$X": "RUN RUN[\"a\"\"b\"\"c\"]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-array-semgrep.dockerfile",
+      "start": {
+        "line": 13,
+        "col": 1,
+        "offset": 97
+      },
+      "end": {
+        "line": 13,
+        "col": 24,
+        "offset": 120
+      },
+      "fingerprint": "057ce1744bb1f549f62a44b59545a79da513d0a03b054616794ad8bc87829efbb9e225afeef7c2ae29727a2ebb89e2b928ea7ef90f199312cb457f9d04069763_1",
+      "captures": {
+        "$X": "RUN RUN[\"a\"\"b\"\"c\"]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-array-semgrep.dockerfile",
+      "start": {
+        "line": 15,
+        "col": 1,
+        "offset": 122
+      },
+      "end": {
+        "line": 15,
+        "col": 15,
+        "offset": 136
+      },
+      "fingerprint": "56c61739912426a1644bad875e6ed886ab620d22fb2b8987236bd4d16cef092b223b38f303833b61f179c27502f6ad1e295d14358cd17566f69e73a1253e09c5_0",
+      "captures": {
+        "$X": "RUN RUN[\"a\"\"c\"]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-array-semgrep.dockerfile",
+      "start": {
+        "line": 16,
+        "col": 1,
+        "offset": 137
+      },
+      "end": {
+        "line": 16,
+        "col": 10,
+        "offset": 146
+      },
+      "fingerprint": "d3f10c7bbad018d070ed08a105cf79fa062688bd532d6865b570b50f987c01ce442f33bc91b84f970c368dcee2f2592cf5c302eb2140e41fe27af16245ae8e07_0",
+      "captures": {
+        "$X": "RUN RUN[]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-array-semgrep.dockerfile",
+      "start": {
+        "line": 17,
+        "col": 1,
+        "offset": 147
+      },
+      "end": {
+        "line": 17,
+        "col": 14,
+        "offset": 160
+      },
+      "fingerprint": "edb69e05910b68f252efac0399371a8f39821cfca59a7fb6cc284cb3d5740f41a0eb1c6d5c141bcbde716afc7460dbba340221072a717bd8a259097ca3530860_1",
+      "captures": {
+        "$X": "RUN RUN[\"b\"]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-cmd-shell.dockerfile",
+      "start": {
+        "line": 1,
+        "col": 1,
+        "offset": 0
+      },
+      "end": {
+        "line": 1,
+        "col": 12,
+        "offset": 11
+      },
+      "fingerprint": "1371c4ceed92cffc5df8dee10dfaf18b5b4c14b40bde2c1ab0f4a4af86f473d1a3cd3048f8ff961b75b75c7fd5b98de45b62966fdbf4ea2cadcf517010db7fb5_0",
+      "captures": {
+        "$X": "FROM FROM alpine alpine"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-cmd-shell.dockerfile",
+      "start": {
+        "line": 4,
+        "col": 1,
+        "offset": 22
+      },
+      "end": {
+        "line": 4,
+        "col": 23,
+        "offset": 44
+      },
+      "fingerprint": "e3efd24707dbd57d455a17ffa721a57281a75249a6bc699c128af13eb11e8fbf20c6272648b716eedcd0d2c3574942c7f41a959078e8b8ae6b0a0355a576e715_0",
+      "captures": {
+        "$X": "CMD CMD[]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-cmd-shell.dockerfile",
+      "start": {
+        "line": 7,
+        "col": 1,
+        "offset": 55
+      },
+      "end": {
+        "line": 7,
+        "col": 21,
+        "offset": 75
+      },
+      "fingerprint": "5c546a8ad809f6bc9518dfa5197a6a61663614864a37e94ee751811e9736fb1ae67eeea1b28462f607ce75593ad4ea5ddb94c101151e78dbbfbda85afe6df47c_0",
+      "captures": {
+        "$X": "CMD CMD test [ 1 -eq 1 ]test [ 1 -eq 1 ]test [ 1 -eq 1 ]test test test test test [ 1 -eq 1 ]test [ 1 -eq 1 ]test [ 1 -eq 1 ][1-eq 1]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-cmd-shell.dockerfile",
+      "start": {
+        "line": 7,
+        "col": 5,
+        "offset": 59
+      },
+      "end": {
+        "line": 7,
+        "col": 21,
+        "offset": 75
+      },
+      "fingerprint": "4d901ca4a9141b0cd628eb307fa9889a9966d312f341b649d4ae7802cf083fabba05695b5f6503edabcbe03c65340ec2bb7d9627a7278fc92dd3ed374cea2102_0",
+      "captures": {
+        "$X": "test test test[1-eq 1]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-cmd-shell.dockerfile",
+      "start": {
+        "line": 10,
+        "col": 1,
+        "offset": 86
+      },
+      "end": {
+        "line": 10,
+        "col": 25,
+        "offset": 110
+      },
+      "fingerprint": "acc3478f9d0216b84b647a462118c963574c96abc298d94d2f664976045e13cec21605ecdd1f373885187c024634f6f1c391ea363ec7b3d013d8b7746ea4acad_0",
+      "captures": {
+        "$X": "CMD CMD echo \"]\" \"[\" '[' ']'echo \"]\" \"[\" '[' ']'echo \"]\" \"[\" '[' ']'echo echo echo echo echo \"]\" \"[\" '[' ']'echo \"]\" \"[\" '[' ']'echo \"]\" \"[\" '[' ']']['['']'']'"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-cmd-shell.dockerfile",
+      "start": {
+        "line": 10,
+        "col": 5,
+        "offset": 90
+      },
+      "end": {
+        "line": 10,
+        "col": 25,
+        "offset": 110
+      },
+      "fingerprint": "1e15a9072eb3a9b107c7ee22a354effed2336899632791ac7f4438e348762d753bbdc99e0018d70dfdad9322efe19cdce9bcf9c2bf9f26b4993b292aae0c9282_0",
+      "captures": {
+        "$X": "echo echo echo]['['']'']'"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-cmd-shell.dockerfile",
+      "start": {
+        "line": 13,
+        "col": 1,
+        "offset": 121
+      },
+      "end": {
+        "line": 13,
+        "col": 40,
+        "offset": 160
+      },
+      "fingerprint": "5d7ddf8937cce32ae04a83a826b1cb685b507b142a429d89cc1a30e413836361cfa83c1a9285252616f2ce00139c2f9f827eb10085248851758c4a24ec534d4c_0",
+      "captures": {
+        "$X": "CMD CMD awk '{print $1}' | sed 's/[a-z]//g'awk '{print $1}' | sed 's/[a-z]//g'awk '{print $1}' | sed 's/[a-z]//g'awk awk awk awk awk '{print $1}' | sed 's/[a-z]//g'awk '{print $1}' | sed 's/[a-z]//g'awk '{print $1}' | sed 's/[a-z]//g''{print $1}''{print $1}'|sed sed sed's/[a-z]//g''s/[a-z]//g'"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-cmd-shell.dockerfile",
+      "start": {
+        "line": 13,
+        "col": 5,
+        "offset": 125
+      },
+      "end": {
+        "line": 13,
+        "col": 40,
+        "offset": 160
+      },
+      "fingerprint": "b13015ba79148b3ce68d44a730d535f5335591b988d01e7794b40232223f34906e86496dcaaf9e379c4d5bab07e319f78d0ec24828c4a55441c4537a26313776_0",
+      "captures": {
+        "$X": "awk awk awk'{print $1}''{print $1}'|sed sed sed's/[a-z]//g''s/[a-z]//g'"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-cmd-shell.dockerfile",
+      "start": {
+        "line": 16,
+        "col": 1,
+        "offset": 171
+      },
+      "end": {
+        "line": 16,
+        "col": 35,
+        "offset": 205
+      },
+      "fingerprint": "b704f2b4deb8e48ca38868de4415eab6042b4fe315f4ecc0b15a97c31f48affab53393cd5e4293157238a402b6c7a326451562ccdd1edecf10c70ed55feb0eac_0",
+      "captures": {
+        "$X": "CMD CMD if [ -x /bin/sh ]; then echo y; fi if [ -x /bin/sh ]; then echo y; fi if [ -x /bin/sh ]; then echo y; fi if if [ -x /bin/sh ]; then echo y; fi if [ -x /bin/sh ]; then echo y; fi if [ -x /bin/sh ]; then echo y; fi[[]echo echo echo echo y y"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-cmd-shell.dockerfile",
+      "start": {
+        "line": 16,
+        "col": 5,
+        "offset": 175
+      },
+      "end": {
+        "line": 16,
+        "col": 35,
+        "offset": 205
+      },
+      "fingerprint": "62cfbcebef34c82adba3310f1e66444e4b3e509c9ab6f9a8c7a43e76c99771bcdaa202476049e7e8e1f208a4fc7d4e29e076c779a5d0618e56d8e27a7799cdac_0",
+      "captures": {
+        "$X": "if [ -x /bin/sh ]; then echo y; fi if if [ -x /bin/sh ]; then echo y; fi[[]echo echo echo echo y y"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-cmd-shell.dockerfile",
+      "start": {
+        "line": 16,
+        "col": 29,
+        "offset": 199
+      },
+      "end": {
+        "line": 16,
+        "col": 35,
+        "offset": 205
+      },
+      "fingerprint": "2ea5b9b9cd607a4374b4719093e435e659b0c0828a941ac9e6cbbc1cda70c5dbb71061b7c83aa82d857f3bafce7f90b64ce100870460abcc4dd64991a544669b_0",
+      "captures": {
+        "$X": "echo echo echo y y"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-cmd-shell.dockerfile",
+      "start": {
+        "line": 19,
+        "col": 1,
+        "offset": 220
+      },
+      "end": {
+        "line": 21,
+        "col": 16,
+        "offset": 268
+      },
+      "fingerprint": "92da93df712835d7a0923b4c8fbd03c0f07483f67c456d5ac80f518d9963344223266951e525eabf22e74a8590cccc6bf68ca64e47851b6e4c0e56da1db181ac_0",
+      "captures": {
+        "$X": "CMD CMD-f a ] \\\n    && [ -f b ] \\\n    || [ -f c ]-f a ] \\\n    && [ -f b ] \\\n    || [ -f c ]-f a ] \\\n    && [ -f b ] \\\n    || [ -f c ]-f-f-f-f-f a ] \\\n    && [ -f b ] \\\n    || [ -f c ]-f a ] \\\n    && [ -f b ] \\\n    || [ -f c ]-f a ] \\\n    && [ -f b ] \\\n    || [ -f c ]a]]&&[[]||[[]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-cmd-shell.dockerfile",
+      "start": {
+        "line": 19,
+        "col": 7,
+        "offset": 226
+      },
+      "end": {
+        "line": 21,
+        "col": 16,
+        "offset": 268
+      },
+      "fingerprint": "fc0b57e3e7032696bef5938c949361091782c5e6e541ad187c12383194395915ec448f723effb9ff550d83ee39c2452b9b36424a60af8629689045aecf04c879_0",
+      "captures": {
+        "$X": "-f-f-f a]]&&[[]||[[]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-cmd-shell.dockerfile",
+      "start": {
+        "line": 23,
+        "col": 1,
+        "offset": 270
+      },
+      "end": {
+        "line": 23,
+        "col": 15,
+        "offset": 284
+      },
+      "fingerprint": "353c15725f931e267296b0a61978a231f098a9b3dd59a33d66eaffcd2a2b5fd693ad88e9686da3200fa08d35c1af39d57a3869c46597f504a73ff52bcdff6ef7_0",
+      "captures": {
+        "$X": "CMD CMD[\"a\"\"b\"]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-escape-directive.dockerfile",
+      "start": {
+        "line": 4,
+        "col": 1,
+        "offset": 150
+      },
+      "end": {
+        "line": 4,
+        "col": 17,
+        "offset": 166
+      },
+      "fingerprint": "d26b0e6821f1757603ea616d383e4683d35bb90324e4de2fe8f0571747e325d59a89bcaea56d217c85cdc13e5693209ea264f4ace130c9b34226429ee49cf8db_0",
+      "captures": {
+        "$X": "FROM FROM alpine:3.19 3.19"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-escape-directive.dockerfile",
+      "start": {
+        "line": 7,
+        "col": 1,
+        "offset": 177
+      },
+      "end": {
+        "line": 7,
+        "col": 27,
+        "offset": 203
+      },
+      "fingerprint": "ee5c21ef5125a01568ba803cac7d4f5592d5d84d2a5678d9f6a0a5376da013f46b7ef343ef8d57aec4aae5e15b839ad37a30b65b31a96c0c418c80d6da8b749b_0",
+      "captures": {
+        "$X": "RUN RUN[]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-escape-directive.dockerfile",
+      "start": {
+        "line": 10,
+        "col": 1,
+        "offset": 214
+      },
+      "end": {
+        "line": 10,
+        "col": 27,
+        "offset": 240
+      },
+      "fingerprint": "28b50ccea0bff4b0f8a36574d136b73c3b335e461de6a1a0e163349a5d1e5a9d37500382e91a68ad504e3aa5dc846aec276693f759a93ccf6d22eb55c2281ea9_0",
+      "captures": {
+        "$X": "RUN RUN-f /etc/os-release ] `-f /etc/os-release ] `-f /etc/os-release ] `-f-f-f-f-f /etc/os-release ] `-f /etc/os-release ] `-f /etc/os-release ] `/etc/os-release]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-escape-directive.dockerfile",
+      "start": {
+        "line": 10,
+        "col": 7,
+        "offset": 220
+      },
+      "end": {
+        "line": 10,
+        "col": 27,
+        "offset": 240
+      },
+      "fingerprint": "e971d56c6820856ce9dfd9e6db5401eac9324aab10e7446e12b2b79e67ec3f331aedd388cd9949543aef95433da9901b334323aae39b1fd766e18d0321f44c01_0",
+      "captures": {
+        "$X": "-f-f-f/etc/os-release]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-exec-form.dockerfile",
+      "start": {
+        "line": 2,
+        "col": 1,
+        "offset": 81
+      },
+      "end": {
+        "line": 2,
+        "col": 12,
+        "offset": 92
+      },
+      "fingerprint": "a1dd1e5440a4c1b192d7b16de76070b67595a507ec4ef9ddc0b326aa8760e1ee0a445c511b821c55c8be81445da202bed6fbaed35c0e2a2889ce30be77ccceab_0",
+      "captures": {
+        "$X": "FROM FROM alpine alpine"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-exec-form.dockerfile",
+      "start": {
+        "line": 5,
+        "col": 1,
+        "offset": 103
+      },
+      "end": {
+        "line": 5,
+        "col": 22,
+        "offset": 124
+      },
+      "fingerprint": "c939cac99e08d4dff6fa6a126ac7a256127d880ed4475d1ff7ed2904d9ed76583527104a7aed7ed7bba66f117a5c297f66abc7bc30269e5d3a3cf35a5b1c5616_0",
+      "captures": {
+        "$X": "RUN RUN[\"echo\"\"hello\"]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-exec-form.dockerfile",
+      "start": {
+        "line": 8,
+        "col": 1,
+        "offset": 135
+      },
+      "end": {
+        "line": 8,
+        "col": 18,
+        "offset": 152
+      },
+      "fingerprint": "3e82282c82b2027e5d6690c32b1c8fec7b156f761956c8a218cb59f7f33787fb705a19b1511d40cfa3b7d113f804a3e0ad2ca24e35ed318dbc2497b77b3da66c_0",
+      "captures": {
+        "$X": "RUN RUN[\"a\"\"b\"]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-exec-form.dockerfile",
+      "start": {
+        "line": 11,
+        "col": 1,
+        "offset": 163
+      },
+      "end": {
+        "line": 11,
+        "col": 7,
+        "offset": 169
+      },
+      "fingerprint": "9947d3bb4e2d94f7de2c11a9ab53f010a2839bba8dd9a68e9e4680b38f2609db689226ba1c4fb9da063130eab08fbe5996eddb00fa86e04e5ab9ab13e83a5365_0",
+      "captures": {
+        "$X": "RUN RUN[]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-exec-form.dockerfile",
+      "start": {
+        "line": 14,
+        "col": 1,
+        "offset": 180
+      },
+      "end": {
+        "line": 14,
+        "col": 9,
+        "offset": 188
+      },
+      "fingerprint": "9947d3bb4e2d94f7de2c11a9ab53f010a2839bba8dd9a68e9e4680b38f2609db689226ba1c4fb9da063130eab08fbe5996eddb00fa86e04e5ab9ab13e83a5365_1",
+      "captures": {
+        "$X": "RUN RUN[]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-exec-form.dockerfile",
+      "start": {
+        "line": 18,
+        "col": 1,
+        "offset": 249
+      },
+      "end": {
+        "line": 18,
+        "col": 77,
+        "offset": 325
+      },
+      "fingerprint": "8b396b0562398203d38f91ddb0febc2519267eac7b95f9d88e1901377c6c45cc0b2738f8c00d401c6124e2bc1c374c4249bbd21ea44b9843b6037bd46b5dc301_0",
+      "captures": {
+        "$X": "RUN RUN[\"a\\\"b\"\"c\\\\d\"\"e\\/f\"\"g\\bh\"\"i\\fj\"\"k\\nl\"\"m\\rn\"\"o\\tp\"\"q\u00e9r\"]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-exec-form.dockerfile",
+      "start": {
+        "line": 22,
+        "col": 1,
+        "offset": 403
+      },
+      "end": {
+        "line": 22,
+        "col": 31,
+        "offset": 433
+      },
+      "fingerprint": "77e33f4e547375ad70fa74a1dae0b808b1596a810f36c6256f69cad457d334b155a1d5e89797f5f31311e65cf4db43e41bdf02123e8a3c4478779f79f7636233_0",
+      "captures": {
+        "$X": "RUN RUN[\"echo\"\"[ok] a,b \\\"c\\\"\"]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-exec-form.dockerfile",
+      "start": {
+        "line": 26,
+        "col": 1,
+        "offset": 478
+      },
+      "end": {
+        "line": 27,
+        "col": 10,
+        "offset": 499
+      },
+      "fingerprint": "3e82282c82b2027e5d6690c32b1c8fec7b156f761956c8a218cb59f7f33787fb705a19b1511d40cfa3b7d113f804a3e0ad2ca24e35ed318dbc2497b77b3da66c_1",
+      "captures": {
+        "$X": "RUN RUN[\"a\"\"b\"]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-exec-form.dockerfile",
+      "start": {
+        "line": 31,
+        "col": 1,
+        "offset": 581
+      },
+      "end": {
+        "line": 31,
+        "col": 10,
+        "offset": 590
+      },
+      "fingerprint": "307aaf66d96fbabc26ba02138b4890a8a95be1dd8dd5210218f6eb43e5fc6c926abb83345a1657089645e1453e41bb4c3113969c2a4bc909dcc677b9b7c0191b_0",
+      "captures": {
+        "$X": "RUN RUN[\"a\"]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-exec-form.dockerfile",
+      "start": {
+        "line": 34,
+        "col": 1,
+        "offset": 602
+      },
+      "end": {
+        "line": 34,
+        "col": 10,
+        "offset": 611
+      },
+      "fingerprint": "307aaf66d96fbabc26ba02138b4890a8a95be1dd8dd5210218f6eb43e5fc6c926abb83345a1657089645e1453e41bb4c3113969c2a4bc909dcc677b9b7c0191b_1",
+      "captures": {
+        "$X": "RUN RUN[\"a\"]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-exec-form.dockerfile",
+      "start": {
+        "line": 37,
+        "col": 1,
+        "offset": 629
+      },
+      "end": {
+        "line": 37,
+        "col": 14,
+        "offset": 642
+      },
+      "fingerprint": "9947d3bb4e2d94f7de2c11a9ab53f010a2839bba8dd9a68e9e4680b38f2609db689226ba1c4fb9da063130eab08fbe5996eddb00fa86e04e5ab9ab13e83a5365_2",
+      "captures": {
+        "$X": "RUN RUN[]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-exec-form.dockerfile",
+      "start": {
+        "line": 38,
+        "col": 1,
+        "offset": 643
+      },
+      "end": {
+        "line": 38,
+        "col": 14,
+        "offset": 656
+      },
+      "fingerprint": "a162fab02cd7c8b8a62665222e015275c23946d436c510f0677f5f630c4ff0fdc9a4d78b5ea1706e84d7d50161f55b4f64d4172608c6d549fbd3ef1aaea3c808_0",
+      "captures": {
+        "$X": "RUN RUN[\"b\"]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-no-trailing-newline.dockerfile",
+      "start": {
+        "line": 1,
+        "col": 1,
+        "offset": 0
+      },
+      "end": {
+        "line": 1,
+        "col": 12,
+        "offset": 11
+      },
+      "fingerprint": "1ef1be3c6777e1596fcd7aa2f95c2fd05dc3ca7ef45ca8723ce52d75c6ae085dd21f854410073b85bcd588abcb0e27176f361a891b0264a6d49b4402106dbe8b_0",
+      "captures": {
+        "$X": "FROM FROM alpine alpine"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-no-trailing-newline.dockerfile",
+      "start": {
+        "line": 2,
+        "col": 1,
+        "offset": 12
+      },
+      "end": {
+        "line": 2,
+        "col": 27,
+        "offset": 38
+      },
+      "fingerprint": "13c7f6634b53500aaec739df5b151ebb54b064f68dd0f5db127060115285618aff5fa236bbaf89fabe717059335a293e80daa6fa6322187af9b679877a4d088b_0",
+      "captures": {
+        "$X": "RUN RUN[]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-powershell-shell.dockerfile",
+      "start": {
+        "line": 3,
+        "col": 1,
+        "offset": 136
+      },
+      "end": {
+        "line": 3,
+        "col": 51,
+        "offset": 186
+      },
+      "fingerprint": "9cec7df9c1cb0553a232dbf729b66839841c08df39c253bbeb110dfbea68c4086c3214b11ef47622199d66dfe4715db67a92d4b82b73b996c43ec55456ab2a9d_0",
+      "captures": {
+        "$X": "FROM FROM mcr.microsoft.com/windows/servercore:ltsc2022 ltsc2022"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-powershell-shell.dockerfile",
+      "start": {
+        "line": 4,
+        "col": 1,
+        "offset": 187
+      },
+      "end": {
+        "line": 4,
+        "col": 33,
+        "offset": 219
+      },
+      "fingerprint": "6ddea2c3603d21b151ec63ac466ab836b9034b5ef0cd9b4b5e9e1916ccd48001046fa39088f7b213fba3df67d7962029e69d6431321b0edddeea3e5337c2d05e_0",
+      "captures": {
+        "$X": "SHELL SHELL[\"powershell\"\"-Command\"]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-powershell-shell.dockerfile",
+      "start": {
+        "line": 5,
+        "col": 1,
+        "offset": 220
+      },
+      "end": {
+        "line": 5,
+        "col": 19,
+        "offset": 238
+      },
+      "fingerprint": "71ff52d9d8efbcd06ac9c4a1a66f55d9ec14096c124fddb46c904766f4de4c8ebc2fe1da45964389ffa79ea0584f3e519c54f60419e00b40c68a5a58ce9bd64f_0",
+      "captures": {
+        "$X": "RUN RUN-f C:\\tmp\\x]-f C:\\tmp\\x]-f C:\\tmp\\x]-f C:\\tmp\\x]-f C:\\tmp\\x]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-powershell-shell.dockerfile",
+      "start": {
+        "line": 6,
+        "col": 1,
+        "offset": 240
+      },
+      "end": {
+        "line": 6,
+        "col": 61,
+        "offset": 300
+      },
+      "fingerprint": "a75350b9ba3caaf5422dae09fb713e30cdf220a398224ffedfe1c7b1c34cb8bf8f6a90c1d9bb463cb84cb9194ef4ea93ca01f10e72d5b510b8b89395f5d4cb91_0",
+      "captures": {
+        "$X": "RUN RUN Get-ChildItem | Where-Object { $_.Name -match '[0-9]+' }Get-ChildItem | Where-Object { $_.Name -match '[0-9]+' }Get-ChildItem | Where-Object { $_.Name -match '[0-9]+' }Get-ChildItem | Where-Object { $_.Name -match '[0-9]+' }Get-ChildItem | Where-Object { $_.Name -match '[0-9]+' }"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-powershell-shell.dockerfile",
+      "start": {
+        "line": 7,
+        "col": 1,
+        "offset": 301
+      },
+      "end": {
+        "line": 7,
+        "col": 50,
+        "offset": 350
+      },
+      "fingerprint": "2fd6d651205c9032222ac964aeb64675f47b71ab0ffc21283ce11887a4f925ce055d05832da2202e448663961ef49e44cf77a788ebad228dcb16ad728fa36868_0",
+      "captures": {
+        "$X": "RUN RUN[\"powershell\"\"-Command\"\"Write-Host [ok]\"]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-run-params.dockerfile",
+      "start": {
+        "line": 1,
+        "col": 1,
+        "offset": 0
+      },
+      "end": {
+        "line": 1,
+        "col": 12,
+        "offset": 11
+      },
+      "fingerprint": "574125a5e28c9cdc004459fa9dc804241b9ce81029822fa8892bf9f66cdc1d1503a19d362d57abf0eff6a26d56da1f32b4c56cf2b37fc3ce5b8603436c4a1335_0",
+      "captures": {
+        "$X": "FROM FROM alpine alpine"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-run-params.dockerfile",
+      "start": {
+        "line": 4,
+        "col": 1,
+        "offset": 22
+      },
+      "end": {
+        "line": 4,
+        "col": 42,
+        "offset": 63
+      },
+      "fingerprint": "3e9915a5bfcbebaf7dada3faf260de8bb7a79abc16f722e5337aff20e0713aabee76595b6f7b6e12f2c268c908746f54a01b3c9e5d0b42e3b5787aa6b720a822_0",
+      "captures": {
+        "$X": "RUN RUN network none[]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-run-params.dockerfile",
+      "start": {
+        "line": 7,
+        "col": 1,
+        "offset": 74
+      },
+      "end": {
+        "line": 7,
+        "col": 66,
+        "offset": 139
+      },
+      "fingerprint": "d7d789c12ac2aa69cb9a72ddd88c8e6ebb56f65b7dc80534e7a73c0f0c22799e8c04bbc621f6718e075ab5215570f8c40784073c802b78c716526d52a067597a_0",
+      "captures": {
+        "$X": "RUN RUN--mount mount type cache target/root/.cache/root/.cache[]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-run-params.dockerfile",
+      "start": {
+        "line": 9,
+        "col": 1,
+        "offset": 141
+      },
+      "end": {
+        "line": 9,
+        "col": 58,
+        "offset": 198
+      },
+      "fingerprint": "fee30e3f984a18b0d6a7b51860d8d15f11646c4d4084effe0d126af9951d332a1b11c7bee1bb5e1707ab88c2a26724120b0821f7ade787f32539a0782a94b4ac_0",
+      "captures": {
+        "$X": "RUN RUN--mount mount type cache target/root/.cache/root/.cache[\"echo\"\"hi\"]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-run-params.dockerfile",
+      "start": {
+        "line": 10,
+        "col": 1,
+        "offset": 199
+      },
+      "end": {
+        "line": 10,
+        "col": 34,
+        "offset": 232
+      },
+      "fingerprint": "e627ba7e6fc048afb18c505cc7790128db19925f92a4948073d4a0d6a8fcc3aca929d0d161058768766132141b3049dd47ba47d6cd8fb733c3bc5fcdac0bb05c_0",
+      "captures": {
+        "$X": "RUN RUN network none[\"echo\"\"hi\"]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-shell-fallback.dockerfile",
+      "start": {
+        "line": 3,
+        "col": 1,
+        "offset": 149
+      },
+      "end": {
+        "line": 3,
+        "col": 12,
+        "offset": 160
+      },
+      "fingerprint": "773becb5f0844f4a3f06e798dc0459cf7d9f6b7b45567148213686e763d15f64f6ee1c0a65a5aabed215e924878d09d1f7c7bd8b331b6f8206a509e77d749ac4_0",
+      "captures": {
+        "$X": "FROM FROM alpine alpine"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-shell-fallback.dockerfile",
+      "start": {
+        "line": 6,
+        "col": 1,
+        "offset": 171
+      },
+      "end": {
+        "line": 6,
+        "col": 27,
+        "offset": 197
+      },
+      "fingerprint": "f9dd50b387f3179f3ec44e2de876e5e89ce23f5ab91b46993fe05842d1d57dda4e5114a10b4549012761970631a57a8cbb7f4fa6725cb6c385c9efd8cf17ac1d_0",
+      "captures": {
+        "$X": "RUN RUN[]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-shell-fallback.dockerfile",
+      "start": {
+        "line": 9,
+        "col": 1,
+        "offset": 208
+      },
+      "end": {
+        "line": 9,
+        "col": 24,
+        "offset": 231
+      },
+      "fingerprint": "00c0ac8a4011f5f1ad0c54cce0e442be7a6308ca70719cc51aa6f187985a529ee5c9c401b72eea89ac60150169ae1dc142bc838f117cee9802c79917506555a0_0",
+      "captures": {
+        "$X": "RUN RUN[\"$BAR\"]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-shell-fallback.dockerfile",
+      "start": {
+        "line": 13,
+        "col": 1,
+        "offset": 259
+      },
+      "end": {
+        "line": 13,
+        "col": 14,
+        "offset": 272
+      },
+      "fingerprint": "e36c9fdfe1e626819b025e3572bfe31ca67d71c36a79c3d4b8b5aa56ac2b5ecc6c5b7801d8563ea085c2db2c94caefd126b001dc065b98e26c0d2cba9dfa86cc_0",
+      "captures": {
+        "$X": "RUN RUN[\"b\"]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-shell-fallback.dockerfile",
+      "start": {
+        "line": 17,
+        "col": 1,
+        "offset": 301
+      },
+      "end": {
+        "line": 17,
+        "col": 11,
+        "offset": 311
+      },
+      "fingerprint": "eca1fec38f2c917822cdb237f49a5e224846035c775c515b68087e697978272a8939f961e388139ac972762e8ff14923bf812fc04dcee59443c5d0618c402848_0",
+      "captures": {
+        "$X": "RUN RUN[\"a\"]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-shell-fallback.dockerfile",
+      "start": {
+        "line": 21,
+        "col": 1,
+        "offset": 339
+      },
+      "end": {
+        "line": 21,
+        "col": 12,
+        "offset": 350
+      },
+      "fingerprint": "eca1fec38f2c917822cdb237f49a5e224846035c775c515b68087e697978272a8939f961e388139ac972762e8ff14923bf812fc04dcee59443c5d0618c402848_1",
+      "captures": {
+        "$X": "RUN RUN[\"a\"]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-shell-fallback.dockerfile",
+      "start": {
+        "line": 25,
+        "col": 1,
+        "offset": 375
+      },
+      "end": {
+        "line": 25,
+        "col": 12,
+        "offset": 386
+      },
+      "fingerprint": "eca1fec38f2c917822cdb237f49a5e224846035c775c515b68087e697978272a8939f961e388139ac972762e8ff14923bf812fc04dcee59443c5d0618c402848_2",
+      "captures": {
+        "$X": "RUN RUN[\"a\"]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-shell-fallback.dockerfile",
+      "start": {
+        "line": 29,
+        "col": 1,
+        "offset": 424
+      },
+      "end": {
+        "line": 29,
+        "col": 9,
+        "offset": 432
+      },
+      "fingerprint": "f9dd50b387f3179f3ec44e2de876e5e89ce23f5ab91b46993fe05842d1d57dda4e5114a10b4549012761970631a57a8cbb7f4fa6725cb6c385c9efd8cf17ac1d_1",
+      "captures": {
+        "$X": "RUN RUN[]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-shell-fallback.dockerfile",
+      "start": {
+        "line": 33,
+        "col": 1,
+        "offset": 473
+      },
+      "end": {
+        "line": 33,
+        "col": 10,
+        "offset": 482
+      },
+      "fingerprint": "f9dd50b387f3179f3ec44e2de876e5e89ce23f5ab91b46993fe05842d1d57dda4e5114a10b4549012761970631a57a8cbb7f4fa6725cb6c385c9efd8cf17ac1d_2",
+      "captures": {
+        "$X": "RUN RUN[]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-shell-fallback.dockerfile",
+      "start": {
+        "line": 37,
+        "col": 1,
+        "offset": 536
+      },
+      "end": {
+        "line": 48,
+        "col": 10,
+        "offset": 762
+      },
+      "fingerprint": "eca1fec38f2c917822cdb237f49a5e224846035c775c515b68087e697978272a8939f961e388139ac972762e8ff14923bf812fc04dcee59443c5d0618c402848_3",
+      "captures": {
+        "$X": "RUN RUN[\"a\"]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-shell-fallback.dockerfile",
+      "start": {
+        "line": 51,
+        "col": 1,
+        "offset": 799
+      },
+      "end": {
+        "line": 59,
+        "col": 15,
+        "offset": 916
+      },
+      "fingerprint": "65d474d70c65ff5294f84051452afa805e33a571dc962b154dac7e37d833ec37283e9bd34a924f06aeb6224c2d892d376cbc6548cc79831fcae40e044a9e71b5_0",
+      "captures": {
+        "$X": "RUN RUN[\"a\"\"b\"]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-shell-fallback.dockerfile",
+      "start": {
+        "line": 60,
+        "col": 1,
+        "offset": 917
+      },
+      "end": {
+        "line": 60,
+        "col": 7,
+        "offset": 923
+      },
+      "fingerprint": "f9dd50b387f3179f3ec44e2de876e5e89ce23f5ab91b46993fe05842d1d57dda4e5114a10b4549012761970631a57a8cbb7f4fa6725cb6c385c9efd8cf17ac1d_3",
+      "captures": {
+        "$X": "RUN RUN[]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-shell-fallback.dockerfile",
+      "start": {
+        "line": 61,
+        "col": 1,
+        "offset": 924
+      },
+      "end": {
+        "line": 61,
+        "col": 12,
+        "offset": 935
+      },
+      "fingerprint": "eca1fec38f2c917822cdb237f49a5e224846035c775c515b68087e697978272a8939f961e388139ac972762e8ff14923bf812fc04dcee59443c5d0618c402848_4",
+      "captures": {
+        "$X": "RUN RUN[\"a\"]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-volume.dockerfile",
+      "start": {
+        "line": 1,
+        "col": 1,
+        "offset": 0
+      },
+      "end": {
+        "line": 1,
+        "col": 12,
+        "offset": 11
+      },
+      "fingerprint": "c9161b22855a009f5f51a7b58ac2540c62a54548e3cb0e946e306a605f8b5f7f9633a8f48799c3046e84fbd332bc650017b3990134914670c60f83ceef67a79b_0",
+      "captures": {
+        "$X": "FROM FROM alpine alpine"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-volume.dockerfile",
+      "start": {
+        "line": 4,
+        "col": 1,
+        "offset": 22
+      },
+      "end": {
+        "line": 4,
+        "col": 14,
+        "offset": 35
+      },
+      "fingerprint": "cf8e9ae0a25df3184b5b2b6aa4a27f02567862eb37988b8375b2986e52b26f587dc6cb17be912172246ced3a7a59adc47c94d2eeedd75f3e439a6835e968cb4c_0",
+      "captures": {
+        "$X": "VOLUME VOLUME[\"/a\"]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-volume.dockerfile",
+      "start": {
+        "line": 7,
+        "col": 1,
+        "offset": 46
+      },
+      "end": {
+        "line": 7,
+        "col": 23,
+        "offset": 68
+      },
+      "fingerprint": "04372651c66542ea2d3024dbbc53f93e385cff83a14f2dea8b5ba350a917617ec83a96fff5ae041e89bac0837eb7590865542234d2172fd1a4d6dc7f15b34d47_0",
+      "captures": {
+        "$X": "VOLUME VOLUME[\"/a\"\"/b\"]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-volume.dockerfile",
+      "start": {
+        "line": 9,
+        "col": 1,
+        "offset": 70
+      },
+      "end": {
+        "line": 9,
+        "col": 13,
+        "offset": 82
+      },
+      "fingerprint": "67106ce88d40c622beb6623608783ddef0f08fec128fd29aee5546e0d9a1603fa741e0bc64f743d19e37869367e83ce0474b7e7e53f53b54f163bbb818fb6371_0",
+      "captures": {
+        "$X": "VOLUME VOLUME/a/b/b"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-volume.dockerfile",
+      "start": {
+        "line": 10,
+        "col": 1,
+        "offset": 83
+      },
+      "end": {
+        "line": 10,
+        "col": 13,
+        "offset": 95
+      },
+      "fingerprint": "fa86d37176601b71b0f147f8695f4e16d0fd00b7b6f528985e387ab5dbdef02164b2c76720793c8c4496fdd995b8c990a3e45c83f06ee6bcc4ef47eb27f25370_0",
+      "captures": {
+        "$X": "VOLUME VOLUME/a[0]/a[0]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-volume.dockerfile",
+      "start": {
+        "line": 11,
+        "col": 1,
+        "offset": 96
+      },
+      "end": {
+        "line": 11,
+        "col": 33,
+        "offset": 128
+      },
+      "fingerprint": "ac11b08e083cf1f03b1027cd48db9106af63920aea52603a6a8819f1f8350b820cb084bd5dc2893a702be9f9d00e56bbe71a2df1fffc50f52351a00824f58f52_0",
+      "captures": {
+        "$X": "SHELL SHELL[\"powershell\"\"-command\"]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-volume.dockerfile",
+      "start": {
+        "line": 12,
+        "col": 1,
+        "offset": 129
+      },
+      "end": {
+        "line": 12,
+        "col": 44,
+        "offset": 172
+      },
+      "fingerprint": "09370512aaf3b1e761c6fce482388e20096a9496fd7c3dae905b7adc037568f3df1579b5d4d83870f828cf1b2a061f598f12ded4dca85c158f917777c7311708_0",
+      "captures": {
+        "$X": "HEALTHCHECK HEALTHCHECK CMD CMD[\"curl\"\"-f\"\"http://x/\"]]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-volume.dockerfile",
+      "start": {
+        "line": 13,
+        "col": 1,
+        "offset": 173
+      },
+      "end": {
+        "line": 13,
+        "col": 45,
+        "offset": 217
+      },
+      "fingerprint": "d91d0c3f73ec623312efe805d8b17569224a449af682bbef47b5d1d7fb752ee0b4bb7c12c13cbd600baf5dda1a1c96f6c794e834997d63e74428bc97702c7af3_0",
+      "captures": {
+        "$X": "HEALTHCHECK HEALTHCHECK--interval 5m CMD CMD[]]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-volume.dockerfile",
+      "start": {
+        "line": 14,
+        "col": 1,
+        "offset": 218
+      },
+      "end": {
+        "line": 14,
+        "col": 36,
+        "offset": 253
+      },
+      "fingerprint": "cff8acf0f78e32f61d03c5795a27a2350586970da3ada8e1d1f196c0d277edb42d925641ad4f6504f65bbb7bb355194da0602d8efe79591a08aadec2032206ea_0",
+      "captures": {
+        "$X": "ONBUILD ONBUILD RUN RUN-d /src ] && echo yes-d /src ] && echo yes-d /src ] && echo yes-d /src ] && echo yes-d /src ] && echo yes-d /src ] && echo yes"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/bracket-volume.dockerfile",
+      "start": {
+        "line": 15,
+        "col": 1,
+        "offset": 254
+      },
+      "end": {
+        "line": 15,
+        "col": 30,
+        "offset": 283
+      },
+      "fingerprint": "de3879a8f3f86e64b13062e56bed7edd61a931ddc6e703756cfad413e6fc5ccc10e68b7f06338632bb751b0f208d43df799419678a1c3f87bd7874ca1e628d7a_0",
+      "captures": {
+        "$X": "ONBUILD ONBUILD RUN RUN[\"echo\"\"built\"]]]"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/classic.php",
+      "start": {
+        "line": 2,
+        "col": 1,
+        "offset": 6
+      },
+      "end": {
+        "line": 2,
+        "col": 5,
+        "offset": 10
+      },
+      "fingerprint": "569c767ae86ba2add81819e2731035107674041ca1b6d85ca1a822d64b49a899d8e925b0b45224b47bf7a70e42f7b880ed9dcd44aadc8f14de78e42403c5ceef_0",
+      "captures": {
+        "$X": "sink"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/classic.php",
+      "start": {
+        "line": 2,
+        "col": 1,
+        "offset": 6
+      },
+      "end": {
+        "line": 5,
+        "col": 2,
+        "offset": 35
+      },
+      "fingerprint": "48aaa902bfc4743bf4acb7f0066f364e90b726c35c5db35d3aabae0ffed2551c395ae23460e828253bb8b19044d973631800055d4f4978a0c45b3298e2bd4298_0",
+      "captures": {
+        "$X": "sink(<<<TXT\n<<<TXT\n hello $name TXT)"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/classic.php",
+      "start": {
+        "line": 2,
+        "col": 6,
+        "offset": 11
+      },
+      "end": {
+        "line": 4,
+        "col": 4,
+        "offset": 33
+      },
+      "fingerprint": "e5a35a332f27429bfc2cd2cf81441667ee3aafe0894ebbda453341afb487f7a2f48dfe6f67136a9d28c0adb3cae702f24d2362b9749ed77179d1356fda0d6a44_0",
+      "captures": {
+        "$X": "<<<TXT\n<<<TXT\n hello $name TXT"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/classic.php",
+      "start": {
+        "line": 3,
+        "col": 1,
+        "offset": 18
+      },
+      "end": {
+        "line": 3,
+        "col": 7,
+        "offset": 24
+      },
+      "fingerprint": "39038aa4515796612212860a770e2754147bc6bc35c58241b12b7fcab1a9ec57373e06dc7b16325bd369eb5518d58477434b8c6eda4f3df8f0311d51f38665fe_0",
+      "captures": {
+        "$X": "hello "
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/classic.php",
+      "start": {
+        "line": 3,
+        "col": 7,
+        "offset": 24
+      },
+      "end": {
+        "line": 3,
+        "col": 12,
+        "offset": 29
+      },
+      "fingerprint": "ec9905afc053020c2aee87b09e3be0d4abcc75e297b54524096bef4c64119e16fa4384d30c8de034d8f5c19185acad4f6ce5d39480f0965ba8f0f8a3a9e172fb_0",
+      "captures": {
+        "$X": "$name"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/flex.php",
+      "start": {
+        "line": 2,
+        "col": 1,
+        "offset": 6
+      },
+      "end": {
+        "line": 2,
+        "col": 5,
+        "offset": 10
+      },
+      "fingerprint": "cea6ee71e2b9eaed0b734f7e7dcf0bea1465e692f1a727540d3ed85d73240277f6f970d728b224eb4af59c8b02de75e3c779e7d968240324d621908cd0df17ad_0",
+      "captures": {
+        "$X": "sink"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/flex.php",
+      "start": {
+        "line": 2,
+        "col": 1,
+        "offset": 6
+      },
+      "end": {
+        "line": 4,
+        "col": 5,
+        "offset": 34
+      },
+      "fingerprint": "fbda1e86c59b09cf72a2c5b49067d1bcd15f862f9ebd6388f6f36899e7073fba93bae8e20e143817810a5892e7e8315a4723ec90e1a5ceb015c587ec9e0cc539_0",
+      "captures": {
+        "$X": "sink(<<<TXT\nhello $name\nTXT)"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/flex.php",
+      "start": {
+        "line": 2,
+        "col": 6,
+        "offset": 11
+      },
+      "end": {
+        "line": 4,
+        "col": 4,
+        "offset": 33
+      },
+      "fingerprint": "5026d3186b93c838d2ed7996910052c18b9620490f2919b6a110b39f678aa53276578e5d72a4e5d5beab12e8c3ad41a4cbfa5fb8578bbd5e34e74f4f6113b639_0",
+      "captures": {
+        "$X": "<<<TXT\nhello $name\nTXT"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/indented.php",
+      "start": {
+        "line": 2,
+        "col": 1,
+        "offset": 6
+      },
+      "end": {
+        "line": 2,
+        "col": 5,
+        "offset": 10
+      },
+      "fingerprint": "ac38061dfa9252f3d7c39e268fc64801eb9e14a9609da5810ccdb25e767b534db5ac24a8b701ceba28dc6a7a3baa9c3030f1cbc9ef057a2c7d08350b0d8f13e6_0",
+      "captures": {
+        "$X": "sink"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/indented.php",
+      "start": {
+        "line": 2,
+        "col": 1,
+        "offset": 6
+      },
+      "end": {
+        "line": 4,
+        "col": 7,
+        "offset": 38
+      },
+      "fingerprint": "fe7b4b6c946d11f266c00da3a3f6d1d84df794730963711695da73f1534ee09f468d746ca8865cc531043b058d2ee66ae954f190ef142611e7a1aaa0a59d3da4_0",
+      "captures": {
+        "$X": "sink(<<<TXT\n  hello $name\n  TXT)"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/indented.php",
+      "start": {
+        "line": 2,
+        "col": 6,
+        "offset": 11
+      },
+      "end": {
+        "line": 4,
+        "col": 6,
+        "offset": 37
+      },
+      "fingerprint": "b85962e9806149ee0a17af117c30cc163874ca14ae9304e75d03484398b25b3d8505e0de88276b1e9a791dc2a6cf8640720a4c9425ebb4ca1dc2765472bbf7a9_0",
+      "captures": {
+        "$X": "<<<TXT\n  hello $name\n  TXT"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/named_arguments.php",
+      "start": {
+        "line": 3,
+        "col": 1,
+        "offset": 7
+      },
+      "end": {
+        "line": 3,
+        "col": 17,
+        "offset": 23
+      },
+      "fingerprint": "cb923587a12eebd06186470dbf54d0efb66874dd9a3ac5247dca80c019e0e4794eabd71c0b947fa2b7bc46f8cddab6349880d0a93456104552388dd93a2db7d0_0",
+      "captures": {
+        "$X": "htmlspecialchars"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/named_arguments.php",
+      "start": {
+        "line": 3,
+        "col": 1,
+        "offset": 7
+      },
+      "end": {
+        "line": 3,
+        "col": 48,
+        "offset": 54
+      },
+      "fingerprint": "4a3ad6604d1c195be3d09e441f16dbfbca509ea7168028498f6b5acce993ec3b1f7c8e4cc9d2a10e98f44ef666599b4042cd13275b789d5439db7ed04b39cb38_0",
+      "captures": {
+        "$X": "htmlspecialchars($string double_encode false)"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/named_arguments.php",
+      "start": {
+        "line": 3,
+        "col": 18,
+        "offset": 24
+      },
+      "end": {
+        "line": 3,
+        "col": 25,
+        "offset": 31
+      },
+      "fingerprint": "8352c31ade5b20d298355db7f98265b515cc693f30dd92bf876444ae26dfb4f410d70c64ae1a4368ffc5af40dfc864ad173e27fed5499da18d7ac8d8a2c050de_0",
+      "captures": {
+        "$X": "$string"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/named_arguments.php",
+      "start": {
+        "line": 3,
+        "col": 42,
+        "offset": 48
+      },
+      "end": {
+        "line": 3,
+        "col": 47,
+        "offset": 53
+      },
+      "fingerprint": "7008f7047e80ae3d57a489b7a922338aaa45fd10209be6cd8eec72526c432e3495b212858b29611ad8f3f32cf53e4b3152727f4cf77ed3ac1e56d9db1e4cea54_0",
+      "captures": {
+        "$X": "false"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/named_arguments.php",
+      "start": {
+        "line": 7,
+        "col": 1,
+        "offset": 187
+      },
+      "end": {
+        "line": 7,
+        "col": 8,
+        "offset": 194
+      },
+      "fingerprint": "f93a8f01ebdda81889bf6a29e9ce6107875c31b553a8952d664b22446edd9f64ed1337967065aaf9a03474346c6c12b9812757214ab088918caeeff6cd76a45d_0",
+      "captures": {
+        "$X": "$joined"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/named_arguments.php",
+      "start": {
+        "line": 7,
+        "col": 1,
+        "offset": 187
+      },
+      "end": {
+        "line": 7,
+        "col": 49,
+        "offset": 235
+      },
+      "fingerprint": "9bc3bac29988300e44061345bd530351649151fe6f2206b7d7f794ec1c9ce7fb7dad3b9e1aa49b5398c37ae7bd9bea2c3e11a961db28968cdbf7b3e3f5f0a323_0",
+      "captures": {
+        "$X": "$joined=implode(separator','$items)"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/named_arguments.php",
+      "start": {
+        "line": 7,
+        "col": 11,
+        "offset": 197
+      },
+      "end": {
+        "line": 7,
+        "col": 18,
+        "offset": 204
+      },
+      "fingerprint": "b8679c2e8f8d0104482a2c4c84126effb8616ac1731a09c81eecc6ca2a4c7a3d4fed5a234c19002d28aced9e9e95a220edb3b28a008e0e4ad5d32b80b4952fbb_0",
+      "captures": {
+        "$X": "implode"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/named_arguments.php",
+      "start": {
+        "line": 7,
+        "col": 11,
+        "offset": 197
+      },
+      "end": {
+        "line": 7,
+        "col": 49,
+        "offset": 235
+      },
+      "fingerprint": "8226576839c4e3830fd50452bd7de72ecfb60517c5226a91e0dd9da6b0a0f04c44a21a739c785f5b3b4ac4612e503676e05991b81ffed99ec506b06150fa5889_0",
+      "captures": {
+        "$X": "implode(separator','$items)"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/named_arguments.php",
+      "start": {
+        "line": 7,
+        "col": 30,
+        "offset": 216
+      },
+      "end": {
+        "line": 7,
+        "col": 33,
+        "offset": 219
+      },
+      "fingerprint": "1c7e7d32da5cb876936e6cb4f6e391c104d263e3e3362a33cb42f05a724362ab862c7aa66f5b4bab7b0b2c5cfa529e6741f78d71281422d79b90db92b810c1c0_0",
+      "captures": {
+        "$X": "','"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/named_arguments.php",
+      "start": {
+        "line": 7,
+        "col": 42,
+        "offset": 228
+      },
+      "end": {
+        "line": 7,
+        "col": 48,
+        "offset": 234
+      },
+      "fingerprint": "b5b0bd9f691c3997795d7a40f2171464fb6871f3266590b125c13134e71ea4add8c914c5771784b3ca0c66e1d478c34834b6dd39a9ae0379c13f742791497f8b_0",
+      "captures": {
+        "$X": "$items"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/named_arguments.php",
+      "start": {
+        "line": 8,
+        "col": 1,
+        "offset": 237
+      },
+      "end": {
+        "line": 8,
+        "col": 6,
+        "offset": 242
+      },
+      "fingerprint": "4b638a13f1de89d244c43159426a60697aeb513dd03746c05b6719ac09756488d102f5d3f31bc6226a61dc2393249df360fc6329491f163e358bbd76fe02860f_0",
+      "captures": {
+        "$X": "$last"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/named_arguments.php",
+      "start": {
+        "line": 8,
+        "col": 1,
+        "offset": 237
+      },
+      "end": {
+        "line": 8,
+        "col": 28,
+        "offset": 264
+      },
+      "fingerprint": "06142f3930cd7d1ba92ddac4b6821152106326141f34a81b1eea778a91c4456c791d80e9286f1ebea069e42a1c1385c590bc29c78be8f4425dee099a5a0a244c_0",
+      "captures": {
+        "$X": "$last=end($fields)"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/named_arguments.php",
+      "start": {
+        "line": 8,
+        "col": 9,
+        "offset": 245
+      },
+      "end": {
+        "line": 8,
+        "col": 12,
+        "offset": 248
+      },
+      "fingerprint": "b7afee00c55f693776362ee8800ef3c0ae01ae24f020203b749f877e5e8ab786e160e14e74f182a62f1eb2342711fd110eb1ab5aece42074bfef35d52418de55_0",
+      "captures": {
+        "$X": "end"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/named_arguments.php",
+      "start": {
+        "line": 8,
+        "col": 9,
+        "offset": 245
+      },
+      "end": {
+        "line": 8,
+        "col": 28,
+        "offset": 264
+      },
+      "fingerprint": "8739a165932cf3ce9454961ad8f09b5d29a907f46fcaed4b68d8217949dbe43050c4401ffab6e8d25e4d8f5647733563552d9403e1448aa63cabdffea00f677b_0",
+      "captures": {
+        "$X": "end($fields)"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/named_arguments.php",
+      "start": {
+        "line": 8,
+        "col": 20,
+        "offset": 256
+      },
+      "end": {
+        "line": 8,
+        "col": 27,
+        "offset": 263
+      },
+      "fingerprint": "d566aa9d765cca88af2bcffaa802e86316326989075a8ea6f6ef21011e30a3d341a7be2fbb4c4509ec250aaafa92d0fa5f77ddc827b340d9a1e8fb550e4a08f4_0",
+      "captures": {
+        "$X": "$fields"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/named_arguments.php",
+      "start": {
+        "line": 9,
+        "col": 1,
+        "offset": 266
+      },
+      "end": {
+        "line": 9,
+        "col": 2,
+        "offset": 267
+      },
+      "fingerprint": "1a65cdfc8c92d39885b8e4569e51e5cb5fc972adf1f4be6072074eab4e609f6b3a1750f8bff5bd29078a6512226c26659a2e0c6a85ff396ed7d8e1a3be14fae4_0",
+      "captures": {
+        "$X": "f"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/named_arguments.php",
+      "start": {
+        "line": 9,
+        "col": 1,
+        "offset": 266
+      },
+      "end": {
+        "line": 9,
+        "col": 76,
+        "offset": 341
+      },
+      "fingerprint": "a5771ad8ff07f4f7d420311920b9e1750ae2ef270401bb27b114e593fe4b1a4b25b4723ff88f76bd7e0b503d7b246535b408368069824a598b3b48bf3663973b_0",
+      "captures": {
+        "$X": "f($a$b$c$d class$e print$f clone$g)"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/named_arguments.php",
+      "start": {
+        "line": 9,
+        "col": 9,
+        "offset": 274
+      },
+      "end": {
+        "line": 9,
+        "col": 11,
+        "offset": 276
+      },
+      "fingerprint": "0ef6e8f97cb3d024644b9e741efe47347be57218b5d0ecbd37e7cf2ad90431f19bdaaf015c2c672e94869c9220483441ab67ea918829703af5bdfed5aa7f3dcd_0",
+      "captures": {
+        "$X": "$a"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/named_arguments.php",
+      "start": {
+        "line": 9,
+        "col": 20,
+        "offset": 285
+      },
+      "end": {
+        "line": 9,
+        "col": 22,
+        "offset": 287
+      },
+      "fingerprint": "88d5eb9148dbceff496a00b38f5e8ed019fa53ca1d852f7c5fb1a6ff45e2baac8f6bc822389b0059f27f3f99fc2a8be6b783ebd3b726a4a9f8a1c5c4bf338412_0",
+      "captures": {
+        "$X": "$b"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/named_arguments.php",
+      "start": {
+        "line": 9,
+        "col": 28,
+        "offset": 293
+      },
+      "end": {
+        "line": 9,
+        "col": 30,
+        "offset": 295
+      },
+      "fingerprint": "a77404d7f61266b4a697a90afd132b551469fb2ff0e870c3e583cc9063f3dbe8f67cd83ee9cfb02a0094fd9bd1ab25dcce3147add36b472626c41c08048e2b29_0",
+      "captures": {
+        "$X": "$c"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/named_arguments.php",
+      "start": {
+        "line": 9,
+        "col": 40,
+        "offset": 305
+      },
+      "end": {
+        "line": 9,
+        "col": 42,
+        "offset": 307
+      },
+      "fingerprint": "e56b196f63178bff306776a77e77d554defc6ae73999a4dc5a14569c1a581296e29915d46763027af726803042812a03a1bec3598125a8fcfe02b033eed86c00_0",
+      "captures": {
+        "$X": "$d"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/named_arguments.php",
+      "start": {
+        "line": 9,
+        "col": 51,
+        "offset": 316
+      },
+      "end": {
+        "line": 9,
+        "col": 53,
+        "offset": 318
+      },
+      "fingerprint": "a812cf6db8314ab44160381fde28a7df1a013ecf86890dd52f09bd9b6b06b89d6d7b80ef8032416916fd6331a78a446bc3229075e128d8f67e13470395df3097_0",
+      "captures": {
+        "$X": "$e"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/named_arguments.php",
+      "start": {
+        "line": 9,
+        "col": 55,
+        "offset": 320
+      },
+      "end": {
+        "line": 9,
+        "col": 60,
+        "offset": 325
+      },
+      "fingerprint": "20601d0c525e73bfd22141a4ded954b91a237af73960ff0ad2020503e5aaecbb53878fc2de051f37154c26d1c7ce796c67bcacb38388faca172fd492bf9d6246_0",
+      "captures": {
+        "$X": "print"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/named_arguments.php",
+      "start": {
+        "line": 9,
+        "col": 55,
+        "offset": 320
+      },
+      "end": {
+        "line": 9,
+        "col": 64,
+        "offset": 329
+      },
+      "fingerprint": "e463706e4d5fe1ab008226a3bce1cf44c4ebc98818f6d1b883d2c8102dc9eacaaea447f589c014a25bffd6e31dfb964a557f463f1336dc46f2cdc0032c7584c0_0",
+      "captures": {
+        "$X": "print$f"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/named_arguments.php",
+      "start": {
+        "line": 9,
+        "col": 62,
+        "offset": 327
+      },
+      "end": {
+        "line": 9,
+        "col": 64,
+        "offset": 329
+      },
+      "fingerprint": "d8f52fc80790e2ba316d3a97fdb27ce55b2c3b29ac06e098cd205a5ac68f5d6bd46052a4e7568b5ad0efd0bab07c51f14e1962c5f7ec19eb0e87bb7089592547_0",
+      "captures": {
+        "$X": "$f"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/named_arguments.php",
+      "start": {
+        "line": 9,
+        "col": 66,
+        "offset": 331
+      },
+      "end": {
+        "line": 9,
+        "col": 71,
+        "offset": 336
+      },
+      "fingerprint": "4cfc2a939036fb012e78b90b1184c346f7459da23f297910b8a2b6642f5dab28df414b2c6702ea47dff6aed2527c1eb49c4627155149fc49afddf6fa34c81c18_0",
+      "captures": {
+        "$X": "clone"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/named_arguments.php",
+      "start": {
+        "line": 9,
+        "col": 66,
+        "offset": 331
+      },
+      "end": {
+        "line": 9,
+        "col": 75,
+        "offset": 340
+      },
+      "fingerprint": "8642086e19378513b19cbcbcc8b44dc65bd91fb44011e3a7d9cc890bf74594c08b230b13a37b7a64e9d0bd4f56bebddf2b1a3b0cf267aadb7bc041e4a53ec630_0",
+      "captures": {
+        "$X": "clone$g"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/named_arguments.php",
+      "start": {
+        "line": 9,
+        "col": 73,
+        "offset": 338
+      },
+      "end": {
+        "line": 9,
+        "col": 75,
+        "offset": 340
+      },
+      "fingerprint": "f4e9fec239e83afe115ad8399a5763aec02d47efb563c21ce9c8d5c1974b1d49270fa30963b93d1b4a2636a300f112735d2bbd114350b1e08462e52f3fd9d4dd_0",
+      "captures": {
+        "$X": "$g"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/named_arguments.php",
+      "start": {
+        "line": 10,
+        "col": 1,
+        "offset": 343
+      },
+      "end": {
+        "line": 10,
+        "col": 2,
+        "offset": 344
+      },
+      "fingerprint": "1a65cdfc8c92d39885b8e4569e51e5cb5fc972adf1f4be6072074eab4e609f6b3a1750f8bff5bd29078a6512226c26659a2e0c6a85ff396ed7d8e1a3be14fae4_1",
+      "captures": {
+        "$X": "f"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/named_arguments.php",
+      "start": {
+        "line": 10,
+        "col": 1,
+        "offset": 343
+      },
+      "end": {
+        "line": 10,
+        "col": 71,
+        "offset": 413
+      },
+      "fingerprint": "a5b49b0623d0149b724eb4dfa0bf7893241560398197662da33ed78fec0ddc1343ab282eea6d8787a99a4cba3b3a643eb97c543337c619d94d1d0dff4830aef3_0",
+      "captures": {
+        "$X": "f(goto$a$b$c$d callable$e readonly$f)"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/named_arguments.php",
+      "start": {
+        "line": 10,
+        "col": 9,
+        "offset": 351
+      },
+      "end": {
+        "line": 10,
+        "col": 11,
+        "offset": 353
+      },
+      "fingerprint": "0ef6e8f97cb3d024644b9e741efe47347be57218b5d0ecbd37e7cf2ad90431f19bdaaf015c2c672e94869c9220483441ab67ea918829703af5bdfed5aa7f3dcd_1",
+      "captures": {
+        "$X": "$a"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/named_arguments.php",
+      "start": {
+        "line": 10,
+        "col": 19,
+        "offset": 361
+      },
+      "end": {
+        "line": 10,
+        "col": 21,
+        "offset": 363
+      },
+      "fingerprint": "88d5eb9148dbceff496a00b38f5e8ed019fa53ca1d852f7c5fb1a6ff45e2baac8f6bc822389b0059f27f3f99fc2a8be6b783ebd3b726a4a9f8a1c5c4bf338412_1",
+      "captures": {
+        "$X": "$b"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/named_arguments.php",
+      "start": {
+        "line": 10,
+        "col": 30,
+        "offset": 372
+      },
+      "end": {
+        "line": 10,
+        "col": 32,
+        "offset": 374
+      },
+      "fingerprint": "a77404d7f61266b4a697a90afd132b551469fb2ff0e870c3e583cc9063f3dbe8f67cd83ee9cfb02a0094fd9bd1ab25dcce3147add36b472626c41c08048e2b29_1",
+      "captures": {
+        "$X": "$c"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/named_arguments.php",
+      "start": {
+        "line": 10,
+        "col": 40,
+        "offset": 382
+      },
+      "end": {
+        "line": 10,
+        "col": 42,
+        "offset": 384
+      },
+      "fingerprint": "e56b196f63178bff306776a77e77d554defc6ae73999a4dc5a14569c1a581296e29915d46763027af726803042812a03a1bec3598125a8fcfe02b033eed86c00_1",
+      "captures": {
+        "$X": "$d"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/named_arguments.php",
+      "start": {
+        "line": 10,
+        "col": 54,
+        "offset": 396
+      },
+      "end": {
+        "line": 10,
+        "col": 56,
+        "offset": 398
+      },
+      "fingerprint": "a812cf6db8314ab44160381fde28a7df1a013ecf86890dd52f09bd9b6b06b89d6d7b80ef8032416916fd6331a78a446bc3229075e128d8f67e13470395df3097_1",
+      "captures": {
+        "$X": "$e"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/named_arguments.php",
+      "start": {
+        "line": 10,
+        "col": 68,
+        "offset": 410
+      },
+      "end": {
+        "line": 10,
+        "col": 70,
+        "offset": 412
+      },
+      "fingerprint": "d8f52fc80790e2ba316d3a97fdb27ce55b2c3b29ac06e098cd205a5ac68f5d6bd46052a4e7568b5ad0efd0bab07c51f14e1962c5f7ec19eb0e87bb7089592547_1",
+      "captures": {
+        "$X": "$f"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/named_arguments.php",
+      "start": {
+        "line": 13,
+        "col": 3,
+        "offset": 465
+      },
+      "end": {
+        "line": 13,
+        "col": 4,
+        "offset": 466
+      },
+      "fingerprint": "9e4d818aa274b9fc23d063f3c1c0b3487c5ad46fa6d8b21c7cf43a9302e93e691913d7662ce0e107e662dca7985ba6c26c1edb568c27b8ce8379a5e0c3ac7ce0_0",
+      "captures": {
+        "$X": "A"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/named_arguments.php",
+      "start": {
+        "line": 13,
+        "col": 3,
+        "offset": 465
+      },
+      "end": {
+        "line": 13,
+        "col": 55,
+        "offset": 517
+      },
+      "fingerprint": "3079e847c43c8e783dc8008efc64fca700eb0edf2fe7936648f4e8ba23faa967682e8fb4027b0055ec21ab776c2ae8efba8e0d9d3ae5ed060d52406c703504da_0",
+      "captures": {
+        "$X": "A(1 2 3 default 4 true)"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/named_arguments.php",
+      "start": {
+        "line": 13,
+        "col": 11,
+        "offset": 473
+      },
+      "end": {
+        "line": 13,
+        "col": 12,
+        "offset": 474
+      },
+      "fingerprint": "e3c290243f95395887140f2a65c0bb57a9933b5161e3e5ebb0b41e34dd1d9144268ef26e305a39e6d037a0e51ffc98670507bd7dd1c3b922745a61961b967d16_0",
+      "captures": {
+        "$X": "1"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/named_arguments.php",
+      "start": {
+        "line": 13,
+        "col": 21,
+        "offset": 483
+      },
+      "end": {
+        "line": 13,
+        "col": 22,
+        "offset": 484
+      },
+      "fingerprint": "1f29380b4b1d913ffc4115e6223b7949712a328af4e0be5b7f6a6d67591bdbcaba8bdbf42496605326ee800577566e7152193b8aa3a298fcc07d7bd643a3f458_0",
+      "captures": {
+        "$X": "2"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/named_arguments.php",
+      "start": {
+        "line": 13,
+        "col": 32,
+        "offset": 494
+      },
+      "end": {
+        "line": 13,
+        "col": 33,
+        "offset": 495
+      },
+      "fingerprint": "5346d2fcf235c1dcc3cec42e774eeca7514ed1cbef6929d609b6e8774d9a696da3db1aa3e275a9ef8d68a7e793d76fb8dbdc2ea6d625d396a2ffa2eb78e953e7_0",
+      "captures": {
+        "$X": "3"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/named_arguments.php",
+      "start": {
+        "line": 13,
+        "col": 44,
+        "offset": 506
+      },
+      "end": {
+        "line": 13,
+        "col": 45,
+        "offset": 507
+      },
+      "fingerprint": "6115379963e5bd55dc3559d9ae110aeadc659213f6d1b5730aa2035f7528150be2f9e57a6f9224ed5c2a1fd8d9466a786bae657d4bfedec4b085d67014ecea07_0",
+      "captures": {
+        "$X": "4"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/named_arguments.php",
+      "start": {
+        "line": 13,
+        "col": 47,
+        "offset": 509
+      },
+      "end": {
+        "line": 13,
+        "col": 51,
+        "offset": 513
+      },
+      "fingerprint": "115f3dced4d250f21b554b6a6cf7db8fc2bc44f178dadb8742c65df8fff44a5416161dbbd6995366427762785f9d03196574e6ef4c9d269db3e2d47cd9ad2a50_0",
+      "captures": {
+        "$X": "true"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 6,
+        "col": 1,
+        "offset": 107
+      },
+      "end": {
+        "line": 6,
+        "col": 3,
+        "offset": 109
+      },
+      "fingerprint": "17503e2254e41cdadba17d50979385802176c9d37c7f55b389db3d82880e9ff97b5cce984dc66ccf28f6bffa595ce6b0e2349964fed79139dc428fd4bb1f5525_0",
+      "captures": {
+        "$X": "$a"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 6,
+        "col": 1,
+        "offset": 107
+      },
+      "end": {
+        "line": 6,
+        "col": 18,
+        "offset": 124
+      },
+      "fingerprint": "7fa3deefa4e7e84337f08ad85f30bf0d27f77ac82172955cf7108f2bc80757f738de53e12858bc978144e5a6b1bb61979bf0261daad2b9729fe9e222e3076fb1_0",
+      "captures": {
+        "$X": "$a=fn$x$x"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 6,
+        "col": 6,
+        "offset": 112
+      },
+      "end": {
+        "line": 6,
+        "col": 18,
+        "offset": 124
+      },
+      "fingerprint": "c09db653a4aaa13104aae52dbcdccbba9c7b3722fd9c2b45e490882dfddb8478b238849203be0e615e2df6a4e65c4dcff9ff45e91c1ec96526b69caac195d6ad_0",
+      "captures": {
+        "$X": "fn$x$x"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 6,
+        "col": 16,
+        "offset": 122
+      },
+      "end": {
+        "line": 6,
+        "col": 18,
+        "offset": 124
+      },
+      "fingerprint": "ab89f47f446f9a47c93077b8c549f8100ae6520ad95e885b09f7a474fb1d988b926c85160b73d9cc96866b6f8e25e89e33c1c2f5a11f3b9a4fe0b8310111d600_0",
+      "captures": {
+        "$X": "$x"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 7,
+        "col": 1,
+        "offset": 126
+      },
+      "end": {
+        "line": 7,
+        "col": 3,
+        "offset": 128
+      },
+      "fingerprint": "8827b4ed97f51e60a6d26f9b370e742c03672250a219108dfcd1b2cdf082fd930151b7fc2c07f59390cec54d4cfbd3c8c030691c67cfb58f1d6090d93a4ef0f3_0",
+      "captures": {
+        "$X": "$b"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 7,
+        "col": 1,
+        "offset": 126
+      },
+      "end": {
+        "line": 7,
+        "col": 25,
+        "offset": 150
+      },
+      "fingerprint": "c89bb3c9f524eba5a504730cadc23448e1f5cb760c70cae91dd3af952506cab20aac82ac82cc41e737e05adc75b28da93c016a414229e5655736df69a759d733_0",
+      "captures": {
+        "$X": "$b=fn$x$x"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 7,
+        "col": 13,
+        "offset": 138
+      },
+      "end": {
+        "line": 7,
+        "col": 25,
+        "offset": 150
+      },
+      "fingerprint": "c09db653a4aaa13104aae52dbcdccbba9c7b3722fd9c2b45e490882dfddb8478b238849203be0e615e2df6a4e65c4dcff9ff45e91c1ec96526b69caac195d6ad_1",
+      "captures": {
+        "$X": "fn$x$x"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 7,
+        "col": 23,
+        "offset": 148
+      },
+      "end": {
+        "line": 7,
+        "col": 25,
+        "offset": 150
+      },
+      "fingerprint": "ab89f47f446f9a47c93077b8c549f8100ae6520ad95e885b09f7a474fb1d988b926c85160b73d9cc96866b6f8e25e89e33c1c2f5a11f3b9a4fe0b8310111d600_1",
+      "captures": {
+        "$X": "$x"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 8,
+        "col": 1,
+        "offset": 152
+      },
+      "end": {
+        "line": 8,
+        "col": 3,
+        "offset": 154
+      },
+      "fingerprint": "79b90a1f3c4c2d698c2519c593273575d86d892ec3597901c764de237e55bc3311220ebec611dea04c0e9db6905e1fb4b9d5395da060fd9f8e65d6dbb0bc8abe_0",
+      "captures": {
+        "$X": "$c"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 8,
+        "col": 1,
+        "offset": 152
+      },
+      "end": {
+        "line": 8,
+        "col": 23,
+        "offset": 174
+      },
+      "fingerprint": "f73acdbd8960ce21514667648dcb4f15b8ebaa62c84e0446cadc459d8d7305a1bb8c9f15d50a637f5aeda6eda5230ec6ffd104f71258b81b390f13fd48edf1ca_0",
+      "captures": {
+        "$X": "$c=fn$x int$x"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 8,
+        "col": 6,
+        "offset": 157
+      },
+      "end": {
+        "line": 8,
+        "col": 23,
+        "offset": 174
+      },
+      "fingerprint": "f7e19494cc976ebda7931b6188bede545fdb570b55a41bbaa6519494db392be89b0a6515eb63d2add8ea24e512e2d6236f211ae6b149818f78bc9695457bb878_0",
+      "captures": {
+        "$X": "fn$x int$x"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 8,
+        "col": 21,
+        "offset": 172
+      },
+      "end": {
+        "line": 8,
+        "col": 23,
+        "offset": 174
+      },
+      "fingerprint": "ab89f47f446f9a47c93077b8c549f8100ae6520ad95e885b09f7a474fb1d988b926c85160b73d9cc96866b6f8e25e89e33c1c2f5a11f3b9a4fe0b8310111d600_2",
+      "captures": {
+        "$X": "$x"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 9,
+        "col": 1,
+        "offset": 176
+      },
+      "end": {
+        "line": 9,
+        "col": 3,
+        "offset": 178
+      },
+      "fingerprint": "9c095884a9ebbd8eed40fc0ea965291667df44452e844039bede8928917da5bdf7a05778a1ac72dcbceed2c7d7e5d724ad9cf4c9048d55dea4181e1a5460b6ce_0",
+      "captures": {
+        "$X": "$d"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 9,
+        "col": 1,
+        "offset": 176
+      },
+      "end": {
+        "line": 9,
+        "col": 30,
+        "offset": 205
+      },
+      "fingerprint": "331fb0d5f7ffaecd513e02971671e2cbb4603ebffd124d0b2f0e7217f81e280816a7727c8da27fce71ffe68a70399f6534e709368aa0ade9a50558e3b56e4cdf_0",
+      "captures": {
+        "$X": "$d=fn$x int$x"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 9,
+        "col": 13,
+        "offset": 188
+      },
+      "end": {
+        "line": 9,
+        "col": 30,
+        "offset": 205
+      },
+      "fingerprint": "f7e19494cc976ebda7931b6188bede545fdb570b55a41bbaa6519494db392be89b0a6515eb63d2add8ea24e512e2d6236f211ae6b149818f78bc9695457bb878_1",
+      "captures": {
+        "$X": "fn$x int$x"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 9,
+        "col": 28,
+        "offset": 203
+      },
+      "end": {
+        "line": 9,
+        "col": 30,
+        "offset": 205
+      },
+      "fingerprint": "ab89f47f446f9a47c93077b8c549f8100ae6520ad95e885b09f7a474fb1d988b926c85160b73d9cc96866b6f8e25e89e33c1c2f5a11f3b9a4fe0b8310111d600_3",
+      "captures": {
+        "$X": "$x"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 10,
+        "col": 1,
+        "offset": 207
+      },
+      "end": {
+        "line": 10,
+        "col": 3,
+        "offset": 209
+      },
+      "fingerprint": "4fb45522114a28d3578cec765f9e84aaaa1ea3c73020934990c06b6c0d5fb84dfbfc69b79ca3fc18fd7582af01565b406ef55f7ff9a307a82ebed90636ec4d1d_0",
+      "captures": {
+        "$X": "$e"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 10,
+        "col": 1,
+        "offset": 207
+      },
+      "end": {
+        "line": 10,
+        "col": 31,
+        "offset": 237
+      },
+      "fingerprint": "e25a3f969729adc1aaf4d6103210e56afd76df9f916980a167c3c90a48b9e91a59800cf21c3e5ab04936d953f89c44ba67ebc586e5d9d51c4d46cb729395191e_0",
+      "captures": {
+        "$X": "$e=fn$x?int$x"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 10,
+        "col": 13,
+        "offset": 219
+      },
+      "end": {
+        "line": 10,
+        "col": 31,
+        "offset": 237
+      },
+      "fingerprint": "b93ef7b52e1ccdc5ed338879e0d0ec8ee27a20352a8f3507e622dcfb42dbb588664b6de341771da017b3fdcbf8770311712e797411eca30219c275357355031e_0",
+      "captures": {
+        "$X": "fn$x?int$x"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 10,
+        "col": 29,
+        "offset": 235
+      },
+      "end": {
+        "line": 10,
+        "col": 31,
+        "offset": 237
+      },
+      "fingerprint": "ab89f47f446f9a47c93077b8c549f8100ae6520ad95e885b09f7a474fb1d988b926c85160b73d9cc96866b6f8e25e89e33c1c2f5a11f3b9a4fe0b8310111d600_4",
+      "captures": {
+        "$X": "$x"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 11,
+        "col": 1,
+        "offset": 239
+      },
+      "end": {
+        "line": 11,
+        "col": 3,
+        "offset": 241
+      },
+      "fingerprint": "dc767cc3b558829b832cdd86419dc8e9785500cbc3fde8a966fb6caca5c91335eb434a5e89e977e149cb98e94addc95fe07ab468ab24545db23ce9f95c5c44ec_0",
+      "captures": {
+        "$X": "$f"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 11,
+        "col": 1,
+        "offset": 239
+      },
+      "end": {
+        "line": 11,
+        "col": 19,
+        "offset": 257
+      },
+      "fingerprint": "7bf7ec6af914ed547b4e43c994d6f5b8989753204824f29850f5edf2e93e9309da95a8e52af6df95b00984c98edc2c801d95642d5b7da3897626e215281196a1_0",
+      "captures": {
+        "$X": "$f=fn$x$x"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 11,
+        "col": 6,
+        "offset": 244
+      },
+      "end": {
+        "line": 11,
+        "col": 19,
+        "offset": 257
+      },
+      "fingerprint": "c09db653a4aaa13104aae52dbcdccbba9c7b3722fd9c2b45e490882dfddb8478b238849203be0e615e2df6a4e65c4dcff9ff45e91c1ec96526b69caac195d6ad_2",
+      "captures": {
+        "$X": "fn$x$x"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 11,
+        "col": 17,
+        "offset": 255
+      },
+      "end": {
+        "line": 11,
+        "col": 19,
+        "offset": 257
+      },
+      "fingerprint": "ab89f47f446f9a47c93077b8c549f8100ae6520ad95e885b09f7a474fb1d988b926c85160b73d9cc96866b6f8e25e89e33c1c2f5a11f3b9a4fe0b8310111d600_5",
+      "captures": {
+        "$X": "$x"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 12,
+        "col": 1,
+        "offset": 259
+      },
+      "end": {
+        "line": 12,
+        "col": 3,
+        "offset": 261
+      },
+      "fingerprint": "6d686b6191477e0bb169e6ca2982fa8e5d2c629b0db6259953682214e31db1cf71b37484b928d2a1e683b54ef0fd93aba51281a1d55028e683815d4c2a115430_0",
+      "captures": {
+        "$X": "$g"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 12,
+        "col": 1,
+        "offset": 259
+      },
+      "end": {
+        "line": 12,
+        "col": 26,
+        "offset": 284
+      },
+      "fingerprint": "715cc7538bcbcdbc92c9e077aea64615477ef434eb5835ad4cd813e5c2a69769e1c510c7f02212202242972529bbbb115d8be19f6b567274161aa351fdfa1cc4_0",
+      "captures": {
+        "$X": "$g=fn$x array$x"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 12,
+        "col": 6,
+        "offset": 264
+      },
+      "end": {
+        "line": 12,
+        "col": 26,
+        "offset": 284
+      },
+      "fingerprint": "7d4ee3cfde5f4b19ced065f1848adec976bf2e7d7e59c0d89fcda9c87860aabb08225e86f02b948cee7f1a652a4a9bf375a7194f11ad58fb12c2814dbbedadde_0",
+      "captures": {
+        "$X": "fn$x array$x"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 12,
+        "col": 24,
+        "offset": 282
+      },
+      "end": {
+        "line": 12,
+        "col": 26,
+        "offset": 284
+      },
+      "fingerprint": "ab89f47f446f9a47c93077b8c549f8100ae6520ad95e885b09f7a474fb1d988b926c85160b73d9cc96866b6f8e25e89e33c1c2f5a11f3b9a4fe0b8310111d600_6",
+      "captures": {
+        "$X": "$x"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 13,
+        "col": 1,
+        "offset": 286
+      },
+      "end": {
+        "line": 13,
+        "col": 3,
+        "offset": 288
+      },
+      "fingerprint": "f70a37bddc298ffc0a920496153af106f2d367d31a0bca31778cc2b99f3d11ccdea23190c1a901cec30fa4b75ec4eb332b1dc0b4fb5cbecf5bae1d9ef525551f_0",
+      "captures": {
+        "$X": "$h"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 13,
+        "col": 1,
+        "offset": 286
+      },
+      "end": {
+        "line": 13,
+        "col": 15,
+        "offset": 300
+      },
+      "fingerprint": "1ab642c72e037574685c21ebb79b1515b645f2bfb79b9c8114b214193b11804309a539f5a064bd8ee2d2ce805e6824272fb2ef5355adbb534d82d6999b666255_0",
+      "captures": {
+        "$X": "$h=fn 1"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 13,
+        "col": 6,
+        "offset": 291
+      },
+      "end": {
+        "line": 13,
+        "col": 15,
+        "offset": 300
+      },
+      "fingerprint": "1680b482b4f2a99a34c9c08361b0b9dc3ade051aa0a901534ad53747c8e40beb6c24eaec21cb2b81948d40d58acf459a080bda6edecedfca76a292a6d496b7a6_0",
+      "captures": {
+        "$X": "fn 1"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 13,
+        "col": 14,
+        "offset": 299
+      },
+      "end": {
+        "line": 13,
+        "col": 15,
+        "offset": 300
+      },
+      "fingerprint": "a5a0730b749f04d840e64ea0513443a0fe6e24204825e8d3ffa8dd6a21a704f44117210cbc4ff3e061a66c023d88e718626d00e7db9df51ca02de362aa63d7c6_0",
+      "captures": {
+        "$X": "1"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 14,
+        "col": 1,
+        "offset": 302
+      },
+      "end": {
+        "line": 14,
+        "col": 3,
+        "offset": 304
+      },
+      "fingerprint": "243044927b9658f10584f91465f4ddfe4d471f228856b8ea49f562aed126579ffa518588aa0f05281aac52f6dda9b811faa48553d80bab534e103f540122e8a2_0",
+      "captures": {
+        "$X": "$i"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 14,
+        "col": 1,
+        "offset": 302
+      },
+      "end": {
+        "line": 14,
+        "col": 22,
+        "offset": 323
+      },
+      "fingerprint": "9c51ffe4fc66c9a3d57a41186224e202af443ae87be6bc888b84d6780a7839499b43c5a7e6e79070bd7584595f15527fb8594c5384817a5eea09d8ae0a614acd_0",
+      "captures": {
+        "$X": "$i=fn 1"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 14,
+        "col": 13,
+        "offset": 314
+      },
+      "end": {
+        "line": 14,
+        "col": 22,
+        "offset": 323
+      },
+      "fingerprint": "1680b482b4f2a99a34c9c08361b0b9dc3ade051aa0a901534ad53747c8e40beb6c24eaec21cb2b81948d40d58acf459a080bda6edecedfca76a292a6d496b7a6_1",
+      "captures": {
+        "$X": "fn 1"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 14,
+        "col": 21,
+        "offset": 322
+      },
+      "end": {
+        "line": 14,
+        "col": 22,
+        "offset": 323
+      },
+      "fingerprint": "a5a0730b749f04d840e64ea0513443a0fe6e24204825e8d3ffa8dd6a21a704f44117210cbc4ff3e061a66c023d88e718626d00e7db9df51ca02de362aa63d7c6_1",
+      "captures": {
+        "$X": "1"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 15,
+        "col": 1,
+        "offset": 325
+      },
+      "end": {
+        "line": 15,
+        "col": 3,
+        "offset": 327
+      },
+      "fingerprint": "99e2fad583d28030d51813a7c8ba8498b171ba58b413b2035c3b9480b24852afadefa9e2437577b5f10017e35b2f64ee19f3fa87a5e1af67e54a810116ee0abb_0",
+      "captures": {
+        "$X": "$j"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 15,
+        "col": 1,
+        "offset": 325
+      },
+      "end": {
+        "line": 15,
+        "col": 23,
+        "offset": 347
+      },
+      "fingerprint": "ba4706be4796b051e6876b6b6e9cf573903ea27e3f44c35ebec7b5f0a81c1ffea63fa6430b3e0b6b7bbe6e536133189c780aba678d0c5864ed472c2e8eea01c6_0",
+      "captures": {
+        "$X": "$j=fn...$xs$xs"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 15,
+        "col": 6,
+        "offset": 330
+      },
+      "end": {
+        "line": 15,
+        "col": 23,
+        "offset": 347
+      },
+      "fingerprint": "60906b9eae82ef9ee86f89e8d26840e36644cc239d46e407fac2c8306d6f8a4241c1a5cfee52339ba5ece49034ab1d010d7b6df64a44804962bbe660f09fcd68_0",
+      "captures": {
+        "$X": "fn...$xs$xs"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 15,
+        "col": 20,
+        "offset": 344
+      },
+      "end": {
+        "line": 15,
+        "col": 23,
+        "offset": 347
+      },
+      "fingerprint": "3ede2f66da0af512085025bf2b3195d9124348e240fde7bba014942ce6772a284f746eb9b3912e5cc96c804e0747a4e9cd7afd7941f9654ff42d56e8d4a8cb2b_0",
+      "captures": {
+        "$X": "$xs"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 16,
+        "col": 1,
+        "offset": 349
+      },
+      "end": {
+        "line": 16,
+        "col": 3,
+        "offset": 351
+      },
+      "fingerprint": "f00771db25b4b10a400f324d2562226c08a5fc27c9a608003de86ab47a33de0dbb6bcd0c0f76e31522ba2ce38fe79344d8c310df40dfe1104cf78a9bbd1cc80b_0",
+      "captures": {
+        "$X": "$k"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 16,
+        "col": 1,
+        "offset": 349
+      },
+      "end": {
+        "line": 16,
+        "col": 47,
+        "offset": 395
+      },
+      "fingerprint": "7a7f19fd699e6e831e5766be6affd7c7a1a01b57b2f5902cd4c5ffd818934a9932f7191f32384d4c604b310fe541a74f48ad1b1c54f05e348f98c3131fc0bfab_0",
+      "captures": {
+        "$X": "$k=fn int$x string$y\"s\"bool true"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 16,
+        "col": 6,
+        "offset": 354
+      },
+      "end": {
+        "line": 16,
+        "col": 47,
+        "offset": 395
+      },
+      "fingerprint": "c7809a0d9e67b551e5695b208301e07d71d194c536e512c5eade4d69033472d1169b0ce9a5e579cb87f50898d41c71e2c44101d495e8821e543a2154e5478fc6_0",
+      "captures": {
+        "$X": "fn int$x string$y\"s\"bool true"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 16,
+        "col": 29,
+        "offset": 377
+      },
+      "end": {
+        "line": 16,
+        "col": 32,
+        "offset": 380
+      },
+      "fingerprint": "d5663a6e256e183ffcae501a43311a185e25d274012d8ba4cbc5224f7b8294d6e9ca7e896eff31112a3c473c6438724064e979e22472cb76048563b5378a0f82_0",
+      "captures": {
+        "$X": "\"s\""
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 16,
+        "col": 43,
+        "offset": 391
+      },
+      "end": {
+        "line": 16,
+        "col": 47,
+        "offset": 395
+      },
+      "fingerprint": "157a7afb2d7e152b73e76b2416a264fbc535f677dfae95cdde77ae48d07523b5e6509f42fd9ca94d3bb3fbde133a41ad7fa917602c658b411ba3dd12b7265ff1_0",
+      "captures": {
+        "$X": "true"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 17,
+        "col": 1,
+        "offset": 397
+      },
+      "end": {
+        "line": 17,
+        "col": 3,
+        "offset": 399
+      },
+      "fingerprint": "297dba0209b61e00ab52403be4e87198cca82e29acb79cd1104e774399188c6697688021280d25be5fc37fe0b2e2d95e2d1246a217033131706c226b626d087f_0",
+      "captures": {
+        "$X": "$l"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 17,
+        "col": 1,
+        "offset": 397
+      },
+      "end": {
+        "line": 17,
+        "col": 26,
+        "offset": 422
+      },
+      "fingerprint": "980122fa25051bdf552b39adc282928bbe1249a1cb4687f89e0f992a74f915d91632e8e7c75bbcd5f2b0ccb0fcf9bc5f7f30a2b20643983501289407d9225dbb_0",
+      "captures": {
+        "$X": "$l=fn$x static$x"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 17,
+        "col": 6,
+        "offset": 402
+      },
+      "end": {
+        "line": 17,
+        "col": 26,
+        "offset": 422
+      },
+      "fingerprint": "06636a0da5e48f09bb675c91d9556cca38e7a29453e45f7224f7f87eb5a87ec78843be11b57ebc579e14d674cd675c6f12d7b53a28b04221042587fad19a808f_0",
+      "captures": {
+        "$X": "fn$x static$x"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 17,
+        "col": 24,
+        "offset": 420
+      },
+      "end": {
+        "line": 17,
+        "col": 26,
+        "offset": 422
+      },
+      "fingerprint": "ab89f47f446f9a47c93077b8c549f8100ae6520ad95e885b09f7a474fb1d988b926c85160b73d9cc96866b6f8e25e89e33c1c2f5a11f3b9a4fe0b8310111d600_7",
+      "captures": {
+        "$X": "$x"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 21,
+        "col": 1,
+        "offset": 437
+      },
+      "end": {
+        "line": 21,
+        "col": 3,
+        "offset": 439
+      },
+      "fingerprint": "933846dc55d88e1344837c58248c512b4b99f0776e3721a2af23e0a23c35e600f3a70508967ab0745a13b04a5119beaaf2a4dfc1b6d59d97679989aa254807c2_0",
+      "captures": {
+        "$X": "$m"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 21,
+        "col": 1,
+        "offset": 437
+      },
+      "end": {
+        "line": 21,
+        "col": 33,
+        "offset": 469
+      },
+      "fingerprint": "94e98f0f5911562b2b36801c69b9c7c29103d926bb3cfb8d56ccd42334824f1dc7fa578ea1060b11a65cb53475a018affc67b121c2cf3125a1411264d340d7d0_0",
+      "captures": {
+        "$X": "$m=fn$x fn$y$x+$y"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 21,
+        "col": 6,
+        "offset": 442
+      },
+      "end": {
+        "line": 21,
+        "col": 33,
+        "offset": 469
+      },
+      "fingerprint": "4fb37c5519ec71605f8b926b3733b1eb7b666e1a053ce129c8fea2d0c7a90595eb5a5eb60fcdc6ba448a89ae4ec945047b487885f193acfae746cc42d05d9123_0",
+      "captures": {
+        "$X": "fn$x fn$y$x+$y"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 21,
+        "col": 16,
+        "offset": 452
+      },
+      "end": {
+        "line": 21,
+        "col": 33,
+        "offset": 469
+      },
+      "fingerprint": "78a5b7014945ccb928fd2bccf76c0cd83810190012951ddc8cba589a5ae5e9e5a8fb5c0c76b9d3d3e5ee25c0035afe479bf8b562d465ed58bf12a90a042501d7_0",
+      "captures": {
+        "$X": "fn$y$x+$y"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 21,
+        "col": 26,
+        "offset": 462
+      },
+      "end": {
+        "line": 21,
+        "col": 28,
+        "offset": 464
+      },
+      "fingerprint": "ab89f47f446f9a47c93077b8c549f8100ae6520ad95e885b09f7a474fb1d988b926c85160b73d9cc96866b6f8e25e89e33c1c2f5a11f3b9a4fe0b8310111d600_8",
+      "captures": {
+        "$X": "$x"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 21,
+        "col": 26,
+        "offset": 462
+      },
+      "end": {
+        "line": 21,
+        "col": 33,
+        "offset": 469
+      },
+      "fingerprint": "9f40899ec169eef17fdc5d67e738d02653967d7f14c5701cfc4ae5ed9c2e6849f732e1691335cca27712ae1ac8bb75e398c3eed5566528aba7ff6236e8289a78_0",
+      "captures": {
+        "$X": "$x+$y"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 21,
+        "col": 29,
+        "offset": 465
+      },
+      "end": {
+        "line": 21,
+        "col": 30,
+        "offset": 466
+      },
+      "fingerprint": "655fed0e347edc6837b8f9ce0da282492acad5daa997c262c72c5d008bc3bf135daaf99db82a08dee6867fb65794fe57f8d2745df8da656f33bdd6edbbe991cb_0",
+      "captures": {
+        "$X": "+"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 21,
+        "col": 31,
+        "offset": 467
+      },
+      "end": {
+        "line": 21,
+        "col": 33,
+        "offset": 469
+      },
+      "fingerprint": "0278b7179f4347eb1997d3be0e2094c736e9a780a28f686eb063112cdce00d3f2c9be4d54f3ed08a420295abcef2806ebce45a761c924a0ee3d3ebc175bb6751_0",
+      "captures": {
+        "$X": "$y"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 22,
+        "col": 1,
+        "offset": 471
+      },
+      "end": {
+        "line": 22,
+        "col": 3,
+        "offset": 473
+      },
+      "fingerprint": "63dfa86207278bd82ec67670fdd428579c582ce40f6ad6cca0a64bed405a342b1b2636a84f7f02ba04acefec1d20edc8ff36a0def800b687fe5b886e3fc891e0_0",
+      "captures": {
+        "$X": "$n"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 22,
+        "col": 1,
+        "offset": 471
+      },
+      "end": {
+        "line": 22,
+        "col": 52,
+        "offset": 522
+      },
+      "fingerprint": "ed44c1dcef144666f23188905d52d2d860cb33f9c919e820039c6550db0377e71fe068a4b2e487ca7bf8b1086ce1a726021c7f426c3850f022f5bc5c253bbb05_0",
+      "captures": {
+        "$X": "$n=fn$x fn$y int$x+$y"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 22,
+        "col": 13,
+        "offset": 483
+      },
+      "end": {
+        "line": 22,
+        "col": 52,
+        "offset": 522
+      },
+      "fingerprint": "31465b34ec35143288abeb2c66b0d514673796598cc48b0243bec7e395df46f8682e5571206ff8b50c643b23a4d652a839cc4c21d46f9b2ad43234bcd35fdc22_0",
+      "captures": {
+        "$X": "fn$x fn$y int$x+$y"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 22,
+        "col": 30,
+        "offset": 500
+      },
+      "end": {
+        "line": 22,
+        "col": 52,
+        "offset": 522
+      },
+      "fingerprint": "9707fa35371c7533d2ee4ed84816fc283eee41b9d9a7340da13a7c70a9bdec4d0f2bd25e5643be950c5d1ac02c04f3f9a25e22a0dcdb75cd1710509338074e92_0",
+      "captures": {
+        "$X": "fn$y int$x+$y"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 22,
+        "col": 45,
+        "offset": 515
+      },
+      "end": {
+        "line": 22,
+        "col": 47,
+        "offset": 517
+      },
+      "fingerprint": "ab89f47f446f9a47c93077b8c549f8100ae6520ad95e885b09f7a474fb1d988b926c85160b73d9cc96866b6f8e25e89e33c1c2f5a11f3b9a4fe0b8310111d600_9",
+      "captures": {
+        "$X": "$x"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 22,
+        "col": 45,
+        "offset": 515
+      },
+      "end": {
+        "line": 22,
+        "col": 52,
+        "offset": 522
+      },
+      "fingerprint": "9f40899ec169eef17fdc5d67e738d02653967d7f14c5701cfc4ae5ed9c2e6849f732e1691335cca27712ae1ac8bb75e398c3eed5566528aba7ff6236e8289a78_1",
+      "captures": {
+        "$X": "$x+$y"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 22,
+        "col": 48,
+        "offset": 518
+      },
+      "end": {
+        "line": 22,
+        "col": 49,
+        "offset": 519
+      },
+      "fingerprint": "655fed0e347edc6837b8f9ce0da282492acad5daa997c262c72c5d008bc3bf135daaf99db82a08dee6867fb65794fe57f8d2745df8da656f33bdd6edbbe991cb_1",
+      "captures": {
+        "$X": "+"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 22,
+        "col": 50,
+        "offset": 520
+      },
+      "end": {
+        "line": 22,
+        "col": 52,
+        "offset": 522
+      },
+      "fingerprint": "0278b7179f4347eb1997d3be0e2094c736e9a780a28f686eb063112cdce00d3f2c9be4d54f3ed08a420295abcef2806ebce45a761c924a0ee3d3ebc175bb6751_1",
+      "captures": {
+        "$X": "$y"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 26,
+        "col": 1,
+        "offset": 561
+      },
+      "end": {
+        "line": 26,
+        "col": 3,
+        "offset": 563
+      },
+      "fingerprint": "937273a720b794babad2eb2099d2834f891fd2f41a3f930ed98c5b735d29254a98045ecf16e6a179565810d5c423a3f08c159ef5572c52a21a913563b8d3c85c_0",
+      "captures": {
+        "$X": "$o"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 26,
+        "col": 1,
+        "offset": 561
+      },
+      "end": {
+        "line": 26,
+        "col": 34,
+        "offset": 594
+      },
+      "fingerprint": "77cad7c53c9477181b4444bb5127b91e886860af33055ffb3ab5c01a3eb0bc7704f8476e970460cb6404f2bad08daaa5a1c2be80ee9c6161b34fab73dfa88c84_0",
+      "captures": {
+        "$X": "$o=function$x{return$x}"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 26,
+        "col": 6,
+        "offset": 566
+      },
+      "end": {
+        "line": 26,
+        "col": 34,
+        "offset": 594
+      },
+      "fingerprint": "d933e81f5be259761a0d852f0758d1f81ded8a87e5e47eec0ca4356f86d4ac1fe82418f7e1d1418fa22384f060f7d6e0b2a3196d80967d7d09a9b5292b4c97d5_0",
+      "captures": {
+        "$X": "function$x{return$x}"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 26,
+        "col": 29,
+        "offset": 589
+      },
+      "end": {
+        "line": 26,
+        "col": 31,
+        "offset": 591
+      },
+      "fingerprint": "ab89f47f446f9a47c93077b8c549f8100ae6520ad95e885b09f7a474fb1d988b926c85160b73d9cc96866b6f8e25e89e33c1c2f5a11f3b9a4fe0b8310111d600_10",
+      "captures": {
+        "$X": "$x"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 27,
+        "col": 1,
+        "offset": 596
+      },
+      "end": {
+        "line": 27,
+        "col": 3,
+        "offset": 598
+      },
+      "fingerprint": "f13f06b2237d73192e6dbfcd22cf5674551e3ba594b53b7bd7306ef4128431d8365bf03e3bbd1b2c72a1c048ea54a6dcef919dbdaed6bb32bac28ee590a9dafa_0",
+      "captures": {
+        "$X": "$p"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 27,
+        "col": 1,
+        "offset": 596
+      },
+      "end": {
+        "line": 27,
+        "col": 41,
+        "offset": 636
+      },
+      "fingerprint": "90ec26125afcb17ed5b6a9092a43583929299c984d87a6388fecfc9ee97a71f3f326c7a2af54a55c19306ed64dc49b7c2e3067f5162dbcfe6e39118c155fc4d3_0",
+      "captures": {
+        "$X": "$p=function$x{return$x}"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 27,
+        "col": 13,
+        "offset": 608
+      },
+      "end": {
+        "line": 27,
+        "col": 41,
+        "offset": 636
+      },
+      "fingerprint": "d933e81f5be259761a0d852f0758d1f81ded8a87e5e47eec0ca4356f86d4ac1fe82418f7e1d1418fa22384f060f7d6e0b2a3196d80967d7d09a9b5292b4c97d5_1",
+      "captures": {
+        "$X": "function$x{return$x}"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 27,
+        "col": 36,
+        "offset": 631
+      },
+      "end": {
+        "line": 27,
+        "col": 38,
+        "offset": 633
+      },
+      "fingerprint": "ab89f47f446f9a47c93077b8c549f8100ae6520ad95e885b09f7a474fb1d988b926c85160b73d9cc96866b6f8e25e89e33c1c2f5a11f3b9a4fe0b8310111d600_11",
+      "captures": {
+        "$X": "$x"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 28,
+        "col": 1,
+        "offset": 638
+      },
+      "end": {
+        "line": 28,
+        "col": 3,
+        "offset": 640
+      },
+      "fingerprint": "c12300dce2c10f2d9c650f943d6aa342f8cc35af2d3e56f5a440c8619d229a815811c4150505857d85197e09134676dda1cdb7104edd8a56badb72345020bdcc_0",
+      "captures": {
+        "$X": "$q"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 28,
+        "col": 1,
+        "offset": 638
+      },
+      "end": {
+        "line": 28,
+        "col": 48,
+        "offset": 685
+      },
+      "fingerprint": "7933de109d43b1208c802898b1be49875e9a4f46d4c7b2a9c10fb375352e265402910ea9ff0841a4d713568e497a0de6b1e0dae7a53f70ffa2a4c480feeda26e_0",
+      "captures": {
+        "$X": "$q=function$x int{return$x}"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 28,
+        "col": 6,
+        "offset": 643
+      },
+      "end": {
+        "line": 28,
+        "col": 48,
+        "offset": 685
+      },
+      "fingerprint": "876d13b2df49251c1ee203fb2c2f578134d6a01943b97a71e9abf475d91840827cf34db764b7f45c233bd1945fa85d9daa3c37d18f35c2861523c51b821e0381_0",
+      "captures": {
+        "$X": "function$x int{return$x}"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 28,
+        "col": 43,
+        "offset": 680
+      },
+      "end": {
+        "line": 28,
+        "col": 45,
+        "offset": 682
+      },
+      "fingerprint": "ab89f47f446f9a47c93077b8c549f8100ae6520ad95e885b09f7a474fb1d988b926c85160b73d9cc96866b6f8e25e89e33c1c2f5a11f3b9a4fe0b8310111d600_12",
+      "captures": {
+        "$X": "$x"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 29,
+        "col": 1,
+        "offset": 687
+      },
+      "end": {
+        "line": 29,
+        "col": 3,
+        "offset": 689
+      },
+      "fingerprint": "e61d594dde90c82c0bb89b8b8a91a6c62dc7335d3c08d38e126cb6ab0414263569c65477641f93f3dcb8668d1398bc38b363d59bd5d20eca96ebb498914fa0ac_0",
+      "captures": {
+        "$X": "$r"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 29,
+        "col": 1,
+        "offset": 687
+      },
+      "end": {
+        "line": 29,
+        "col": 35,
+        "offset": 721
+      },
+      "fingerprint": "acdf249db2045856dc409dc4101ba2f78d3d474605b2d82e3c15b9a58802fb6cb82693699e41721988764457f06094270083cea5a29ff247ee2b9d7e74dc536f_0",
+      "captures": {
+        "$X": "$r=function$x{return$x}"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 29,
+        "col": 6,
+        "offset": 692
+      },
+      "end": {
+        "line": 29,
+        "col": 35,
+        "offset": 721
+      },
+      "fingerprint": "d933e81f5be259761a0d852f0758d1f81ded8a87e5e47eec0ca4356f86d4ac1fe82418f7e1d1418fa22384f060f7d6e0b2a3196d80967d7d09a9b5292b4c97d5_2",
+      "captures": {
+        "$X": "function$x{return$x}"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/php74_arrow_function_forms.php",
+      "start": {
+        "line": 29,
+        "col": 30,
+        "offset": 716
+      },
+      "end": {
+        "line": 29,
+        "col": 32,
+        "offset": 718
+      },
+      "fingerprint": "ab89f47f446f9a47c93077b8c549f8100ae6520ad95e885b09f7a474fb1d988b926c85160b73d9cc96866b6f8e25e89e33c1c2f5a11f3b9a4fe0b8310111d600_13",
+      "captures": {
+        "$X": "$x"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/plain.php",
+      "start": {
+        "line": 2,
+        "col": 1,
+        "offset": 6
+      },
+      "end": {
+        "line": 2,
+        "col": 5,
+        "offset": 10
+      },
+      "fingerprint": "fc339b9f4701e06130e999c613235cf6b0241af4a819e61ee6401d632a507519a4ccccbb0ee91a33477b7d9a3008e89e907786c197d46fccbc333da1e27b671a_0",
+      "captures": {
+        "$X": "sink"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/plain.php",
+      "start": {
+        "line": 2,
+        "col": 1,
+        "offset": 6
+      },
+      "end": {
+        "line": 5,
+        "col": 2,
+        "offset": 35
+      },
+      "fingerprint": "f268909138698265ea90b90b63e2625869a4453eba80eee11c0b10f7c126487f436b591d7d64bdd8aace9174f9864442e260a718bbb2a4bee857d6e5453c7713_0",
+      "captures": {
+        "$X": "sink(<<<TXT\n<<<TXT\n hello there TXT)"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/plain.php",
+      "start": {
+        "line": 2,
+        "col": 6,
+        "offset": 11
+      },
+      "end": {
+        "line": 4,
+        "col": 4,
+        "offset": 33
+      },
+      "fingerprint": "efd413a0a51e1e41793b8afcef9f6bca7e4db256767c92c17a98795299ea3dba84069ab66ae0b78854080b8436e24f38b32512a822bd837d1e01df37ec7fa1df_0",
+      "captures": {
+        "$X": "<<<TXT\n<<<TXT\n hello there TXT"
+      }
+    },
+    {
+      "rule": "capture-php",
+      "path": "targets/legacy_parser_fingerprints/plain.php",
+      "start": {
+        "line": 3,
+        "col": 1,
+        "offset": 18
+      },
+      "end": {
+        "line": 3,
+        "col": 12,
+        "offset": 29
+      },
+      "fingerprint": "810b09e4c8e76e9fa6553e236612db1b73dac23f7126209401fd39a0dd38705759f8742c50e628a143b6ff3e43fc04c2287c45ae1cc8b7413fe2cbbaf4783500_0",
+      "captures": {
+        "$X": "hello there"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/shell-brackets.dockerfile",
+      "start": {
+        "line": 3,
+        "col": 1,
+        "offset": 121
+      },
+      "end": {
+        "line": 3,
+        "col": 17,
+        "offset": 137
+      },
+      "fingerprint": "e7b2330a817b55194eb97c962102415449688479e1093262b6f58f5e7f455ef7213f89cf2cd19c3eb33cfd6acf0cc89c9e425abe99696964877963b4fe8ea449_0",
+      "captures": {
+        "$X": "FROM FROM alpine:3.19 3.19"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/shell-brackets.dockerfile",
+      "start": {
+        "line": 4,
+        "col": 1,
+        "offset": 138
+      },
+      "end": {
+        "line": 4,
+        "col": 27,
+        "offset": 164
+      },
+      "fingerprint": "57ffc5132b6022001de3c38053d4221ac1d9f821de29163f5584a36731a1420707f9a17cca7734901fd8bf97ad37d5c254bfd373e709e9559dc391fda1ffbbb0_0",
+      "captures": {
+        "$X": "RUN RUN[]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/shell-brackets.dockerfile",
+      "start": {
+        "line": 5,
+        "col": 1,
+        "offset": 165
+      },
+      "end": {
+        "line": 5,
+        "col": 40,
+        "offset": 204
+      },
+      "fingerprint": "92809e0a1eba91903c62f6154ac17687d3f1bb20c59173bad98c13dcc43157831c46a837872d93ae4f034ce9313092745ffc40fd6a8486371b878e829a2a32dc_0",
+      "captures": {
+        "$X": "RUN RUN-d /var/cache ] && echo missing-d /var/cache ] && echo missing-d /var/cache ] && echo missing-d-d-d-d-d /var/cache ] && echo missing-d /var/cache ] && echo missing-d /var/cache ] && echo missing/var/cache]]&&echo echo echo missing missing"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/shell-brackets.dockerfile",
+      "start": {
+        "line": 5,
+        "col": 9,
+        "offset": 173
+      },
+      "end": {
+        "line": 5,
+        "col": 40,
+        "offset": 204
+      },
+      "fingerprint": "32be761281749469920e4acd6b471d75a7f27da3e42dc3a65584c05cb24503f564447bcc491d603eb1ed02c7c701185077b5aa8b35916e3884e74bd1a585d144_0",
+      "captures": {
+        "$X": "-d-d-d/var/cache]]&&echo echo echo missing missing"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/shell-brackets.dockerfile",
+      "start": {
+        "line": 6,
+        "col": 1,
+        "offset": 205
+      },
+      "end": {
+        "line": 6,
+        "col": 24,
+        "offset": 228
+      },
+      "fingerprint": "6f4d8d5d4ed0391f50b12ac40de3b91c8be0a63b48f8d4e860f214adca6cf1c0c4fa4a8e3a34216bbdb174113f7bf3b6834259d83044e8c81585f8e889c74e72_0",
+      "captures": {
+        "$X": "RUN RUN[\"$BAR\"]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/shell-brackets.dockerfile",
+      "start": {
+        "line": 7,
+        "col": 1,
+        "offset": 229
+      },
+      "end": {
+        "line": 7,
+        "col": 31,
+        "offset": 259
+      },
+      "fingerprint": "973fb2f18ca60792bf58a74f854bf99fb737451f06b701d39533e705681abfdeb20fa1a1718406391f1b4fbadf43476c389e621b3dc8d90a13cb0a56a0e26755_0",
+      "captures": {
+        "$X": "RUN RUN grep 'Python [0-9]*\\.-9]*'grep 'Python [0-9]*\\.-9]*'grep 'Python [0-9]*\\.-9]*'grep grep grep grep grep 'Python [0-9]*\\.-9]*'grep 'Python [0-9]*\\.-9]*'grep 'Python [0-9]*\\.-9]*''Python [0-9]*\\.-9]*''Python [0-9]*\\.-9]*'"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/shell-brackets.dockerfile",
+      "start": {
+        "line": 7,
+        "col": 5,
+        "offset": 233
+      },
+      "end": {
+        "line": 7,
+        "col": 31,
+        "offset": 259
+      },
+      "fingerprint": "0fd9850c42defb064e6ed31e2f968bc13361d670d05cc95dbfd4fb27a231ee66d0a9bf6cadfd0edf9435e1e42aabb5c5f131a3052eec921fabb96d4c9a324444_0",
+      "captures": {
+        "$X": "grep grep grep'Python [0-9]*\\.-9]*''Python [0-9]*\\.-9]*'"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/shell-brackets.dockerfile",
+      "start": {
+        "line": 8,
+        "col": 1,
+        "offset": 262
+      },
+      "end": {
+        "line": 8,
+        "col": 15,
+        "offset": 276
+      },
+      "fingerprint": "069cd3325c1496308cc0785322d2e44346deb31f7d51657986b7eb37c589dfa475f60202685ea60262ffe59d658fca31b9f3aa1159ff52e90a2e9d839df7230b_0",
+      "captures": {
+        "$X": "RUN RUN echo a[0]b echo a[0]b echo a[0]b echo echo echo echo echo a[0]b echo a[0]b echo a[0]b a a a[0]b b b"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/shell-brackets.dockerfile",
+      "start": {
+        "line": 8,
+        "col": 5,
+        "offset": 266
+      },
+      "end": {
+        "line": 8,
+        "col": 15,
+        "offset": 276
+      },
+      "fingerprint": "b3a74730a193053075dbeb3121001933a1c174ffb2b53df091fcff2a613dbede44cecf50edbf5a8b998e1000f7f879991fe033f9214696f5e36edc7b043f3413_0",
+      "captures": {
+        "$X": "echo echo echo a a a[0]b b b"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/shell-brackets.dockerfile",
+      "start": {
+        "line": 9,
+        "col": 1,
+        "offset": 277
+      },
+      "end": {
+        "line": 9,
+        "col": 40,
+        "offset": 316
+      },
+      "fingerprint": "ff00801a1d6e3bfb869b88e5d52c0f0b478fbe9a5a67a40bdb3c9270e2049dedfcb94538918af6cbc11490eb96e01338460260e4e8a0a227d56ce4bc19fec642_0",
+      "captures": {
+        "$X": "RUN RUN awk '{print $1}' | sed 's/[a-z]//g'awk '{print $1}' | sed 's/[a-z]//g'awk '{print $1}' | sed 's/[a-z]//g'awk awk awk awk awk '{print $1}' | sed 's/[a-z]//g'awk '{print $1}' | sed 's/[a-z]//g'awk '{print $1}' | sed 's/[a-z]//g''{print $1}''{print $1}'|sed sed sed's/[a-z]//g''s/[a-z]//g'"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/shell-brackets.dockerfile",
+      "start": {
+        "line": 9,
+        "col": 5,
+        "offset": 281
+      },
+      "end": {
+        "line": 9,
+        "col": 40,
+        "offset": 316
+      },
+      "fingerprint": "e522ea55e0e548b2d4fab079f91ffbffd3797abfba8e3b063c8e292c509082372d3f5e104b7f458ab92417ffe4d8f669f98d8eb729776c661dd71f73b4b2343d_0",
+      "captures": {
+        "$X": "awk awk awk'{print $1}''{print $1}'|sed sed sed's/[a-z]//g''s/[a-z]//g'"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/shell-brackets.dockerfile",
+      "start": {
+        "line": 10,
+        "col": 1,
+        "offset": 317
+      },
+      "end": {
+        "line": 10,
+        "col": 35,
+        "offset": 351
+      },
+      "fingerprint": "0530a633959aa2b08a71a4202327f7ce2038a08b5f1a1a0609b5255f666d3353504502aa11b88c2fa5980368517cc6f28ec154b6f3439886802faf982a15890d_0",
+      "captures": {
+        "$X": "RUN RUN if [ -x /bin/sh ]; then echo y; fi if [ -x /bin/sh ]; then echo y; fi if [ -x /bin/sh ]; then echo y; fi if if [ -x /bin/sh ]; then echo y; fi if [ -x /bin/sh ]; then echo y; fi if [ -x /bin/sh ]; then echo y; fi[[]echo echo echo echo y y"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/shell-brackets.dockerfile",
+      "start": {
+        "line": 10,
+        "col": 5,
+        "offset": 321
+      },
+      "end": {
+        "line": 10,
+        "col": 35,
+        "offset": 351
+      },
+      "fingerprint": "2e5e2dfb97e4523876b5f45cf3e53de851bc7e9ef511cb60d5fb7859b104ba06694b8072a8a0eeb3207a8bbdf1b410ee31d01376061664aed6b637db274768ef_0",
+      "captures": {
+        "$X": "if [ -x /bin/sh ]; then echo y; fi if if [ -x /bin/sh ]; then echo y; fi[[]echo echo echo echo y y"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/shell-brackets.dockerfile",
+      "start": {
+        "line": 10,
+        "col": 29,
+        "offset": 345
+      },
+      "end": {
+        "line": 10,
+        "col": 35,
+        "offset": 351
+      },
+      "fingerprint": "9d1483ea81c99df3303d348660e4c0287496e08a41adf2776c435389931bd95bd457fec1aa09db20ed3481bdf8f7992daf536838e02e79884411cdaa36e7da10_0",
+      "captures": {
+        "$X": "echo echo echo y y"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/shell-brackets.dockerfile",
+      "start": {
+        "line": 11,
+        "col": 1,
+        "offset": 356
+      },
+      "end": {
+        "line": 12,
+        "col": 13,
+        "offset": 378
+      },
+      "fingerprint": "1aaf91bfe3b5fdd174a59a08839a87688aff35073533dd6fbd28959cfaab44d2d03a612dcb45643649aa908088e4378ce98445dee3dbe97159e91d895032caa8_0",
+      "captures": {
+        "$X": "RUN RUN foo \\\n      -f x ]foo \\\n      -f x ]foo \\\n      -f x ]foo foo foo foo foo \\\n      -f x ]foo \\\n      -f x ]foo \\\n      -f x ]-f x]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/shell-brackets.dockerfile",
+      "start": {
+        "line": 11,
+        "col": 5,
+        "offset": 360
+      },
+      "end": {
+        "line": 12,
+        "col": 13,
+        "offset": 378
+      },
+      "fingerprint": "d681764faab2b325fefa32d571a1ed9be6836217476bc86a235a0ab70d00d1a00d7c614e7211bd6ef95ce1cfe75a4c98e8aeeb4d9212d293a3be39293153ccd5_0",
+      "captures": {
+        "$X": "foo foo foo-f x]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/shell-brackets.dockerfile",
+      "start": {
+        "line": 14,
+        "col": 1,
+        "offset": 427
+      },
+      "end": {
+        "line": 14,
+        "col": 16,
+        "offset": 442
+      },
+      "fingerprint": "f93068b8ec2ff82f662bd7bf186b31f1a8bbbe9dcc4dae025c083ac3c80a234ef913a2f9a4db554fd05660475e5d9f863d92a8c69594c3d5a6e90707d28a8b2a_0",
+      "captures": {
+        "$X": "CMD CMD[\"b\"]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/shell-brackets.dockerfile",
+      "start": {
+        "line": 15,
+        "col": 1,
+        "offset": 443
+      },
+      "end": {
+        "line": 15,
+        "col": 20,
+        "offset": 462
+      },
+      "fingerprint": "771ffd0292ca6ec421ef359ff64b30228ba6316884077b5c9367b99fef823d7327e0755d63582037f101884416c4daeae2ef26a78af5962ed479c2f27643926e_0",
+      "captures": {
+        "$X": "ENTRYPOINT ENTRYPOINT[\"a\"]]"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/shell-brackets.dockerfile",
+      "start": {
+        "line": 17,
+        "col": 1,
+        "offset": 537
+      },
+      "end": {
+        "line": 17,
+        "col": 9,
+        "offset": 545
+      },
+      "fingerprint": "9e44a5d380cf9f01d919a5d1d7421d65523383e54035b659c7a87e085d25e207cdf8017c2e17a4d7999eacd4f1cdb92d7cbed9aa4aba5951c341974a20eb81b6_0",
+      "captures": {
+        "$X": "RUN RUN ls [ls [ls [ls ls ls ls ls [ls [ls [[["
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/shell-brackets.dockerfile",
+      "start": {
+        "line": 17,
+        "col": 5,
+        "offset": 541
+      },
+      "end": {
+        "line": 17,
+        "col": 9,
+        "offset": 545
+      },
+      "fingerprint": "f1a8fb9ceb5d3e851d6bb89b235369bc63722f2e9a0397c71b11f7bae5ff9ea4df0cac2128edb6bddc0369ce449f0e0c29e7131e9e123bdc13064a464d70d789_0",
+      "captures": {
+        "$X": "ls ls ls[["
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/shell-brackets.dockerfile",
+      "start": {
+        "line": 18,
+        "col": 1,
+        "offset": 546
+      },
+      "end": {
+        "line": 18,
+        "col": 25,
+        "offset": 570
+      },
+      "fingerprint": "36f32dbea1970ef19fc0f1f1d4274afe2c292ea75be8b5626666714c59eda3f604ae48010f1f013ac0b2c7613a8a0d664cb867b43134f6bbd89dc5e2786315a5_0",
+      "captures": {
+        "$X": "RUN RUN echo \"]\" \"[\" '[' ']'echo \"]\" \"[\" '[' ']'echo \"]\" \"[\" '[' ']'echo echo echo echo echo \"]\" \"[\" '[' ']'echo \"]\" \"[\" '[' ']'echo \"]\" \"[\" '[' ']']['['']'']'"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/shell-brackets.dockerfile",
+      "start": {
+        "line": 18,
+        "col": 5,
+        "offset": 550
+      },
+      "end": {
+        "line": 18,
+        "col": 25,
+        "offset": 570
+      },
+      "fingerprint": "f398a019c9a450de6b4105a28aa663b936809c861df219e93186a65f83a90216aab6401c967023648c0ece820494572eec01e012c49b9fc4ce2b217c31459497_0",
+      "captures": {
+        "$X": "echo echo echo]['['']'']'"
+      }
+    },
+    {
+      "rule": "capture-docker",
+      "path": "targets/legacy_parser_fingerprints/shell-brackets.dockerfile",
+      "start": {
+        "line": 19,
+        "col": 1,
+        "offset": 571
+      },
+      "end": {
+        "line": 20,
+        "col": 16,
+        "offset": 592
+      },
+      "fingerprint": "57ffc5132b6022001de3c38053d4221ac1d9f821de29163f5584a36731a1420707f9a17cca7734901fd8bf97ad37d5c254bfd373e709e9559dc391fda1ffbbb0_1",
+      "captures": {
+        "$X": "RUN RUN[]]"
+      }
+    }
+  ],
+  "parse_error_paths": [
+    "targets/legacy_parser_fingerprints/bracket-array-comment.dockerfile",
+    "targets/legacy_parser_fingerprints/bracket-array-escapes.dockerfile",
+    "targets/legacy_parser_fingerprints/bracket-array-semgrep.dockerfile",
+    "targets/legacy_parser_fingerprints/bracket-cmd-shell.dockerfile",
+    "targets/legacy_parser_fingerprints/bracket-escape-directive.dockerfile",
+    "targets/legacy_parser_fingerprints/bracket-exec-form.dockerfile",
+    "targets/legacy_parser_fingerprints/bracket-no-trailing-newline.dockerfile",
+    "targets/legacy_parser_fingerprints/bracket-powershell-shell.dockerfile",
+    "targets/legacy_parser_fingerprints/bracket-run-params.dockerfile",
+    "targets/legacy_parser_fingerprints/bracket-shell-fallback.dockerfile",
+    "targets/legacy_parser_fingerprints/bracket-volume.dockerfile",
+    "targets/legacy_parser_fingerprints/named_arguments.php",
+    "targets/legacy_parser_fingerprints/shell-brackets.dockerfile"
+  ]
+}

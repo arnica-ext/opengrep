@@ -2578,7 +2578,7 @@ and map_pattern (env : env) (x : CST.pattern) : G.pattern =
       let _comma = Option.map (fun tok -> token env tok) v4 in
       (* "," *)
       let rbrace = token env v5 (* "}" *) in
-      G.PatRecord (lbrace, fields, rbrace)
+      G.record_pattern (lbrace, fields, rbrace)
   | `Ref_pat_a3d7f54 (v1, v2) ->
       let _ref_TODO = token env v1 (* "ref" *) in
       let pattern = map_pattern env v2 in

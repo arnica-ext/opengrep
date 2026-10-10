@@ -1,0 +1,106 @@
+{
+  "rules": [
+    {
+      "id": "nested-regex",
+      "languages": [
+        "yaml"
+      ],
+      "message": "Capture $X $NAME",
+      "severity": "WARNING",
+      "options": {
+        "symbolic_propagation": true
+      },
+      "patterns": [
+        {
+          "pattern": "code: $CODE"
+        },
+        {
+          "metavariable-pattern": {
+            "metavariable": "$CODE",
+            "language": "elixir",
+            "patterns": [
+              {
+                "pattern": "sink($X)"
+              },
+              {
+                "metavariable-regex": {
+                  "metavariable": "$X",
+                  "regex": "^User"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "nested-comparison",
+      "languages": [
+        "yaml"
+      ],
+      "message": "Capture $X $NAME",
+      "severity": "WARNING",
+      "options": {
+        "symbolic_propagation": true
+      },
+      "patterns": [
+        {
+          "pattern": "code: $CODE"
+        },
+        {
+          "metavariable-pattern": {
+            "metavariable": "$CODE",
+            "language": "elixir",
+            "patterns": [
+              {
+                "pattern": "sink($X)"
+              },
+              {
+                "metavariable-comparison": {
+                  "metavariable": "$X",
+                  "comparison": "str($X) == 'User{}'"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "nested-regex-capture",
+      "languages": [
+        "yaml"
+      ],
+      "message": "Capture $X $NAME",
+      "severity": "WARNING",
+      "options": {
+        "symbolic_propagation": true
+      },
+      "patterns": [
+        {
+          "pattern": "code: $CODE"
+        },
+        {
+          "metavariable-pattern": {
+            "metavariable": "$CODE",
+            "language": "elixir",
+            "patterns": [
+              {
+                "pattern": "sink($X)"
+              },
+              {
+                "metavariable-regex": {
+                  "metavariable": "$X",
+                  "regex": "^(?P<NAME>User)"
+                }
+              },
+              {
+                "focus-metavariable": "$NAME"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

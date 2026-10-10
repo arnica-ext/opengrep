@@ -1,0 +1,16 @@
+rules:
+  - id: destructured-parameter-defaults
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: Parameter $PARAM
+    pattern: function $F($PARAM) { ... }
+  - id: nested-destructured-parameter
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: Parameter $PARAM
+    patterns:
+      - pattern: |
+          function $F({ outer: $PARAM }) { ... }
+      - metavariable-regex:
+          metavariable: $F
+          regex: ^nestedCapture$

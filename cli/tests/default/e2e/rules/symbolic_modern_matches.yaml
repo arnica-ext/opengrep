@@ -1,0 +1,25 @@
+rules:
+  - id: regex
+    languages:
+      - python
+    severity: WARNING
+    message: $X $Y
+    options:
+      symbolic_propagation: true
+    patterns:
+      - pattern: sink($X)
+      - metavariable-regex:
+          metavariable: $X
+          regex: ^make
+  - id: nested
+    languages:
+      - python
+    severity: WARNING
+    message: $X $Y
+    options:
+      symbolic_propagation: true
+    patterns:
+      - pattern: sink($X)
+      - metavariable-pattern:
+          metavariable: $X
+          pattern: make($Y)

@@ -30,9 +30,9 @@ module Log = Log_analyzing.Log
 (*****************************************************************************)
 (* Types *)
 (*****************************************************************************)
-type env = { lang : Lang.t; vars : G.svalue Dataflow_var_env.t }
+type env = { lang : Lang.t; vars : G.svalue Dataflow_var_env.t; legacy : bool }
 
-let mk_env lang vars = { lang; vars }
+let mk_env ?(legacy = false) lang vars = { lang; vars; legacy }
 
 (*****************************************************************************)
 (* Helpers *)
@@ -281,7 +281,11 @@ and eval_lval env lval =
       let opt_c =
         Dataflow_var_env.VarMap.find_opt (IL.str_of_name x) env.vars
       in
-      match (!(x.id_info.id_svalue), opt_c) with
+      let value =
+        if env.legacy then !(x.id_info.id_legacy_svalue)
+        else !(x.id_info.id_svalue)
+      in
+      match (value, opt_c) with
       | None, None -> G.NotCst
       | Some c, None
       | None, Some c ->

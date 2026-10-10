@@ -1,0 +1,318 @@
+{
+  "findings": [
+    {
+      "rule": "nested-pipeline",
+      "path": "targets/legacy_elixir_shared/pipelines.ex",
+      "start": {
+        "line": 3,
+        "col": 5,
+        "offset": 49
+      },
+      "end": {
+        "line": 3,
+        "col": 134,
+        "offset": 178
+      },
+      "message": "Capture $INNER",
+      "metavars": {
+        "$X": {
+          "start": {
+            "line": 3,
+            "col": 10,
+            "offset": 54
+          },
+          "end": {
+            "line": 3,
+            "col": 133,
+            "offset": 177
+          },
+          "abstract_content": "wrap(value|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f())"
+        }
+      }
+    },
+    {
+      "rule": "nested-pipeline",
+      "path": "targets/legacy_elixir_shared/pipelines.ex",
+      "start": {
+        "line": 3,
+        "col": 5,
+        "offset": 49
+      },
+      "end": {
+        "line": 3,
+        "col": 134,
+        "offset": 178
+      },
+      "message": "Capture value |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f()",
+      "metavars": {
+        "$X": {
+          "start": {
+            "line": 3,
+            "col": 10,
+            "offset": 54
+          },
+          "end": {
+            "line": 3,
+            "col": 133,
+            "offset": 177
+          },
+          "abstract_content": "wrap(value|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f())"
+        },
+        "$INNER": {
+          "start": {
+            "line": 3,
+            "col": 15,
+            "offset": 59
+          },
+          "end": {
+            "line": 3,
+            "col": 132,
+            "offset": 176
+          },
+          "abstract_content": "value|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()"
+        }
+      }
+    },
+    {
+      "rule": "nested-pipeline",
+      "path": "targets/legacy_elixir_shared/pipelines.ex",
+      "start": {
+        "line": 7,
+        "col": 5,
+        "offset": 209
+      },
+      "end": {
+        "line": 7,
+        "col": 134,
+        "offset": 338
+      },
+      "message": "Capture $INNER",
+      "metavars": {
+        "$X": {
+          "start": {
+            "line": 7,
+            "col": 10,
+            "offset": 214
+          },
+          "end": {
+            "line": 7,
+            "col": 133,
+            "offset": 337
+          },
+          "abstract_content": "wrap(&&1|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f())"
+        }
+      }
+    },
+    {
+      "rule": "nested-pipeline",
+      "path": "targets/legacy_elixir_shared/pipelines.ex",
+      "start": {
+        "line": 7,
+        "col": 5,
+        "offset": 209
+      },
+      "end": {
+        "line": 7,
+        "col": 134,
+        "offset": 338
+      },
+      "message": "Capture &(&1 |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f())",
+      "metavars": {
+        "$X": {
+          "start": {
+            "line": 7,
+            "col": 10,
+            "offset": 214
+          },
+          "end": {
+            "line": 7,
+            "col": 133,
+            "offset": 337
+          },
+          "abstract_content": "wrap(&&1|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f())"
+        },
+        "$INNER": {
+          "start": {
+            "line": 7,
+            "col": 15,
+            "offset": 219
+          },
+          "end": {
+            "line": 7,
+            "col": 132,
+            "offset": 336
+          },
+          "abstract_content": "&&1|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()"
+        }
+      }
+    },
+    {
+      "rule": "nested-pipeline",
+      "path": "targets/legacy_elixir_shared/pipelines.ex",
+      "start": {
+        "line": 11,
+        "col": 5,
+        "offset": 374
+      },
+      "end": {
+        "line": 11,
+        "col": 470,
+        "offset": 839
+      },
+      "message": "Capture $INNER",
+      "metavars": {
+        "$X": {
+          "start": {
+            "line": 11,
+            "col": 10,
+            "offset": 379
+          },
+          "end": {
+            "line": 11,
+            "col": 469,
+            "offset": 838
+          },
+          "abstract_content": "wrap(&&1|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f())"
+        }
+      }
+    },
+    {
+      "rule": "nested-pipeline",
+      "path": "targets/legacy_elixir_shared/pipelines.ex",
+      "start": {
+        "line": 11,
+        "col": 5,
+        "offset": 374
+      },
+      "end": {
+        "line": 11,
+        "col": 470,
+        "offset": 839
+      },
+      "message": "Capture &(&1 |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f())",
+      "metavars": {
+        "$X": {
+          "start": {
+            "line": 11,
+            "col": 10,
+            "offset": 379
+          },
+          "end": {
+            "line": 11,
+            "col": 469,
+            "offset": 838
+          },
+          "abstract_content": "wrap(&&1|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f())"
+        },
+        "$INNER": {
+          "start": {
+            "line": 11,
+            "col": 15,
+            "offset": 384
+          },
+          "end": {
+            "line": 11,
+            "col": 468,
+            "offset": 837
+          },
+          "abstract_content": "&&1|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()"
+        }
+      }
+    },
+    {
+      "rule": "nested-pipeline",
+      "path": "targets/legacy_elixir_shared/pipelines.ex",
+      "start": {
+        "line": 15,
+        "col": 5,
+        "offset": 876
+      },
+      "end": {
+        "line": 17,
+        "col": 10,
+        "offset": 1041
+      },
+      "message": "Capture $INNER",
+      "metavars": {
+        "$X": {
+          "start": {
+            "line": 15,
+            "col": 10,
+            "offset": 881
+          },
+          "end": {
+            "line": 17,
+            "col": 9,
+            "offset": 1040
+          },
+          "abstract_content": "wrap(case value do do do do do{:ok x}x|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f())"
+        }
+      }
+    },
+    {
+      "rule": "nested-pipeline",
+      "path": "targets/legacy_elixir_shared/pipelines.ex",
+      "start": {
+        "line": 15,
+        "col": 5,
+        "offset": 876
+      },
+      "end": {
+        "line": 17,
+        "col": 10,
+        "offset": 1041
+      },
+      "message": "Capture case value do\n      {:ok, x} -> x |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f() |> f()",
+      "metavars": {
+        "$X": {
+          "start": {
+            "line": 15,
+            "col": 10,
+            "offset": 881
+          },
+          "end": {
+            "line": 17,
+            "col": 9,
+            "offset": 1040
+          },
+          "abstract_content": "wrap(case value do do do do do{:ok x}x|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f())"
+        },
+        "$INNER": {
+          "start": {
+            "line": 15,
+            "col": 15,
+            "offset": 886
+          },
+          "end": {
+            "line": 16,
+            "col": 132,
+            "offset": 1031
+          },
+          "abstract_content": "case value do do do do do{:ok x}x|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()|>f()"
+        }
+      }
+    }
+  ],
+  "fingerprints": {
+    "legacy": [
+      "e1feeb76fe0bd06bdc4d1329cd89e8d34b31ddb6274bf76dd0ad778639cf2111ad4607fa825c7973155c848a944edd2f6aae12f93637a58a700b065483a7728c_0",
+      "33cdd99966dd883e551da7e6cfe834525e4d9b9b9860708da0ccfdf2424fc605ae2d1d3aa5970d35d61a45fa21204ced70c687dbf0419e5b2ab25918c6cb6fac_0",
+      "90451f4c27236d2f3e404dee0f4d57c254b7aea0db0fb91a9446b36d82ba6347b7f448b24080a9772adf6c826b8e8cfbea04108e69fb71900780364c49af06fc_0",
+      "8b809a6771e5bf2ea2aa1e6fa22bd5a435cd52e61f54f8ae215ae04d6f822a675663d6254b72d8612b6fae2eb878499682a49fb3bb1b20e837b4f9f4bcb2270d_0",
+      "a79c91bcac59a9d1bfd919856142976a42c0d67cb0ca567afe30e375bb7f09606ee2ac85ef82c7600e31ce6bbadbe2e9b9932533408b96b06cef234470013360_0",
+      "3b21832d44dc4406dd3536ac1e885150998e468470d3f8b8fc88936d5ce1d76f03866237f61b9554d62de459deeb1c71fe438a9d3d68a573453daab83c7e30f4_0",
+      "a62f7880b1350fe4110af3d100b5c5e0601eed016945dfe5f770af254136d625048599ef0d0ffaf8ce444470ef19c395f11c256d2490818b217b9db36e2a5f07_0",
+      "999678ed4eb5e16a6a7f45b9b05c1b9ae87e5a2df6a8d55b3b0d6959f362de7dc06ee5475475270903794465824a187e2f63b239bce181908b36614761c0b5c3_0"
+    ],
+    "experimental": [
+      "a0cbb36662cf83b2822863728c602171e579dec53cffde1dd69a310d331a113d1f3e1779ec603aec8a11cb6f937685f949fd49c1bf70bc55a0f25b5bd8442fe4_0",
+      "a0cbb36662cf83b2822863728c602171e579dec53cffde1dd69a310d331a113d1f3e1779ec603aec8a11cb6f937685f949fd49c1bf70bc55a0f25b5bd8442fe4_1",
+      "6e10ef0f1e323372d6a61007d693eff6d6df4218d0cd4677edf9d089d14d29bf7feca740e934113171a4a4d3ef32d926709108c732c9d04209232bff7941d7d3_0",
+      "6e10ef0f1e323372d6a61007d693eff6d6df4218d0cd4677edf9d089d14d29bf7feca740e934113171a4a4d3ef32d926709108c732c9d04209232bff7941d7d3_1",
+      "6acd9c2532125a47d71f1a2153c364fed7ba755fef8231967854fed7460e1f6b20192edd86e88d8d1365d6e155f3b17078bbd5048ed2486e3984bdb4f781ba9d_0",
+      "6acd9c2532125a47d71f1a2153c364fed7ba755fef8231967854fed7460e1f6b20192edd86e88d8d1365d6e155f3b17078bbd5048ed2486e3984bdb4f781ba9d_1",
+      "fa554961614ae4d46df1d4d943f30ee7a3de387f8618bc510f05e224c7e465b0504226b877ff03d679c6942a7fdcf685bf393beb0915bee14f57f2cbfb8fd805_0",
+      "fa554961614ae4d46df1d4d943f30ee7a3de387f8618bc510f05e224c7e465b0504226b877ff03d679c6942a7fdcf685bf393beb0915bee14f57f2cbfb8fd805_1"
+    ]
+  }
+}

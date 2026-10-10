@@ -1893,7 +1893,7 @@ let map_variable_declaration_tuple (env : env)
              * every later variable onto the wrong slot. *)
             let hole_or_pat tok = function
               | Some decl -> pat_of_decl decl
-              | None -> tuple_hole_pat env tok
+              | None -> PatWildcard (Tok.fake_tok tok "_") |> G.p
             in
             let first =
               hole_or_pat lp (Option.map (map_variable_declaration env) v1)
@@ -1909,7 +1909,7 @@ let map_variable_declaration_tuple (env : env)
             (* A trailing comma is one more empty component. *)
             let trailing =
               match v3 with
-              | Some tok -> [ tuple_hole_pat env ((* "," *) token env tok) ]
+              | Some tok -> [ PatWildcard (Tok.fake_tok (token env tok) "_") |> G.p ]
               | None -> []
             in
             (first :: rest) @ trailing

@@ -31,7 +31,8 @@ module Log = Log_engine.Log
 (* Entry point *)
 (*****************************************************************************)
 
-let get_metavar_regex_capture_bindings env ~file r (mvar, re) =
+let get_metavar_regex_capture_bindings ?(legacy = false) env ~file r (mvar, re)
+    =
   let bindings = r.RM.mvars in
   (* If anything goes wrong, we just quit out and fail the condition.
      But, by precondition, this should succeed.
@@ -81,10 +82,13 @@ let get_metavar_regex_capture_bindings env ~file r (mvar, re) =
              * underlying text to match against. So, if there is no legitimate
              * source location associated with the mevariable, we'll just fail
              * to match here. *)
-            let* start, _ =
-              mval |> MV.ii_of_mval |> AST_generic_helpers.range_of_tokens
-            in
-            Some (Tok.unsafe_loc_of_tok start)
+            if legacy then
+              Option.map fst (Eval_generic.binding_range ~legacy mval)
+            else
+              let* start, _ =
+                mval |> MV.ii_of_mval |> AST_generic_helpers.range_of_tokens
+              in
+              Some (Tok.unsafe_loc_of_tok start)
           in
           let mval_start_pos = mast_start_loc.pos in
 

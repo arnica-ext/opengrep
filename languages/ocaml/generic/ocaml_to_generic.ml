@@ -507,7 +507,7 @@ and pattern = function
                (v1, v2)))
           v1
       in
-      G.PatRecord v1
+      G.record_pattern v1
   | PatAs (v1, v2) ->
       let v1 = pattern v1 and v2 = ident v2 in
       G.PatAs (v1, (v2, G.empty_id_info ()))

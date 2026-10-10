@@ -204,6 +204,7 @@ and vof_id_info
       id_type = v_id_type;
       id_svalue = v3;
       id_flags;
+      _;
     } =
   let bnds = [] in
   let arg = OCaml.vof_ref (OCaml.vof_option vof_svalue) v3 in
@@ -1057,7 +1058,7 @@ and vof_pattern = function
   | PatType v1 ->
       let v1 = vof_type_ v1 in
       OCaml.VSum ("PatType", [ v1 ])
-  | PatRecord v1 ->
+  | PatRecord { pr_fields = v1; _ } ->
       let v1 =
         vof_bracket
           (OCaml.vof_list (fun (v1, v2) ->

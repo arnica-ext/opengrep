@@ -1,0 +1,497 @@
+[
+  {
+    "rule": "csharp-regex-false",
+    "path": "targets/legacy_capture_languages/array.cs",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 1,
+      "col": 5,
+      "offset": 4
+    },
+    "fingerprint": "33e6480c25ecc241a2cd5c746d290a3e2c75d5880ac3f86bc19390bb6d67176a2014c304c20a27bf914cead51429d7f7deb992d2009e6f048ba17230aa18c4da_0",
+    "captures": {
+      "$X": "args[[0]]"
+    }
+  },
+  {
+    "rule": "csharp-regex-true",
+    "path": "targets/legacy_capture_languages/array.cs",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 1,
+      "col": 5,
+      "offset": 4
+    },
+    "fingerprint": "296e8b2ad2bcf84a226cfccbaea7e780ba7c05c8c0fc7a3fc11b32037a52b92721aea74042a7b8f5bf12e528ccbd0a472daf999364c1566d529d4a6a17f88501_0",
+    "captures": {
+      "$X": "args[[0]]"
+    }
+  },
+  {
+    "rule": "csharp-ast",
+    "path": "targets/legacy_capture_languages/array.cs",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 1,
+      "col": 14,
+      "offset": 13
+    },
+    "fingerprint": "c838705b363e7e9544fb8cc8fcf55ad72d18dce6aca8006c8c5fd3d0c0ab21892a35f1647122687b34e70bd1390e4dc9bc9edc0939926948818e779bca2dff1d_0",
+    "captures": {
+      "$X": "args[[0]]"
+    }
+  },
+  {
+    "rule": "csharp-equal-ranges",
+    "path": "targets/legacy_capture_languages/array.cs",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 1,
+      "col": 14,
+      "offset": 13
+    },
+    "fingerprint": "ef2d9fc18d156b11c9e0009a388a71e43810c3b95fba0eb0245cf1c16b430a8565831c60f5498f49d75b66bbc6352c0024d6970cdad40d860332aa8a5a17de1d_0",
+    "captures": {
+      "$X": "args[[0]]"
+    }
+  },
+  {
+    "rule": "ruby-regex-false",
+    "path": "targets/legacy_capture_languages/array.rb",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 1,
+      "col": 5,
+      "offset": 4
+    },
+    "fingerprint": "a40ab0d9f8de405ca97399c47ceec72dedf152a31c0a2e4eb7c0d3aa961056d607c8f354acd8c925a41b1665fefed6702cdb9cf3f68fb98bab369fe7b7c40fb3_0",
+    "captures": {
+      "$X": "params[[[:name]"
+    }
+  },
+  {
+    "rule": "ruby-regex-true",
+    "path": "targets/legacy_capture_languages/array.rb",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 1,
+      "col": 5,
+      "offset": 4
+    },
+    "fingerprint": "8c1fd2232bd318ba758b67036a7b18ebea6d17e2d5df10f0bfb3ccf73ccfa6c2dcea34bf5bc61a8657e41d00a70e7e884861c1326ab47787f1260fdbcb318f9d_0",
+    "captures": {
+      "$X": "params[[[:name]"
+    }
+  },
+  {
+    "rule": "ruby-ast",
+    "path": "targets/legacy_capture_languages/array.rb",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 1,
+      "col": 20,
+      "offset": 19
+    },
+    "fingerprint": "85c1b4481628f0086f37f6ad04075d57cfdd650165f9047e3f8ee68438964738ed6b29e6c4724558f67dc9cd86ad2fb11b39b35593e7d4cc59bc8c708bafff07_0",
+    "captures": {
+      "$X": "params[[[:name]"
+    }
+  },
+  {
+    "rule": "ruby-equal-ranges",
+    "path": "targets/legacy_capture_languages/array.rb",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 1,
+      "col": 20,
+      "offset": 19
+    },
+    "fingerprint": "8b7d83e206aa8898c4a2b42684901e5bed55b589315f0806e93a231bce55d79c797b5935617fbab5a9cc3171d1d03dfe17f99250f1385bb1922563a67ca3553c_0",
+    "captures": {
+      "$X": "params[[[:name]"
+    }
+  },
+  {
+    "rule": "regex-capture",
+    "path": "targets/legacy_capture_languages/array.rb",
+    "start": {
+      "line": 1,
+      "col": 6,
+      "offset": 5
+    },
+    "end": {
+      "line": 1,
+      "col": 12,
+      "offset": 11
+    },
+    "fingerprint": "7619aceff5cfeaf0639094ba19582c866110f5a441404845ca1116a26c48b8933327a92f1542549e7e18f46f57908be9efe7e06e79468af7f7f6129298d62042_0",
+    "captures": {
+      "$1": "params",
+      "$NAME": "params",
+      "$X": "params[[[:name]"
+    }
+  },
+  {
+    "rule": "same-language",
+    "path": "targets/legacy_capture_languages/array.rb",
+    "start": {
+      "line": 1,
+      "col": 6,
+      "offset": 5
+    },
+    "end": {
+      "line": 1,
+      "col": 19,
+      "offset": 18
+    },
+    "fingerprint": "36f3b8e12644b3dfe8cdd9da50a805177c4ab31c8930f499a1cb347d05541ad2a535bb8c2023dd94ca62d943ceb37ff8f18a1fc3e63fd4bf201b009c36ef15ff_0",
+    "captures": {
+      "$X": "params[[[:name]"
+    }
+  },
+  {
+    "rule": "ruby-equal-ranges",
+    "path": "targets/legacy_capture_languages/array.rb",
+    "start": {
+      "line": 1,
+      "col": 20,
+      "offset": 19
+    },
+    "end": {
+      "line": 1,
+      "col": 20,
+      "offset": 19
+    },
+    "fingerprint": "8b7d83e206aa8898c4a2b42684901e5bed55b589315f0806e93a231bce55d79c797b5935617fbab5a9cc3171d1d03dfe17f99250f1385bb1922563a67ca3553c_1",
+    "captures": {
+      "$X": "params[[[:name]"
+    }
+  },
+  {
+    "rule": "mixed",
+    "path": "targets/legacy_capture_languages/mixed.rb",
+    "start": {
+      "line": 1,
+      "col": 26,
+      "offset": 25
+    },
+    "end": {
+      "line": 1,
+      "col": 33,
+      "offset": 32
+    },
+    "fingerprint": "f4e8ca3bc1436ecfbf923a79bf26002d1be9349d81e664ef2ae1ec73918f2cca9688107b056e9b4bafaaab1ec95a0c3f00bf92743c9cc27ee3a5eb4a71c38400_0",
+    "captures": {
+      "$OUTER": "params[[[:name]",
+      "$CODE": "\"eval(args[0]);\"",
+      "$INNER": "args[[0]]"
+    }
+  },
+  {
+    "rule": "nested-twice",
+    "path": "targets/legacy_capture_languages/nested.yaml",
+    "start": {
+      "line": 1,
+      "col": 32,
+      "offset": 31
+    },
+    "end": {
+      "line": 1,
+      "col": 39,
+      "offset": 38
+    },
+    "fingerprint": "27b4972766df2e05ce80d97c788f845790390e2ea1b7b472b676c2d7d58739279326c2f40ff1e684f6850ea07d5dcb97f08199fb3e25c19ccf8650f04e4b78ef_0",
+    "captures": {
+      "$TEXT": "'pair(params[:name], \"eval(args[0]);\")'",
+      "$OUTER": "params[[[:name]",
+      "$CODE": "eval(args[0]);",
+      "$INNER": "args[[0]]"
+    }
+  },
+  {
+    "rule": "elixir-regex-false",
+    "path": "targets/legacy_capture_languages/pipeline.ex",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 1,
+      "col": 5,
+      "offset": 4
+    },
+    "fingerprint": "3f5db683091065b643af9802f40d3f83b5b7d886301935564c38cddc5beeb8d48ef243e5ea16ad675ecdb94e2a0e178c77127cf6cd31e4985a64c33ba5b7ec32_0",
+    "captures": {
+      "$X": "value|>step()"
+    }
+  },
+  {
+    "rule": "elixir-regex-true",
+    "path": "targets/legacy_capture_languages/pipeline.ex",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 1,
+      "col": 5,
+      "offset": 4
+    },
+    "fingerprint": "fe474daa059bfbebf5af022364a4a1c7ff3b0937295a3fb6d6e1010b4e308cfd21cc921a5505d4797263eb98651b2a900b66b84d180e7d7e0995320f11fb72c3_0",
+    "captures": {
+      "$X": "value|>step()"
+    }
+  },
+  {
+    "rule": "elixir-ast",
+    "path": "targets/legacy_capture_languages/pipeline.ex",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 1,
+      "col": 22,
+      "offset": 21
+    },
+    "fingerprint": "9f0b1563c63cf70e8ecf2d997668c0cc53c42c0e09d1c2e0ec641136a34f5b1fc0e6d1cc9f2662a833efaaae01e3a5374047230247cb6b2ee0dde589e23e39cb_0",
+    "captures": {
+      "$X": "value|>step()"
+    }
+  },
+  {
+    "rule": "elixir-equal-ranges",
+    "path": "targets/legacy_capture_languages/pipeline.ex",
+    "start": {
+      "line": 1,
+      "col": 1,
+      "offset": 0
+    },
+    "end": {
+      "line": 1,
+      "col": 22,
+      "offset": 21
+    },
+    "fingerprint": "2c8376ada1d34c37b724e693262cef98d532828027dd9a5cc5a43aa44001c9eaccbfededd98b6f5e033fdf52e4a3baa526391c21e437a22961155c780ac4b1c8_0",
+    "captures": {
+      "$X": "value|>step()"
+    }
+  },
+  {
+    "rule": "elixir-equal-ranges",
+    "path": "targets/legacy_capture_languages/pipeline.ex",
+    "start": {
+      "line": 1,
+      "col": 22,
+      "offset": 21
+    },
+    "end": {
+      "line": 1,
+      "col": 22,
+      "offset": 21
+    },
+    "fingerprint": "2c8376ada1d34c37b724e693262cef98d532828027dd9a5cc5a43aa44001c9eaccbfededd98b6f5e033fdf52e4a3baa526391c21e437a22961155c780ac4b1c8_1",
+    "captures": {
+      "$X": "value|>step()"
+    }
+  },
+  {
+    "rule": "taint-false-source",
+    "path": "targets/legacy_capture_languages/taint.rb",
+    "start": {
+      "line": 2,
+      "col": 18,
+      "offset": 26
+    },
+    "end": {
+      "line": 2,
+      "col": 34,
+      "offset": 42
+    },
+    "fingerprint": "148a5567198e12995d63bc5b6ad3063c7c1c3acd8244be1c33eb39daa49ad41f0c24e4bcb617b2446d138609cae255d1623fc1cfb5a056e7f2c63de6500b1216_0",
+    "captures": {
+      "$CODE": "\"eval(args[0]);\"",
+      "$VALUE": "value",
+      "$OUTER": "params[[[:name]"
+    }
+  },
+  {
+    "rule": "taint-false-source",
+    "path": "targets/legacy_capture_languages/taint.rb",
+    "start": {
+      "line": 2,
+      "col": 18,
+      "offset": 26
+    },
+    "end": {
+      "line": 2,
+      "col": 34,
+      "offset": 42
+    },
+    "fingerprint": "815429765de0c9e0113d24b1e9700a6abd52ccd057b5a7f63fbd22fe05893e70297c5bfcd64296a41fc86f3d472708a7018b75764cbc930cec2631ff16d50be5_0",
+    "captures": {
+      "$CODE": "\"eval(args[0]);\"",
+      "$INNER": "args[[0]]",
+      "$VALUE": "value",
+      "$OUTER": "params[[[:name]"
+    }
+  },
+  {
+    "rule": "taint-true-source",
+    "path": "targets/legacy_capture_languages/taint.rb",
+    "start": {
+      "line": 2,
+      "col": 18,
+      "offset": 26
+    },
+    "end": {
+      "line": 2,
+      "col": 34,
+      "offset": 42
+    },
+    "fingerprint": "d0c3de1aee11b4b127d8c19acd96a1871f7775cef7a594fdceb42f101aa7035934e4b7b96b75eb3a577a026f00a53de91dabfa00a10362b0b767e075ac70a49c_0",
+    "captures": {
+      "$CODE": "\"eval(args[0]);\"",
+      "$VALUE": "value",
+      "$OUTER": "params[[[:name]"
+    }
+  },
+  {
+    "rule": "taint-true-source",
+    "path": "targets/legacy_capture_languages/taint.rb",
+    "start": {
+      "line": 2,
+      "col": 18,
+      "offset": 26
+    },
+    "end": {
+      "line": 2,
+      "col": 34,
+      "offset": 42
+    },
+    "fingerprint": "ed7b927e436ff3fb8c88b674d73458920252059d0dd0a831e8e43b8748915e60e67eca25dddc9f5c38db0c755214a5da519fe510c61397bb24645937c807451e_0",
+    "captures": {
+      "$CODE": "\"eval(args[0]);\"",
+      "$INNER": "args[[0]]",
+      "$VALUE": "value",
+      "$OUTER": "params[[[:name]"
+    }
+  },
+  {
+    "rule": "taint-false-sink",
+    "path": "targets/legacy_capture_languages/taint.rb",
+    "start": {
+      "line": 3,
+      "col": 3,
+      "offset": 46
+    },
+    "end": {
+      "line": 3,
+      "col": 29,
+      "offset": 72
+    },
+    "fingerprint": "a60adba27804df20240d48e9dd0cd7aa32a2f1c01dd47c51c75f3fc36de5efaf3c5efb387ae747b7edde0bf845b2b4bf7f2c507a17524aff44ad0ec9f208d944_0",
+    "captures": {
+      "$CODE": "\"eval(args[0]);\"",
+      "$VALUE": "value",
+      "$OUTER": "params[[[:name]"
+    }
+  },
+  {
+    "rule": "taint-false-sink",
+    "path": "targets/legacy_capture_languages/taint.rb",
+    "start": {
+      "line": 3,
+      "col": 3,
+      "offset": 46
+    },
+    "end": {
+      "line": 3,
+      "col": 29,
+      "offset": 72
+    },
+    "fingerprint": "3603cfcb7d0f46acb9dd53e5d6dfaf18256a6f66cba406250ed185e01be666cd099f91fde836262db3d4dcc6f0e403a853a2ff56142dbdbf9260aede2beb40c7_0",
+    "captures": {
+      "$CODE": "\"eval(args[0]);\"",
+      "$INNER": "args[[0]]",
+      "$VALUE": "value",
+      "$OUTER": "params[[[:name]"
+    }
+  },
+  {
+    "rule": "taint-true-sink",
+    "path": "targets/legacy_capture_languages/taint.rb",
+    "start": {
+      "line": 3,
+      "col": 3,
+      "offset": 46
+    },
+    "end": {
+      "line": 3,
+      "col": 29,
+      "offset": 72
+    },
+    "fingerprint": "c467c8a2c6736cfe29499a35f19c0fc072170cf61bd88e20b854092934621926fb96e1b9320a42e696abb21490ffd10014e1b866eb2763cb612be94974a9bfb6_0",
+    "captures": {
+      "$CODE": "\"eval(args[0]);\"",
+      "$VALUE": "value",
+      "$OUTER": "params[[[:name]"
+    }
+  },
+  {
+    "rule": "taint-true-sink",
+    "path": "targets/legacy_capture_languages/taint.rb",
+    "start": {
+      "line": 3,
+      "col": 3,
+      "offset": 46
+    },
+    "end": {
+      "line": 3,
+      "col": 29,
+      "offset": 72
+    },
+    "fingerprint": "3bb39add22f37ce57acdbf80f2ed9fb14aac0b6939b1d656aefd9b5ff5f62abc32aa6a5fc6aa593ca4be428d883c30e252a89d14600c22f5e5505ba515b7e2aa_0",
+    "captures": {
+      "$CODE": "\"eval(args[0]);\"",
+      "$INNER": "args[[0]]",
+      "$VALUE": "value",
+      "$OUTER": "params[[[:name]"
+    }
+  }
+]

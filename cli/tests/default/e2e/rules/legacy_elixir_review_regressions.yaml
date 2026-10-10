@@ -1,0 +1,37 @@
+{
+  "rules": [
+    {
+      "languages": [
+        "elixir"
+      ],
+      "severity": "WARNING",
+      "id": "capture",
+      "message": "$X",
+      "pattern": "sink($X)"
+    },
+    {
+      "languages": [
+        "elixir"
+      ],
+      "severity": "WARNING",
+      "id": "symbolic-capture",
+      "message": "value($X)",
+      "pattern": "sink($X)",
+      "options": {
+        "symbolic_propagation": true
+      }
+    },
+    {
+      "languages": [
+        "elixir"
+      ],
+      "severity": "WARNING",
+      "id": "pipeline-alias",
+      "message": "$X",
+      "pattern": "sink(wrap($X))",
+      "options": {
+        "symbolic_propagation": true
+      }
+    }
+  ]
+}

@@ -1343,7 +1343,12 @@ and lvalue_expression (env : env) (x : CST.lvalue_expression) : G.expr =
         | [ e ] -> e
         | _ -> Container (Tuple, (open_br, exprs, close_br)) |> G.e
       in
-      ArrayAccess (inner, (open_br, index_expr, close_br)) |> G.e
+      let original_index = Container (Tuple, (open_br, exprs, close_br)) |> G.e in
+      let original =
+        ArrayAccess (inner, (open_br, original_index, close_br)) |> G.e
+      in
+      let result = ArrayAccess (inner, (open_br, index_expr, close_br)) |> G.e in
+      { result with e_original = Some (G.E original) }
   | `Elem_bind_exp x ->
       Container (Tuple, element_binding_expression env x) |> G.e
   | `Poin_indi_exp (v1, v2) -> DeRef (token env v1, expression env v2) |> G.e
@@ -1475,7 +1480,12 @@ and non_lvalue_expression (env : env) (x : CST.non_lvalue_expression) : G.expr =
             | [ e ] -> e
             | _ -> Container (Tuple, x) |> G.e
           in
-          ArrayAccess (inner, (open_br, index_expr, close_br)) |> G.e
+          let original_index = Container (Tuple, x) |> G.e in
+          let original =
+            ArrayAccess (inner, (open_br, original_index, close_br)) |> G.e
+          in
+          let result = ArrayAccess (inner, (open_br, index_expr, close_br)) |> G.e in
+          { result with e_original = Some (G.E original) }
       | `Member_bind_exp (x1, x2) ->
           let x1 = token env x1 (* "." *) in
           let x2 = simple_name env x2 in
@@ -2446,7 +2456,7 @@ and property_pattern_clause (env : env)
     | None -> []
   in
   let rb = token env v4 (* "}" *) in
-  PatRecord (lb, fields, rb)
+  record_pattern (lb, fields, rb)
 
 and anonymous_object_member_declarator (env : env)
     (x : CST.anonymous_object_member_declarator) =
