@@ -14,7 +14,8 @@ rule.yml
                                  { e =
                                    (Call (
                                       { e = (IdSpecial ((Op Eq), ()));
-                                        e_id = 0; e_range = None;
+                                        e_id = 0; e_original = <opaque>;
+                                        e_range = None;
                                         is_implicit_return = false;
                                         facts = <opaque> },
                                       ((),
@@ -27,9 +28,12 @@ rule.yml
                                                      ref ([]);
                                                      id_type = ref (None);
                                                      id_svalue = ref (None);
+                                                     id_legacy_svalue =
+                                                     <opaque>;
                                                      id_flags = ref (0) }
                                                    )));
-                                             e_id = 0; e_range = None;
+                                             e_id = 0; e_original = <opaque>;
+                                             e_range = None;
                                              is_implicit_return = false;
                                              facts = <opaque> });
                                          (Arg
@@ -42,15 +46,20 @@ rule.yml
                                                       ref ([]);
                                                       id_type = ref (None);
                                                       id_svalue = ref (None);
+                                                      id_legacy_svalue =
+                                                      <opaque>;
                                                       id_flags = ref (0) }
                                                     )));
-                                              e_id = 0; e_range = None;
+                                              e_id = 0;
+                                              e_original = <opaque>;
+                                              e_range = None;
                                               is_implicit_return = false;
                                               facts = <opaque> })
                                          ],
                                        ())
                                       ));
-                                   e_id = 0; e_range = None;
+                                   e_id = 0; e_original = <opaque>;
+                                   e_range = None;
                                    is_implicit_return = false;
                                    facts = <opaque> }),
                               Python));
