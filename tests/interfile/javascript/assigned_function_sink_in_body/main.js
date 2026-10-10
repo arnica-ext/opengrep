@@ -1,3 +1,0 @@
-function go() {
-  f(source());
-}

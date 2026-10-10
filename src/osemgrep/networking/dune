@@ -18,7 +18,6 @@
     semgrep.core
     semgrep.parsing
 
-    osemgrep_core
     osemgrep_configuring
     osemgrep_jsonnet
   )

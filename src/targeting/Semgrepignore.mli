@@ -15,7 +15,6 @@
    The 'Empty' case is useful for testing.
 *)
 type default_semgrepignore_patterns = Empty | Semgrep_scan_legacy
-[@@deriving show]
 
 val default_semgrepignore_filename : string
 
@@ -33,11 +32,6 @@ type exclusion_mechanism = {
 
    Use Git_project.find_project_root to determine the root of the
    git project.
-
-   The '.semgrepignore' of a folder applies to the paths under that folder,
-   like a '.gitignore' does. The folder the command runs from is not
-   special: its file applies to what it holds, not to a scanning root
-   elsewhere.
 *)
 val create :
   ?cli_patterns:string list ->

@@ -78,8 +78,14 @@ val rules_for_analyzer : analyzer:Xlang.t -> Rule.t list -> Rule.t list
 *)
 val print_cli_progress : Core_scan_config.t -> unit
 
-type target_handler =
-  Target.t -> Rule.t list -> Core_result.matches_single_file * bool
+type target_handler = Target.t -> Core_result.matches_single_file * bool
+
+val iter_targets_and_get_matches_and_exn_to_errors :
+  < Cap.fork ; Cap.memory_limit > ->
+  Core_scan_config.t ->
+  target_handler ->
+  Target.t list ->
+  Core_profiling.file_profiling Core_result.match_result list * Target.t list
 
 val filter_files_with_too_many_matches_and_transform_as_timeout :
   int ->
@@ -89,11 +95,6 @@ val filter_files_with_too_many_matches_and_transform_as_timeout :
   * Semgrep_output_v1_j.skipped_target list
 
 val parse_equivalences : Fpath.t option -> Equivalence.equivalences
-
-val interfile_xconfig :
-  Core_scan_config.t ->
-  equivs:Equivalence.equivalences ->
-  Match_env.xconfig
 
 (* small wrapper around Parse_target.parse_and_resolve_name *)
 val parse_and_resolve_name :

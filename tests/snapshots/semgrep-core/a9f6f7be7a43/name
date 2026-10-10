@@ -1,1 +1,0 @@
-Osemgrep Scan findings (e2e) > findings: with --dataflow-traces and --interfile-dedup-by source-sink, the text output prints one taint trace per source of each sink

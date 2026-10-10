@@ -16,7 +16,6 @@
     commons
 
     semgrep_core
-    osemgrep_configuring ; for Semgrep_envvars.ml
   )
  (preprocess
    (pps

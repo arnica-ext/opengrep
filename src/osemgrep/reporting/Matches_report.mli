@@ -6,21 +6,23 @@
 val pp_cli_output :
   max_chars_per_line:int ->
   max_lines_per_finding:int ->
+  color_output:'a ->
   show_dataflow_traces:bool ->
-  interfile_dedup_by:Core_match.interfile_dedup_by ->
-  is_interfile:(Rule_ID.t -> bool) ->
   ?is_ci_invocation:bool ->
   Format.formatter ->
   Semgrep_output_v1_t.cli_output ->
   unit
 
+(* whether a match's rule metadata marks it as blocking a ci scan;
+ * used also by Ci_subcommand.ml to count blocking findings *)
+val is_blocking : Yojson.Basic.t -> bool
+
 (* internals, used also for incremental display of matches *)
 val pp_text_outputs :
   max_chars_per_line:int ->
   max_lines_per_finding:int ->
+  color_output:'a ->
   show_dataflow_traces:bool ->
-  interfile_dedup_by:Core_match.interfile_dedup_by ->
-  is_interfile:(Rule_ID.t -> bool) ->
   Format.formatter ->
   Semgrep_output_v1_t.cli_match list ->
   unit

@@ -1,1 +1,0 @@
-Osemgrep Scan autofix (e2e) > autofix: java-string-wrap.yaml java-string-wrap.java text --dryrun

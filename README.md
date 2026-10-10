@@ -45,7 +45,7 @@ See the [Intrafile Tainting Tutorial](https://github.com/opengrep/opengrep/wiki/
 - **Improved**: Clojure (tainting support), PHP 8.4, C# 14
 
 **Distribution:**
-- Self-contained binaries compiled from OCaml
+- Self-contained binaries via Nuitka (no Python required)
 - Signed releases with Cosign
 
 See [OPENGREP.md](OPENGREP.md) for the full list of improvements since the fork.
@@ -89,9 +89,6 @@ Or with a specific version:
 ### Manual Install
 
 Binaries are available on the [releases page](https://github.com/opengrep/opengrep/releases).
-
-On Windows, the package holds `opengrep.exe` and the DLLs it needs; keep them
-together in the directory you install them to.
 
 ## Getting started
 
@@ -253,38 +250,6 @@ To obtain SARIF output:
   "$schema": "https://docs.oasis-open.org/sarif/sarif/v2.1.0/os/schemas/sarif-schema-2.1.0.json"
 }
 ```
-
-## Log file
-
-Set `OPENGREP_LOG_FILE` (or `SEMGREP_LOG_FILE`) to a path to get a copy of
-what Opengrep prints on stderr, at the same level: warnings and errors by
-default, more with `--verbose` or `--debug`. The file is truncated on each
-run and its directory is created. Nothing is written when the variable is
-not set. A path that cannot be written produces a warning and the run
-continues without the copy.
-
-## Text report
-
-`--skin` selects the layout of the text report: `simple` (the default),
-`vivid`, or `legacy` (the layout of earlier releases). The `OPENGREP_SKIN`
-environment variable sets it too; `--skin` takes precedence over it.
-
-```sh
-opengrep scan --skin vivid -f rules code
-OPENGREP_SKIN=legacy opengrep scan -f rules code
-```
-
-While a scan runs on a terminal, a status line on stderr shows the phase of
-the scan and, once the targets are known, a progress count. It is not drawn
-when stderr is not a terminal, when `TERM` is unset, `dumb` or `unknown`,
-when `CI` is set to a value other than `false` or `0`, on Windows, with
-`--quiet`, `--verbose` or `--debug`, with `--incremental-output`, or with
-`--skin legacy`. `--no-progress-bar` turns it off.
-
-## Colour
-
-Colour is on when stderr is a terminal. `NO_COLOR` turns it off;
-`--force-color` turns it on.
 
 ## Documentation
 

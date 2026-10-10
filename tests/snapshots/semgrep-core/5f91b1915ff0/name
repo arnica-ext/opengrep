@@ -1,1 +1,0 @@
-Osemgrep Scan autofix (e2e) > autofix: two-autofixes.yaml two-autofixes.txt text --dryrun

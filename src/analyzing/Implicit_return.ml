@@ -112,9 +112,6 @@ let mark_implicit_return lang ast =
              mark_implicit_return_fdef lang ~tok fdef
          | LambdaKind ->
              (* Lambdas expressions tend to always support implicit returns,
-              * even in languages that require explicit returns like Java.
-              * An [Arrow] is not marked: a block body returns only what it
-              * says, and an expression body comes from the parser as a
-              * [Return] (JS, PHP). *)
+              * even in languages that require explicit returns like Java. *)
              mark_implicit_return_fdef lang ~tok fdef
          | __else__ -> ())

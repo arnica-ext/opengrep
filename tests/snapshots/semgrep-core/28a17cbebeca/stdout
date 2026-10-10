@@ -1,9 +1,0 @@
-Test name: without git > scanning root is a semgrepignored folder
---- Files not added to git ---
-.semgrepignore
-dir/a.c
---- begin input files ---
---- end input files ---
---- Selected targets ---
-selected dir/a.c
---- Skipped targets ---

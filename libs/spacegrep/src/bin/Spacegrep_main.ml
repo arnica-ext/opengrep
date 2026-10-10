@@ -486,9 +486,9 @@ let man =
     `S Manpage.s_authors;
     `P "Martin Jambon <martin@semgrep.com>";
     `S Manpage.s_bugs;
-    `P "Check out bug reports at https://github.com/opengrep/opengrep/issues.";
+    `P "Check out bug reports at https://github.com/semgrep/semgrep/issues.";
     `S Manpage.s_see_also;
-    `P "opengrep, spacecat";
+    `P "semgrep, spacecat";
   ]
 
 let info name = Cmd.info ~doc ~man name

@@ -17,7 +17,6 @@
    logs logs.fmt logs.threaded
    alcotest
    testo
-   testo-diff
    timedesc
    cmdliner
    bos

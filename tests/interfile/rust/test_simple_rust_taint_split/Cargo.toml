@@ -1,4 +1,0 @@
-[package]
-name = "test_simple_rust_taint_split"
-version = "0.1.0"
-edition = "2021"

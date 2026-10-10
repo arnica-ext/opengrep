@@ -1,3 +1,0 @@
-function source() {
-    return "taint";
-}

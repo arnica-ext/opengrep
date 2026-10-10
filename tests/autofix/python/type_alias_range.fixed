@@ -1,2 +1,0 @@
-# MATCH:
-IntList: TypeAlias = list[int]

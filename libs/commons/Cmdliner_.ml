@@ -61,13 +61,6 @@ let negatable_flag ?(default = false) ~neg_options ~doc options =
   let disable = (false, Arg.info neg_options ~doc:neg_doc) in
   Arg.value (Arg.vflag default [ enable; disable ])
 
-(* the error of a variable whose value is not what the option expects *)
-let env_value_error ~(var : string) ~(value : string) (expected : string) :
-    [> `Msg of string ] =
-  `Msg
-    (Printf.sprintf "environment variable %s: invalid value %S, expected %s"
-       var value expected)
-
 (* same vocabulary as cmdliner's env_bool_parse, which is not exported *)
 let parse_env_bool (var : string) (value : string) :
     (bool, [ `Msg of string ]) result =
@@ -82,7 +75,12 @@ let parse_env_bool (var : string) (value : string) :
   | "y"
   | "1" ->
       Ok true
-  | _else_ -> Error (env_value_error ~var ~value "a boolean")
+  | _else_ ->
+      Error
+        (`Msg
+          (Printf.sprintf
+             "environment variable %s: invalid value %S, expected a boolean"
+             var value))
 
 (* Cmdliner.Arg.vflag_all ignores environment variables (the one on the
    positive flag is attached only for the man page), so the variable is read
@@ -91,18 +89,6 @@ let parse_env_bool (var : string) (value : string) :
    vflag_all keeps the command-line order: with the flag and its negation
    both given, the last one wins, and an explicit flag wins over the
    environment. *)
-(* An option given on the command line wins over its environment variable;
-   the user is told which variable was ignored. [vars] are the names the
-   option reads, the first one set is the one named. *)
-let warn_env_ignored ~(vars : string list) (options : string list) : unit =
-  match List.find_map Opengrep_env.getenv_with_name_opt vars with
-  | None -> ()
-  | Some ((name : string), (_ : string)) ->
-      let option =
-        add_option_dashes options |> List.hd
-      in
-      Logs.warn (fun m -> m "%s is given; ignoring $%s" option name)
-
 let negatable_flag_with_env ?(default = false) ?env ~neg_options ~doc options =
   let neg_doc =
     let options_str = add_option_dashes options |> String.concat "/" in
@@ -116,9 +102,7 @@ let negatable_flag_with_env ?(default = false) ?env ~neg_options ~doc options =
      an exception *)
   let combine (values : bool list) : (bool, [ `Msg of string ]) result =
     match List.rev values with
-    | last :: _ ->
-        warn_env_ignored ~vars:(Option.to_list env) options;
-        Ok last
+    | last :: _ -> Ok last
     | [] -> (
         match env with
         | None -> Ok default
@@ -140,67 +124,13 @@ let string_list_with_env ?(default = []) ~env ~doc options =
   let values = Arg.(value (opt_all string [] (Arg.info options ~doc))) in
   let combine (values : string list) =
     match values with
-    | _ :: _ ->
-        warn_env_ignored ~vars:[ env ] options;
-        values
+    | _ :: _ -> values
     | [] -> (
         match Opengrep_env.getenv_opt env with
         | Some value -> String_.split ~sep:"[ \t\r\n]+" value
         | None -> default)
   in
   Term.(const combine $ values)
-
-(* A single-valued float option that can also be set by an environment
-   variable, read through Opengrep_env so that the OPENGREP_* alias counts.
-   The command line wins over the environment, and a variable that does not
-   hold a number is reported the way a bad option value is. *)
-let float_opt_with_env ~(env : string) ~(doc : string) (options : string list)
-    =
-  let value = Arg.(value (opt (some float) None (Arg.info options ~doc))) in
-  let combine (value : float option) :
-      (float option, [ `Msg of string ]) result =
-    match value with
-    | Some _ ->
-        warn_env_ignored ~vars:[ env ] options;
-        Ok value
-    | None -> (
-        match Opengrep_env.getenv_with_name_opt env with
-        | None -> Ok None
-        | Some ((name : string), (str : string)) -> (
-            match float_of_string_opt str with
-            | Some (f : float) -> Ok (Some f)
-            | None -> Error (env_value_error ~var:name ~value:str "a number")))
-  in
-  Term.cli_parse_result Term.(const combine $ value)
-
-(* [env] is not passed to Arg.info: the helper reads the variable through
-   Opengrep_env, which accepts both the OPENGREP_ and the SEMGREP_ prefix.
-   Cmdliner therefore does not list the variable under ENVIRONMENT, and the
-   doc string refers to it instead, as for the other *_with_env helpers. *)
-let enum_with_env ~(env : string) ~(doc : string) ~(default : 'a)
-    ~(names : (string * 'a) list) (options : string list) : 'a Term.t =
-  let value =
-    Arg.(value (opt (some (enum names)) None (Arg.info options ~doc)))
-  in
-  let combine (value : 'a option) : ('a, [ `Msg of string ]) result =
-    match value with
-    | Some (v : 'a) ->
-        warn_env_ignored ~vars:[ env ] options;
-        Ok v
-    | None -> (
-        match Opengrep_env.getenv_with_name_opt env with
-        | None -> Ok default
-        | Some ((name : string), (str : string)) -> (
-            match List.assoc_opt str names with
-            | Some (v : 'a) -> Ok v
-            | None ->
-                Error
-                  (* An error message, not a doc string: quoted, without
-                     cmdliner's $(b,...) markup. *)
-                  (env_value_error ~var:name ~value:str
-                     (Arg.doc_alts ~quoted:true (List_.map fst names)))))
-  in
-  Term.cli_parse_result Term.(const combine $ value)
 
 (* A single-valued option whose value can also come from one of several
    environment variables (cmdliner supports only one per option). The
@@ -209,9 +139,7 @@ let string_opt_with_envs ~envs ~doc options =
   let value = Arg.(value (opt (some string) None (Arg.info options ~doc))) in
   let combine (value : string option) =
     match value with
-    | Some _ as v ->
-        warn_env_ignored ~vars:envs options;
-        v
+    | Some _ as v -> v
     | None -> List.find_map Opengrep_env.getenv_opt envs
   in
   Term.(const combine $ value)

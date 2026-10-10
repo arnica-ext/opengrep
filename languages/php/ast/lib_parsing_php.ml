@@ -20,7 +20,7 @@ open Fpath_.Operators
 (*****************************************************************************)
 (* Wrappers *)
 (*****************************************************************************)
-module Log = Log_parser_php.Log
+let pr2, _pr2_once = Common2.mk_pr2_wrappers Flag_parsing.verbose_parsing
 
 (*****************************************************************************)
 (* Filenames *)
@@ -76,8 +76,7 @@ let find_source_files_of_dir_or_files ?(verbose = false) ?(include_hack = false)
            && (is_php_file filename
               || (include_hack && is_hhi_filename filename))
          in
-         if (not valid) && verbose then
-           Log.debug (fun m -> m "not analyzing: %s" !!filename);
+         if (not valid) && verbose then pr2 ("not analyzing: " ^ !!filename);
          valid)
   |> List_.sort
 

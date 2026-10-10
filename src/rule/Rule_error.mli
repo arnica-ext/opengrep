@@ -16,7 +16,6 @@ and invalid_rule_kind =
       * (Semver_.t option (* minimum version supported by this rule *)
         * Semver_.t option (* maximum version *))
   | MissingPlugin of string (* error message *)
-  | UnsupportedSupplyChainRule of string (* the rule key asking for it *)
   | InvalidOther of string
 [@@deriving show]
 
@@ -25,8 +24,6 @@ type rules_and_invalid = Rule.rules * invalid_rule list
 (* General errors *)
 type error_kind =
   | InvalidRule of invalid_rule
-  (* the configuration could not be found; the message *)
-  | ConfigNotFound of string
   | InvalidYaml of string * Tok.t
   | DuplicateYamlKey of string * Tok.t
   | UnparsableYamlException of string

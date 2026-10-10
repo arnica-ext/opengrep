@@ -1,15 +1,17 @@
-(* This module selects how mature a behaviour the user asks for.
+(* This module is used mostly to decide between pysemgrep and osemgrep.
+ * It could be used for different things later.
  *)
 
 type t =
-  (* the plain behaviour, see CLI.ml *)
+  (* mix of pysemgrep and osemgrep, depending on CLI arguments (see CLI.ml) *)
   | Default
-  (* what --experimental selects; no behaviour depends on it any more, the
-     flag is accepted for compatibility *)
+  (* for forcing pysemgrep *)
+  | Legacy
+  (* for forcing osemgrep *)
   | Experimental
   (* Leaving on the edge, using osemgrep with osemgrep-only features enabled *)
   | Develop
 [@@deriving show]
 
-(* --experimental/--develop CLI processing *)
+(* --experimental/--legacy/--develop CLI processing *)
 val o_maturity : t Cmdliner.Term.t
