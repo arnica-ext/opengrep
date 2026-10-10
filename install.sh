@@ -89,20 +89,20 @@ validate_signature() {
 validate_checksum() {
     local P="$1"
     local EXPECTED ACTUAL
-    curl --fail --silent --show-error --location "${RELEASE_URL}/SHA256SUMS" > "${P}/SHA256SUMS"
+    curl --fail --silent --show-error --location "${RELEASE_URL}/SHA256SUMS" > "${P}/SHA256SUMS" || return 1
     EXPECTED=$(awk -v name="$DIST" '$2 == name {print $1}' "${P}/SHA256SUMS")
     if command -v sha256sum > /dev/null 2>&1; then
-        ACTUAL=$(sha256sum "${P}/opengrep")
+        ACTUAL=$(sha256sum "${P}/opengrep") || return 1
     elif command -v shasum > /dev/null 2>&1; then
-        ACTUAL=$(shasum -a 256 "${P}/opengrep")
+        ACTUAL=$(shasum -a 256 "${P}/opengrep") || return 1
     else
         echo "Error: sha256sum or shasum is required." >&2
-        exit 1
+        return 1
     fi
     ACTUAL=${ACTUAL%% *}
     if [[ ! "$EXPECTED" =~ ^[0-9a-f]{64}$ ]] || [[ "$ACTUAL" != "$EXPECTED" ]]; then
         echo "Error: Checksum verification failed for $DIST." >&2
-        exit 1
+        return 1
     fi
 }
 
@@ -164,9 +164,8 @@ main() {
     URL="${RELEASE_URL}/${DIST}"
 
     # check if binary already exists
-    if [ -f "${INST}/opengrep" ]; then
-        echo "Destination binary ${INST}/opengrep already exists."
-        validate_checksum "$INST"
+    if [ -f "${INST}/opengrep" ] && validate_checksum "$INST"; then
+        echo "Destination binary ${INST}/opengrep already exists and is verified."
         if $VERIFY_SIGNATURES; then
             validate_signature "$INST"
         fi

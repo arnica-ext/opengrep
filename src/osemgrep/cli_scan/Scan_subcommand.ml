@@ -792,7 +792,7 @@ let run_conf (caps : < caps ; .. >) (conf : Scan_CLI.conf) : Exit_code.t =
    * (e.g., 'semgrep show version') instead of abusing 'semgrep scan' flags.
    *)
   | _ when conf.version ->
-      CapConsole.print caps#stdout Version.version;
+      CapConsole.print caps#stdout Version.build_version;
       (* TOPORT: if enable_version_check: version_check() *)
       Exit_code.ok ~__LOC__
   | _ when conf.test <> None ->

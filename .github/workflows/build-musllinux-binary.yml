@@ -90,7 +90,7 @@ jobs:
               python3 -m pip install nuitka &&
               python3 -m pip install dist/*.whl &&
               unzip dist/*.whl -d _wheel &&
-              export OPENGREP_VERSION=\$(opengrep --version) &&
+              export OPENGREP_VERSION=\$(python3 -c 'from semgrep import __VERSION__; print(__VERSION__)') &&
               export SRC_SEMGREP_DIR=/workspace/_wheel/opengrep-\$OPENGREP_VERSION.data/purelib/semgrep &&
               python3 -m pip install --upgrade setuptools && 
               python3 -m pip install protobuf && 

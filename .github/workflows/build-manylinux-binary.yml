@@ -96,7 +96,7 @@ jobs:
           # /opt/python/cp39-cp39/bin/pip install dist/*.whl --target ./_opengrepinstall
 
       - name: Export OPENGREP_VERSION
-        run: echo "OPENGREP_VERSION=$(opengrep --version)" >> $GITHUB_ENV
+        run: echo "OPENGREP_VERSION=$(python3 -c 'from semgrep import __VERSION__; print(__VERSION__)')" >> $GITHUB_ENV
         shell: bash
 
       - name: Set SRC_SEMGREP_DIR with wheel contents
@@ -122,7 +122,7 @@ jobs:
           python3 -m pip install chardet charset-normalizer
 
           PYTHON_BIN=python3 \
-          ./scripts/build-nuitka.sh "v$(opengrep --version)" true $SRC_SEMGREP_DIR
+          ./scripts/build-nuitka.sh "v$OPENGREP_VERSION" true $SRC_SEMGREP_DIR
 
       - name: Zip artifact
         run: zip -j opengrep.zip cli/opengrep

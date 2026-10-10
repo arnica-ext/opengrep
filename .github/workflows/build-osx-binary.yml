@@ -85,7 +85,7 @@ jobs:
           unzip dist/*.whl -d _wheel
 
       - name: Export OPENGREP_VERSION
-        run: echo "OPENGREP_VERSION=$(pipenv run opengrep --version)" >> $GITHUB_ENV
+        run: echo "OPENGREP_VERSION=$(pipenv run python -c 'from semgrep import __VERSION__; print(__VERSION__)')" >> $GITHUB_ENV
         shell: bash
 
       - name: Set SRC_SEMGREP_DIR with wheel contents
