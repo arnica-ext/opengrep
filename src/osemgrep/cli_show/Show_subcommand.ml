@@ -75,7 +75,7 @@ let run_conf (caps : < caps ; .. >) (conf : Show_CLI.conf) : Exit_code.t =
   let print = CapConsole.print caps#stdout in
   match conf.show_kind with
   | Version ->
-      print Version.version;
+      print Version.build_version;
       (* TODO? opportunity to perform version-check? *)
       Exit_code.ok ~__LOC__
   | SupportedLanguages ->

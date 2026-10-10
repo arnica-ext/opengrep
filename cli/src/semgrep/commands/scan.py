@@ -20,7 +20,7 @@ import semgrep.app.auth as auth
 import semgrep.config_resolver
 import semgrep.run_scan
 import semgrep.test
-from semgrep import __VERSION__
+from semgrep import __BUILD_VERSION__
 from semgrep import bytesize
 from semgrep.app.version import get_no_findings_msg
 from semgrep.app.version import get_too_many_findings_msg
@@ -632,7 +632,7 @@ def scan(
     dynamic_timeout_max_multiplier: int = DEFAULT_DYNAMIC_TIMEOUT_MAX_MULTIPLIER,
 ) -> Optional[Tuple[RuleMatchMap, List[SemgrepError], List[Rule], Set[Path]]]:
     if version:
-        print(__VERSION__)
+        print(__BUILD_VERSION__)
         if enable_version_check:
             from semgrep.app.version import version_check
 
