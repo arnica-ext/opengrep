@@ -118,7 +118,7 @@ a few other projects developed at r2c.
     (ppx_hash (>= "v0.14.0" ))
     (digestif (>= "1.0.0"))
     uri
-    bos
+    (bos (= "0.2.1"))
   )
 )
 
@@ -456,7 +456,7 @@ For more information see https://opengrep.dev.
     ; See https://github.com/janestreet/base/issues/146
     (base (>= v0.17.1))
     fpath
-    bos
+    (bos (= "0.2.1"))
     fileutils
     ; unit testing (note that testo is vendored in libs/ so not listed here)
     ; TODO? still need those alcotest-xx now that we use testo?
