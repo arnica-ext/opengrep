@@ -147,7 +147,7 @@ let rec map_string_content env = function
 (* The body of the heredoc opened by a marker, e.g. "<<-SQL". *)
 let heredoc_body (env : env) ((marker_loc, _) : CST.heredoc_start) :
     CST.heredoc_body option =
-  H.heredoc_body marker_loc (snd env.extra)
+  List.assoc_opt marker_loc (snd env.extra)
 
 (* The indentation of the terminator is removed from every line of the body.
  * It is what follows the last newline of the body. *)
@@ -158,6 +158,24 @@ let terminator_indentation contents : int =
       | Some i -> String.length text - i - 1
       | None -> 0)
   | _ -> 0
+
+let dedent (indentation : int) (text : string) : string =
+  let rex = Pcre2_.regexp (Printf.sprintf "\n[ \t]{0,%d}" indentation) in
+  Pcre2_.replace ~rex ~template:"\n" text
+
+(* tree-sitter starts a body at the end of the marker line, but the newline
+ * ending that line is not part of the string. *)
+let drop_marker_newline contents =
+  let after_newline s = String.sub s 1 (String.length s - 1) in
+  match contents with
+  | `Here_text (value, ((loc : Tree_sitter_run.Loc.t), text)) :: rest
+    when String.starts_with ~prefix:"\n" value -> (
+      let start = { Tree_sitter_run.Loc.row = loc.start.row + 1; column = 0 } in
+      match after_newline value with
+      | "" -> rest
+      | value ->
+          `Here_text (value, ({ loc with start }, after_newline text)) :: rest)
+  | _ -> contents
 
 (* The parts of a heredoc, as those of the equivalent double-quoted literal:
  * each text with the string it stands for. Its token stays the one of the
@@ -172,7 +190,7 @@ let parts_of_heredoc (env : env) (marker : CST.heredoc_start) =
        * "...". In a target it is text. *)
       let ellipsis text =
         match fst env.extra with
-        | Pattern when String.equal (String.trim text) "..." -> "..."
+        | Pattern when String.trim text = "..." -> "..."
         | Pattern
         | Target ->
             text
@@ -181,19 +199,13 @@ let parts_of_heredoc (env : env) (marker : CST.heredoc_start) =
         contents
         |> List_.map (function
              | `Here_content ((_, text) as tok) ->
-                 `Here_text (ellipsis (H.dedent indentation text), tok)
+                 `Here_text (ellipsis (dedent indentation text), tok)
              | `Interp x -> `Interp x
              | `Pat_a84aa85_str_esc_seq (_blanks, tok)
              | `Pat_a84aa85_igno_back (_blanks, tok) ->
                  `Text (str env tok)
              | `Line_cont_expl_ _ -> `Text ("", fake "\\"))
-        |> H.drop_marker_newline
-             ~text_part:(function
-               | `Here_text (value, tok) -> Some (tok, value)
-               | `Interp _
-               | `Text _ ->
-                   None)
-             ~make_text_part:(fun tok value -> `Here_text (value, tok))
+        |> drop_marker_newline
         |> List_.map (function
              | `Here_text (value, tok) -> `Text (value, token env tok)
              | (`Text _ | `Interp _) as x -> x)
@@ -304,17 +316,13 @@ and map_statement (env : env) (x : CST.statement) : G.stmt =
       G.DefStmt (ent, G.VarDef { vinit = Some (map_statement_expr env rhs); vtype = None; vtok = Some (token env eq) })
       |> G.s
   | `Module_def (tok, name, body, _end) ->
-      let ent =
-        { G.name = G.EN (name_of_type_name env name); attrs = []; tparams = None }
-      in
+      let ent = G.basic_entity (id_of_type_name env name) in
       let items = Option.value ~default:[] (Option.map (map_statements env) body) in
       G.DefStmt (ent, G.ModuleDef { mbody = G.ModuleStruct (None, items) }) |> G.s
   | `Class_def (abstract, tok, name, parent, body, _end)
   | `Struct_def (abstract, tok, name, parent, body, _end) ->
       let attrs = Option.to_list abstract |> List_.map (fun tok -> G.unhandled_keywordattr (str env tok)) in
-      let ent =
-        { G.name = G.EN (name_of_type_name env name); attrs; tparams = None }
-      in
+      let ent = G.basic_entity ~attrs (id_of_type_name env name) in
       let ckind = (G.Class, token env tok) in
       let cextends =
         match parent with
@@ -424,7 +432,7 @@ and map_string_parts env (l, parts, r) : G.expr =
          | `Text x -> Some x
          | `Interp _ -> None)
   in
-  if Int.equal (List.length texts) (List.length parts) then
+  if List.length texts = List.length parts then
     G.L (G.String (G.string_ (l, texts, r))) |> G.e
   else
     let args =
@@ -1046,17 +1054,14 @@ and map_method_def env (base, _term, body, _rescue, _end) =
   def
 
 and map_base_method_def env (tok, recv, name, params, ret, _forall) body =
-  let id, attrs =
+  let id =
     match recv with
-    | None -> (id_of_method_name env name, [])
-    | Some (`Self self_tok, _dot) ->
-        ( id_of_method_name env name,
-          [ G.KeywordAttr (G.Static, token env self_tok) ] )
+    | None -> id_of_method_name env name
     | Some (recv, _dot) ->
         let id, tok = id_of_method_name env name in
-        ((id_of_method_receiver env recv ^ "." ^ id, tok), [])
+        (id_of_method_receiver env recv ^ "." ^ id, tok)
   in
-  let ent = G.basic_entity ~attrs id in
+  let ent = G.basic_entity id in
   let fparams =
     match params with
     | None -> fb []
@@ -1231,11 +1236,6 @@ and id_of_type_name env = function
   | `Cst c -> name_to_id env c
   | `Gene_type (c, _lp, _params, _rp) -> name_to_id env c
 
-and name_of_type_name env = function
-  | `Semg_meta tok -> G.Id (str env tok, G.empty_id_info ())
-  | `Cst c -> name_of_constant env c
-  | `Gene_type (c, _lp, _params, _rp) -> name_of_constant env c
-
 and id_of_method_receiver env = function
   | `Semg_meta tok -> fst (str env tok)
   | `Self tok -> fst (str env tok)
@@ -1280,7 +1280,25 @@ let map_program env = function
   | None -> []
   | Some stmts -> map_statements env stmts
 
-(* Each heredoc marker with its body, see [H.pair_heredocs]. *)
+module R = Tree_sitter_run.Raw_tree
+
+let rec heredoc_markers (tree : _ R.t) : CST.heredoc_start list =
+  match tree with
+  | R.Case ("Here_start", R.Token marker) -> [ marker ]
+  | R.Case (_, x)
+  | R.Option (Some x) ->
+      heredoc_markers x
+  | R.List xs
+  | R.Tuple xs ->
+      List.concat_map heredoc_markers xs
+  | R.Option None
+  | R.Token _
+  | R.Any _ ->
+      []
+
+(* Each heredoc marker with its body. The markers are taken in source order,
+ * and each takes the first body left after it that its delimiter closes:
+ * the bodies of the markers of a line follow that line, in the same order. *)
 let heredocs (cst : CST.expressions) (extras : CST.extras) =
   let bodies =
     extras
@@ -1295,15 +1313,28 @@ let heredocs (cst : CST.expressions) (extras : CST.extras) =
     |> String_.strip_wrapping_char '\''
     |> String_.strip_wrapping_char '"'
   in
-  let terminator ((_, _, (_, terminator)) : CST.heredoc_body) = terminator in
+  let is_body_of (marker_loc, marker) ((loc : Tree_sitter_run.Loc.t), body) =
+    let _, _, (_, terminator) = body in
+    compare loc.start marker_loc.Tree_sitter_run.Loc.end_ >= 0
+    && String.equal (String.trim terminator) (delimiter marker)
+  in
   match bodies with
   | [] -> []
   | _ ->
       (* a marker can also be in an interpolation of a body *)
       Boilerplate.map_expressions () cst
       :: List_.map (fun (_, body) -> Boilerplate.map_heredoc_body () body) bodies
-      |> List.concat_map (H.heredoc_markers ~constructor:"Here_start")
-      |> fun markers -> H.pair_heredocs ~delimiter ~terminator markers bodies
+      |> List.concat_map heredoc_markers
+      |> List.sort compare
+      |> List.fold_left
+           (fun (heredocs, bodies) ((marker_loc, _) as marker) ->
+             match List.find_opt (is_body_of marker) bodies with
+             | Some ((_, body) as claimed) ->
+                 ( (marker_loc, body) :: heredocs,
+                   List.filter (fun x -> not (x == claimed)) bodies )
+             | None -> (heredocs, bodies))
+           ([], bodies)
+      |> fst
 
 let parse file =
   H.wrap_parser

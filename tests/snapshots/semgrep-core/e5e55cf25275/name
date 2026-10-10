@@ -1,1 +1,0 @@
-Osemgrep Scan autofix (e2e) > autofix: python-assert-statement.yaml python-assert-statement.py text --dryrun

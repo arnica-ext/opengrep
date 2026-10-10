@@ -34,8 +34,6 @@ while [ $# -gt 0 ]; do
       intrafile_suffix="_intrafile"
       shift
       ;;
-    # Passed to every binary: it selects the OCaml engine of semgrep and of
-    # opengrep releases below 2.0.0, and is inert on 2.0.0 and later.
     --experimental)
       experimental="yes"
       experimental_suffix="_experimental"
@@ -122,7 +120,7 @@ while [ $# -gt 0 ]; do
       echo "  --taint-rules-only       Use only taint rules (opengrep-rules-taint)"
       echo "  --no-taint-rules         Use only non-taint rules (opengrep-rules-non-taint)"
       echo "  --intrafile              Enable intrafile taint analysis"
-      echo "  --experimental           Pass --experimental to both binaries (inert on opengrep 2.0.0 and later)"
+      echo "  --experimental           Enable experimental mode"
       echo "  -h, --help               Show this help message"
       echo "  -- ARGS                  Pass additional arguments to both tools (e.g., -- --time)"
       exit 0

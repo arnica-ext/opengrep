@@ -645,9 +645,9 @@ and class_def = {
 
 and class_type =
   | ClassRegular of tok (* class *)
-  | ClassFinal of tok * tok (* final class *)
-  | ClassAbstract of tok * tok (* abstract class *)
-  | ClassReadonly of tok * tok (* readonly class, PHP 8.2 *)
+  (* abstract, final and readonly (PHP 8.2) in any order, e.g.
+   * 'final readonly class' *)
+  | ClassModified of modifier wrap list * tok
   | Interface of tok (* interface *)
   (* PHP 5.4 traits: http://php.net/manual/en/language.oop5.traits.php
    * Allow to mixin behaviors and data so it's really just
@@ -826,15 +826,13 @@ and toplevel =
   | NamespaceBracketDef of tok * qualified_ident option * toplevel list brace
   | NamespaceUse of
       tok
-      * use_keyword option
+      * tok option (* 'function|const' *)
       * namespace_use_rule comma_list
       * tok
   (* ; *)
   (* old:  | Halt of tok * unit paren * tok (* __halt__ ; *) *)
   | NotParsedCorrectly of tok list (* when Flag.error_recovery = true *)
   | FinalDef of tok (* EOF *)
-
-and use_keyword = Use_function_keyword of tok | Use_const_keyword of tok
 
 (* the qualified_ident can have a leading '\' *)
 and namespace_use_rule = qualified_ident * alias option

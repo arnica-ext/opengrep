@@ -1,4 +1,0 @@
-def recompute():
-    return False
-
-

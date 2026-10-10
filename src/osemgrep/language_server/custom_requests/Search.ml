@@ -317,13 +317,11 @@ let get_relevant_rules ({ params = { patterns; fix; lang; _ }; _ } as env : env)
      pattern
      This is a map from pattern -> valid langs for that pattern
   *)
-  let/ langs_of_patterns =
-    patterns
-    |> List_.map (fun { Request_params.positive = _; pattern } ->
-           (* a pattern that does not parse in the language given by the
-              request fails the search instead of matching nothing *)
-           Rule_fetching.langs_of_pattern (pattern, lang))
-    |> Base.Result.all
+  let langs_of_patterns =
+    List_.map
+      (fun { Request_params.positive = _; pattern } ->
+        Rule_fetching.langs_of_pattern (pattern, lang))
+      patterns
   in
   (* We want languages which are part of the languages known to the workspace,
      and which also may parse properly in each language.
@@ -543,14 +541,10 @@ let start_search (session : Session.t) (params : Jsonrpc.Structured.t option) =
       let env = mk_env session params in
       match get_relevant_rules env with
       | Error e ->
-          let msg =
-            spf "error parsing patterns for semgrep/search: %s"
-              (Rule_error.string_of_error e)
-          in
-          Logs.warn (fun m -> m "%s" msg);
-          (* the server answers a request whose handler raises with an error
-             response, which is how the client learns of the failure *)
-          failwith msg
+          Logs.warn (fun m ->
+              m "error parsing patterns for semgrep/search: %s"
+                (Rule_error.string_of_error e));
+          (session, None)
       | Ok rules ->
           (* !!calling the engine!! *)
           (* Reset cache. *)

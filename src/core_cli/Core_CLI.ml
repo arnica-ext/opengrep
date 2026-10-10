@@ -18,9 +18,9 @@ module Out = Semgrep_output_v1_j
 (*****************************************************************************)
 (* This module contains the main command-line parsing logic of semgrep-core.
  *
- * It is packaged as a library and is reached through 'opengrep --core'.
- * history: the code here used to be in Main.ml; it was also used for the
- * stand-alone semgrep-core binary and the semgrep-core-proprietary one.
+ * It is packaged as a library so it can be used both for the stand-alone
+ * semgrep-core binary as well as the semgrep-core-proprietary one.
+ * history: the code here used to be in Main.ml.
  *
  * DEPRECATED: semgrep-core used to recognize lots of options (e.g., -e/-f) and
  * is still used extensively by PA for many things. It was doing its own file
@@ -67,9 +67,9 @@ let rule_source = ref None
 (* TODO: Check if this needs to be in TLS. *)
 let target_file : Fpath.t option ref = ref None
 
-(* used for `opengrep --core -l <lang> <single file>` instead of
- * `opengrep --core -targets`. It is also used for core "actions" as in
- * `opengrep --core -l <lang> -dump_ast <file`
+(* used for `semgrep-core -l <lang> <single file>` instead of
+ * `semgrep-core -targets`. It is also used for semgrep-core "actions" as in
+ * `semgrep-core -l <lang> -dump_ast <file`
  * less: we could infer it from basename argv(0) ?
  *)
 let lang = ref None
@@ -91,11 +91,6 @@ let equivalences_file = ref None
 (* intrafile tainting mode *)
 let taint_intrafile = ref Core_scan_config.default.taint_intrafile
 
-(* interfile tainting mode *)
-let taint_interfile = ref Core_scan_config.default.taint_interfile
-let taint_interfile_depth = ref Core_scan_config.default.taint_interfile_depth
-let interfile_dedup_by = ref Core_scan_config.default.interfile_dedup_by
-
 (* ------------------------------------------------------------------------- *)
 (* limits *)
 (* ------------------------------------------------------------------------- *)
@@ -111,9 +106,6 @@ let allow_rule_timeout_control = ref false
 let timeout_threshold = ref Core_scan_config.default.timeout_threshold
 let inline_metavariables = ref false
 let max_memory_mb = ref Core_scan_config.default.max_memory_mb (* in MiB *)
-
-(* limits of the interfile analysis of a rule; 0 means no limit *)
-let interfile_timeout = ref Core_scan_config.default.interfile_timeout
 
 (* arbitrary limit *)
 let max_match_per_file = ref Core_scan_config.default.max_match_per_file
@@ -264,10 +256,7 @@ let output_core_results (caps : < Cap.stdout ; Cap.stderr ; Cap.exit >)
       in
       let res =
         Logs_.with_debug_trace ~__FUNCTION__ (fun () ->
-            Core_json_output.core_output_of_matches_and_errors
-              ~inline:config.inline_metavariables
-              ~taint_interfile:config.taint_interfile
-              ~interfile_dedup_by:config.interfile_dedup_by res)
+            Core_json_output.core_output_of_matches_and_errors ~inline:config.inline_metavariables res)
       in
       (*
         Not pretty-printing the json output (Yojson.Safe.prettify)
@@ -303,8 +292,6 @@ let output_core_results (caps : < Cap.stdout ; Cap.stderr ; Cap.exit >)
           in
           let matches =
             Core_json_output.dedup_and_sort
-              ~taint_interfile:config.taint_interfile
-              ~interfile_dedup_by:config.interfile_dedup_by
               (Core_match.to_rule_id_options_map
                  List_.(map (fun (Core_result.{pm; _}) -> pm) res.processed_matches))
               matches
@@ -347,7 +334,6 @@ let mk_config () : Core_scan_config.t =
     respect_rule_paths = !respect_rule_paths;
     equivalences_file = !equivalences_file;
     file_match_hook = None;
-    progress_hook = None;
     (* limits and perf *)
     timeout = !timeout;
     dynamic_timeout = !dynamic_timeout;
@@ -356,19 +342,12 @@ let mk_config () : Core_scan_config.t =
     allow_rule_timeout_control = !allow_rule_timeout_control;
     timeout_threshold = !timeout_threshold;
     max_memory_mb = !max_memory_mb;
-    interfile_timeout = !interfile_timeout;
     max_match_per_file = !max_match_per_file;
     ncores = !ncores;
     filter_irrelevant_rules = !filter_irrelevant_rules;
-    (* taint_interfile implies taint_intrafile; enforced in Core_scan.scan. *)
     taint_intrafile = !taint_intrafile;
     effect_guards = false;
-    taint_interfile = !taint_interfile;
-    taint_interfile_depth = !taint_interfile_depth;
-    interfile_dedup_by = !interfile_dedup_by;
-    scanning_roots = [];
     engine_config = Engine_config.default;
-    targeting_conf = Find_targets.default_conf;
   }
 
 (*****************************************************************************)
@@ -661,10 +640,6 @@ let options caps (actions : unit -> Arg_.cmdline_actions) =
        when running out of memory. This value should be less than the actual \
        memory available because the limit will be exceeded before it gets \
        detected. Try 5% less or 15000 if you have 16 GB." );
-    ( "-interfile_timeout",
-      Arg.Set_int interfile_timeout,
-      " <int> maximum time to spend on the interfile analysis of a rule (in \
-       seconds); 0 disables it (default is 0)" );
     ( "-max_tainted_vars",
       Arg.Set_int Flag_semgrep.max_tainted_vars,
       "<int> maximum number of vars to store. This is mostly for internal use \
@@ -699,27 +674,6 @@ let options caps (actions : unit -> Arg_.cmdline_actions) =
     ( "-taint_intrafile",
       Arg.Set taint_intrafile,
       " activate intrafile tainting mode" );
-    ( "-taint_interfile",
-      Arg.Set taint_interfile,
-      " activate interfile tainting mode (implies -taint_intrafile)" );
-    ( "-taint_interfile_depth",
-      Arg.Set_int taint_interfile_depth,
-      " <int> maximum call chain depth for companion file discovery (default 3)" );
-    ( "-interfile_dedup_by",
-      Arg.String
-        (fun (s : string) ->
-          match s with
-          | "sink" -> interfile_dedup_by := Core_match.Sink
-          | "source-sink" -> interfile_dedup_by := Core_match.Source_sink
-          | _ ->
-              raise
-                (Arg.Bad
-                   (spf
-                      "-interfile_dedup_by: expected sink or source-sink, \
-                       given %s"
-                      s))),
-      " <sink|source-sink> how interfile findings are deduplicated: by sink, \
-       or by source and sink (default sink)" );
   ]
   @ Flag_parsing_cpp.cmdline_flags_macrofile ()
   (* inlining of: Common2.cmdline_flags_devel () @ *)
@@ -744,10 +698,16 @@ let options caps (actions : unit -> Arg_.cmdline_actions) =
       ( "-version",
         Arg.Unit
           (fun () ->
-            let version = spf "opengrep --core version: %s" Version.version in
+            let version = spf "opengrep-core version: %s" Version.version in
             CapConsole.print caps#stdout version;
             Core_exit_code.(exit_semgrep caps#exit Success)),
         "  guess what" );
+      ( "-rpc",
+        Arg.Unit
+          (fun () ->
+            RPC.main (caps :> < Cap.exec ; Cap.tmp >);
+            Core_exit_code.(exit_semgrep caps#exit Success)),
+        " don't use this unless you already know" );
     ]
 
 (*****************************************************************************)
@@ -827,10 +787,9 @@ let main_exn (caps : Cap.all_caps) (argv : string array) : unit =
    *)
   if Sys.unix then CapSys.set_signal caps#signal Sys.sigxfsz Sys.Signal_ignore;
 
-  (* the core CLI is only reachable through 'opengrep --core', so argv.(0)
-   * (the name the binary was invoked under) is not what the user must type *)
   let usage_msg =
-    "Usage: opengrep --core [options] -rules <file> -targets <file>\nOptions:"
+    spf "Usage: %s [options] -rules <file> -targets <file>\nOptions:"
+      (Filename.basename argv.(0))
   in
 
   (* --------------------------------------------------------- *)
@@ -854,7 +813,7 @@ let main_exn (caps : Cap.all_caps) (argv : string array) : unit =
 
   (* coupling: lots of similarities with what we do in Scan_subcommand.ml *)
   Log_semgrep.setup ?log_to_file:!log_to_file
-    ?require_one_of_these_tags:None ~highlight_setting:On
+    ?require_one_of_these_tags:None ~force_color:true
     ~level:
       (* TODO: command-line option or env variable to choose the log level *)
       (if !debug then Some Debug else Some Info)
@@ -906,12 +865,12 @@ let main_exn (caps : Cap.all_caps) (argv : string array) : unit =
                  *)
                 failwith
                   "this combination of targets and flags is not supported; \
-                   opengrep --core supports either the use of -targets, or \
-                   -lang and a single target file; if you need more complex \
-                   file targeting use opengrep"
+                   opengrep-core supports either the use of -targets, or -lang \
+                   and a single target file; if you need more complex file \
+                   targeting use opengrep"
           in
           let engine_config =
-            Engine_config.{ custom_ignore_pattern = !Flag.opengrep_ignore_pattern }
+            Engine_config.{ custom_ignore_pattern = !Flag.opengrep_ignore_pattern; taint_intrafile = None }
           in
           let config = { config with target_source; ncores; engine_config } in
 
@@ -926,9 +885,6 @@ let main_exn (caps : Cap.all_caps) (argv : string array) : unit =
 let with_exception_trace f =
   Printexc.record_backtrace true;
   try f () with
-  (* UnixExit is control flow, not a failure: -help, -version and the other
-   * early exits must propagate their status without printing a trace *)
-  | UnixExit _ as exn -> raise exn
   | exn ->
       let e = Exception.catch exn in
       Printf.eprintf "Exception: %s\n%!" (Exception.to_string e);

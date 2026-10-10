@@ -50,7 +50,6 @@ type conf = {
   skipped_files : bool;
   (* alt: in CLI_common.conf *)
   max_log_list_entries : int;
-  skin : Skin.name;
   (* true for 'opengrep ci': the Text format then keeps blocking and
    * non-blocking findings in separate groups and appends the
    * "RULES FIRED" sections (python: FormatContext.is_ci_invocation) *)
@@ -71,9 +70,12 @@ let default : conf =
     fixed_lines = false;
     skipped_files = false;
     max_log_list_entries = 100;
-    skin = Skin.default;
     is_ci_invocation = false;
   }
+
+(* used with max_log_list_entries *)
+let too_much_data =
+  "<SKIPPED DATA (too many entries; adjust with --max-log-list-entries)>"
 
 (*****************************************************************************)
 (* Helpers *)
@@ -88,36 +90,16 @@ let start_time_from_profiler_opt (profiler : Profiler.t) : Timedesc.Timestamp.t 
   | Some (Profiler.Start t) -> Some (Timedesc.Timestamp.of_float_s t)
   | _ -> None
 
-let is_interfile_rule_id ~(taint_interfile : bool) (hrules : Rule.hrules)
-    (id : Rule_ID.t) : bool =
-  match Hashtbl.find_opt hrules id with
-  | None -> false
-  | Some (rule : Rule.rule) ->
-      (match rule.Rule.mode with
-      | `Taint _ -> true
-      | _else_ -> false)
-      && (taint_interfile
-         ||
-         match rule.Rule.options with
-         | Some (opts : Rule_options.t) -> opts.Rule_options_t.taint_interfile
-         | None -> false)
-
-let message_with_taint_source ~(is_interfile : Rule_ID.t -> bool)
-    (m : Out.cli_match) : string =
-  match (is_interfile m.check_id, m.extra.dataflow_trace) with
-  | true, Some { Out.taint_source = Some source; _ } ->
-      let (loc : Out.location), (_code : string) =
-        Core_json_output.leaf_of_call_trace source
-      in
-      spf "%s [source %s:%d]" m.extra.message !!(loc.path) loc.start.line
-  | _ -> m.extra.message
-
 (*****************************************************************************)
 (* Format dispatcher *)
 (*****************************************************************************)
 
-let format ~(profiler : Profiler.t) ~(is_interfile : Rule_ID.t -> bool)
-    (kind : Output_format.t) (cli_output : Out.cli_output) : string list =
+(* called also from RPC_return.ml *)
+let format
+    (* XXX: This is only passed in --experimental mode. *)
+    ?(profiler : Profiler.t option)
+    (kind : Output_format.t)
+    (cli_output : Out.cli_output) : string list =
   match kind with
   | Text
   | Sarif
@@ -128,11 +110,11 @@ let format ~(profiler : Profiler.t) ~(is_interfile : Rule_ID.t -> bool)
       [ Out.string_of_cli_output cli_output ]
   | Junit_xml -> [ Junit_xml_output.junit_xml_output cli_output ]
   | Gitlab_sast ->
-      let start_time = start_time_from_profiler_opt profiler in
+      let start_time = Option.map start_time_from_profiler_opt profiler |> Option.join in
       let gitlab_sast_json = Gitlab_output.sast_output ?start_time cli_output.results in
       [ Yojson.Basic.to_string gitlab_sast_json ]
   | Gitlab_secrets ->
-      let start_time = start_time_from_profiler_opt profiler in
+      let start_time = Option.map start_time_from_profiler_opt profiler |> Option.join in
       let gitlab_secrets_json =
         Gitlab_output.secrets_output ?start_time cli_output.results
       in
@@ -141,7 +123,7 @@ let format ~(profiler : Profiler.t) ~(is_interfile : Rule_ID.t -> bool)
       cli_output.results
       |> List_.map (fun (m : Out.cli_match) ->
              match m with
-             | { check_id; path; start; extra = { severity; _ }; _ } ->
+             | { check_id; path; start; extra = { message; severity; _ }; _ } ->
                  let parts =
                    [
                      !!path;
@@ -150,7 +132,7 @@ let format ~(profiler : Profiler.t) ~(is_interfile : Rule_ID.t -> bool)
                      (* TOPORT? restrict to just I|E|W ? *)
                      spf "%c" (string_of_severity severity).[0];
                      Rule_ID.to_string check_id;
-                     message_with_taint_source ~is_interfile m;
+                     message;
                    ]
                  in
                  String.concat ":" parts)
@@ -159,7 +141,14 @@ let format ~(profiler : Profiler.t) ~(is_interfile : Rule_ID.t -> bool)
       cli_output.results
       |> List_.map (fun (m : Out.cli_match) ->
              match m with
-             | { check_id; path; start; end_; extra = { severity; _ }; _ } ->
+             | {
+              check_id;
+              path;
+              start;
+              end_;
+              extra = { message; severity; _ };
+              _;
+             } ->
                  let severity =
                    String.lowercase_ascii (string_of_severity severity)
                  in
@@ -174,15 +163,13 @@ let format ~(profiler : Profiler.t) ~(is_interfile : Rule_ID.t -> bool)
                    (* ugly: redoing the work done in cli_match_of_core_match.
                     * we can't use m.extra.lines because this field actually
                     * contains a string, not a string list.
-                    * Reading the file again also means sanitising it again;
-                    * see Cli_json_output.sanitize_cli_match.
                     *)
                    match
                      Semgrep_output_utils.lines_of_file_at_range_exn
                        (start, end_) path
                    with
                    | [] -> ""
-                   | x :: _ -> Utf8.sanitize x (* TOPORT rstrip? *)
+                   | x :: _ -> x (* TOPORT rstrip? *)
                  in
                  let parts =
                    [
@@ -192,16 +179,10 @@ let format ~(profiler : Profiler.t) ~(is_interfile : Rule_ID.t -> bool)
                      (* TOPORT? restrict to just I|E|W ? *)
                      severity_and_ruleid;
                      line;
-                     message_with_taint_source ~is_interfile m;
+                     message;
                    ]
                  in
                  String.concat ":" parts)
-
-(* a match a 'nosemgrep' comment did not suppress *)
-let not_ignored (m : Out.cli_match) : bool =
-  match m.extra.is_ignored with
-  | Some true -> false
-  | _ -> true
 
 (* true when any of the requested outputs wants the nosem-ignored matches;
  * only SARIF does, as it labels them as suppressed rather than hiding them *)
@@ -220,55 +201,34 @@ let keeps_ignores (conf : conf) : bool =
 let for_output_format (conf : conf) (kind : Output_format.t)
     (cli_output : Out.cli_output) : Out.cli_output =
   if Output_format.keep_ignores kind || not (keeps_ignores conf) then cli_output
-  else { cli_output with results = List.filter not_ignored cli_output.results }
-
-let text_colour (conf : conf) ~(dest : string option) : bool =
-  conf.force_color
-  || Option.is_none dest
-     && (not !Semgrep_envvars.v.no_color)
-     && !ANSITerminal.isatty Unix.stdout
-
-let setup_stdout (conf : conf) : unit =
-  Fmt.set_style_renderer Format.std_formatter
-    (if text_colour conf ~dest:None then `Ansi_tty else `None)
-
-(* No colour setting: CLI_common.setup_logging sets the colours and the tty
- * once, for every output of the run. *)
-let skin_ctx ?(interfile_dedup_by = Core_match.Sink)
-    ?(is_interfile = fun (_ : Rule_ID.t) -> false) (conf : conf) : Skin.ctx =
-  {
-    Skin.width = Findings_layout.text_width;
-    max_chars_per_line = conf.max_chars_per_line;
-    max_lines_per_finding = conf.max_lines_per_finding;
-    show_dataflow_traces = conf.show_dataflow_traces;
-    is_ci_invocation = conf.is_ci_invocation;
-    interfile_dedup_by;
-    is_interfile;
-  }
+  else
+    let not_ignored (m : Out.cli_match) : bool =
+      match m.extra.is_ignored with
+      | Some true -> false
+      | _ -> true
+    in
+    { cli_output with results = List.filter not_ignored cli_output.results }
 
 (* Render any output format to a string (without trailing newline).
- * Used for the file destinations of -o/--output and --<format>-output.
+ * Used for the file destinations of -o/--output and --<format>-output;
+ * unlike on stdout, Text is rendered without colors.
  * Returns None when there is nothing to output (e.g., Incremental, whose
  * matches have already been displayed in a file_match_results_hook).
  *)
-let render (conf : conf) (profiler : Profiler.t)
-    ~(hrules : Rule.hrules)
-    ~(interfile_dedup_by : Core_match.interfile_dedup_by)
-    ~(is_interfile : Rule_ID.t -> bool) ~(dest : string option)
+let render (conf : conf) (profiler : Profiler.t) ~(hrules : Rule.hrules)
     (kind : Output_format.t) (cli_output : Out.cli_output) : string option =
   match kind with
   | Incremental -> None
   | Text ->
-      let module Sk = (val Skins.resolve conf.skin : Skin.S) in
-      (* a buffer formatter has no style renderer, so a file receives no
-         escapes *)
       Some
-        (Fmt_.with_buffer_to_string (fun (ppf : Format.formatter) ->
-             Fmt.set_style_renderer ppf
-               (if text_colour conf ~dest then `Ansi_tty else `None);
-             Sk.pp_findings
-               (skin_ctx ~interfile_dedup_by ~is_interfile conf)
-               ppf cli_output))
+        (Format.asprintf "%a"
+           (Matches_report.pp_cli_output
+              ~max_chars_per_line:conf.max_chars_per_line
+              ~max_lines_per_finding:conf.max_lines_per_finding
+              ~color_output:false
+              ~show_dataflow_traces:conf.show_dataflow_traces
+              ~is_ci_invocation:conf.is_ci_invocation)
+           cli_output)
   | Sarif ->
       let engine_label =
         match cli_output.engine_requested with
@@ -278,8 +238,8 @@ let render (conf : conf) (profiler : Profiler.t)
         | Some `PRO -> "PRO"
       in
       let sarif_json =
-        Sarif_output.sarif_output hrules cli_output ~engine_label
-          ~show_dataflow_traces:conf.show_dataflow_traces ~is_interfile
+        Sarif_output.sarif_output hrules cli_output engine_label
+          conf.show_dataflow_traces
       in
       Some (Sarif.Sarif_v_2_1_0_j.string_of_sarif_json_schema sarif_json)
   | Files_with_matches ->
@@ -288,20 +248,17 @@ let render (conf : conf) (profiler : Profiler.t)
         |> List_.map (fun (x : Out.cli_match) -> !!(x.path))
         |> Set_.of_list |> Set_.elements |> List_.sort |> String.concat "\n")
   | (Json | Junit_xml | Gitlab_sast | Gitlab_secrets | Vim | Emacs) as kind -> (
-      match format ~profiler ~is_interfile kind cli_output with
+      match format ~profiler kind cli_output with
       | [] -> None
       | xs -> Some (String.concat "\n" xs))
 
 (* All the (destination, format) pairs to produce: the extra outputs
- * requested with --<format>-output, then the primary output_format going
- * to the -o destination (or stdout when there is no -o). The primary one
- * comes last, as it does in pysemgrep (output.py normalize() adds it to the
- * dict after the others), so that a file we cannot write aborts the run
- * before anything reaches stdout.
+ * requested with --<format>-output, plus the primary output_format going
+ * to the -o destination (or stdout when there is no -o).
  * Aborts like pysemgrep (output.py normalize()) if the -o destination is
  * already used by a --<format>-output flag.
  *)
-let effective_outputs (conf : conf) : (string option * Output_format.t) list =
+let effective_outputs (conf : conf) : (string option, Output_format.t) Map_.t =
   match conf.output with
   | Some dest when Map_.mem conf.output conf.outputs ->
       Error.abort
@@ -309,7 +266,7 @@ let effective_outputs (conf : conf) : (string option * Output_format.t) list =
            "Invalid output configuration: same output destination (%s) with \
             multiple formats."
            dest)
-  | _else_ -> Map_.to_list conf.outputs @ [ (conf.output, conf.output_format) ]
+  | _else_ -> Map_.add conf.output conf.output_format conf.outputs
 
 (* A destination carrying a scheme is a URL rather than a path. Fpath makes
  * no such distinction: on Windows it reads any "<scheme>:" before a
@@ -337,33 +294,32 @@ let check_destination (dest : string) : unit =
  * nothing. Also aborts on the conflicts reported by effective_outputs. *)
 let check_destinations (conf : conf) : unit =
   effective_outputs conf
-  |> List.iter (fun ((dest : string option), (_kind : Output_format.t)) ->
+  |> Map_.iter (fun (dest : string option) (_kind : Output_format.t) ->
          Option.iter check_destination dest)
 
-(* the actual output on stdout, and the file destinations *)
-let dispatch
+let dispatch_output_format
     (caps : < Cap.stdout >)
     (profiler : Profiler.t)
     (conf : conf)
     (cli_output : Out.cli_output)
-    (hrules : Rule.hrules)
-    ~(interfile_dedup_by : Core_match.interfile_dedup_by)
-    ~(is_interfile : Rule_ID.t -> bool) : unit =
+    (hrules : Rule.hrules) : unit =
   let print = CapConsole.print caps#stdout in
   let print_stdout (kind : Output_format.t) (cli_output : Out.cli_output) : unit
       =
     match kind with
     | Text ->
-        let module Sk = (val Skins.resolve conf.skin : Skin.S) in
-        (* nosemgrep: forbid-console *)
-        Sk.pp_findings
-          (skin_ctx ~interfile_dedup_by ~is_interfile conf)
+        (* TODO: we should switch to Fmt_.with_buffer_to_string +
+         * some CapConsole.print_no_nl, but then is_atty fail on
+         * a string buffer and we lose the colors
+         *)
+        Matches_report.pp_cli_output ~max_chars_per_line:conf.max_chars_per_line
+          ~max_lines_per_finding:conf.max_lines_per_finding
+            (* nosemgrep: forbid-console *)
+          ~color_output:conf.force_color ~show_dataflow_traces:conf.show_dataflow_traces
+          ~is_ci_invocation:conf.is_ci_invocation
           Format.std_formatter cli_output
     | kind -> (
-        match
-          render conf profiler ~hrules ~interfile_dedup_by ~is_interfile
-            ~dest:None kind cli_output
-        with
+        match render conf profiler ~hrules kind cli_output with
         | Some str -> print str
         | None -> ())
   in
@@ -376,21 +332,12 @@ let dispatch
         (* a format with nothing to say still gets its file, so that a caller
          * reading the destination back does not meet an ENOENT after a scan
          * that simply found nothing *)
-        let str =
-          render conf profiler ~hrules ~interfile_dedup_by ~is_interfile
-            ~dest:(Some dest) kind cli_output
-          ||| ""
-        in
+        let str = render conf profiler ~hrules kind cli_output ||| "" in
         let file = Fpath.v dest in
-        let parent = Fpath.parent file |> Fpath.rem_empty_seg in
         (* a destination we cannot write to is the user's mistake, not ours,
-         * so report it without the backtrace of an unexpected exception.
-         * The parent directory is created only when it is missing, so a
-         * parent that is a file is reported by the open of the destination,
-         * whose message already names it; a failure to create a missing
-         * parent names no path, so the destination is added to it. *)
+         * so report it without the backtrace of an unexpected exception *)
         (try
-           if not (Sys.file_exists !!parent) then UFile.make_directories parent;
+           UFile.make_directories (Fpath.parent file);
            UFile.write_file ~file str
          with
         | Unix.Unix_error (err, _, _) ->
@@ -398,10 +345,10 @@ let dispatch
               (spf "Cannot write output to %s: %s" dest
                  (Unix.error_message err))
         | Sys_error (msg : string) ->
-            Error.abort (spf "Cannot write output: %s" msg))
+            Error.abort (spf "Cannot write output to %s: %s" dest msg))
   in
   effective_outputs conf
-  |> List.iter (fun ((dest : string option), (kind : Output_format.t)) ->
+  |> Map_.iter (fun dest kind ->
          let cli_output = for_output_format conf kind cli_output in
          match dest with
          | None -> print_stdout kind cli_output
@@ -415,8 +362,7 @@ let dispatch
  * by filtering out nosem, setting messages, adding fingerprinting etc.
  * TODO? remove this intermediate?
  *)
-let preprocess_result ~fixed_lines ~keep_ignored (res : Core_runner.result) :
-    Out.cli_output =
+let preprocess_result ~fixed_lines (res : Core_runner.result) : Out.cli_output =
   let cli_output : Out.cli_output =
     Cli_json_output.cli_output_of_runner_result ~fixed_lines res.core res.hrules
       res.scanned
@@ -425,48 +371,25 @@ let preprocess_result ~fixed_lines ~keep_ignored (res : Core_runner.result) :
   {
     results with
     (* TODO? why not do that in cli_output_of_core_results? *)
-    (* The index of a match-based id counts the nosem-ignored matches, as
-       pysemgrep's RuleMatchSet.add assigned it before any suppression, so
-       the ignored ones are dropped only after the indexing. *)
-    results =
-      Cli_json_output.index_match_based_ids
-        ~interfile_dedup_by:res.interfile_dedup_by results.results
-      |> List.filter (fun (m : Out.cli_match) ->
-             keep_ignored || not_ignored m);
+    results = Cli_json_output.index_match_based_ids results.results;
   }
 
 (* python: mix of output.OutputSettings(), output.OutputHandler(), and
  * output.output() all at once.
  *)
-let cli_output_of_result ~(keep_ignored : bool) (conf : conf)
-    (profiler : Profiler.t) (res : Core_runner.result) : Out.cli_output =
+let output_result (caps : < Cap.stdout >) (conf : conf)
+    (profiler : Profiler.t)
+    (res : Core_runner.result) : Out.cli_output =
   (* In theory, we should build the JSON CLI output only for the
    * Json conf.output_format, but cli_output contains lots of data-structures
    * that are useful for the other formats (e.g., Vim, Emacs), so we build
    * it here.
    *)
   let (cli_output : Out.cli_output) =
-    Profiler.record profiler ~name:"ignores_time" (fun () ->
-        preprocess_result ~fixed_lines:conf.fixed_lines ~keep_ignored res)
+    Profiler.record profiler ~name:"ignores_times" (fun () ->
+        preprocess_result ~fixed_lines:conf.fixed_lines res)
   in
-  (* python: ProfileManager.dump_stats(), the times of the command itself
-   * next to the engine's *)
-  let cli_output =
-    {
-      cli_output with
-      time =
-        cli_output.time
-        |> Option.map (fun (time : Out.profile) ->
-               {
-                 time with
-                 profiling_times =
-                   [ "config_time"; "core_time"; "ignores_time"; "total_time" ]
-                   |> List_.filter_map (fun (name : string) ->
-                          Profiler.elapsed profiler ~name
-                          |> Option.map (fun (t : float) -> (name, t)));
-               });
-    }
-  in
+  (* TODO: adjust conf.time *)
   let cli_output =
     if not conf.skipped_files then
       {
@@ -475,16 +398,8 @@ let cli_output_of_result ~(keep_ignored : bool) (conf : conf)
       }
     else cli_output
   in
-  cli_output
-
-let output_result ~(keep_ignored : bool)
-    (caps : < Cap.stdout >) (conf : conf) (profiler : Profiler.t)
-    (res : Core_runner.result) : Out.cli_output =
-  let cli_output = cli_output_of_result ~keep_ignored conf profiler res in
-  dispatch caps profiler conf cli_output res.hrules
-    ~interfile_dedup_by:res.interfile_dedup_by
-    ~is_interfile:
-      (is_interfile_rule_id ~taint_interfile:res.taint_interfile res.hrules);
+  (* the actual output on stdout *)
+  dispatch_output_format caps profiler conf cli_output res.hrules;
   (* we return cli_output as the caller might use it *)
   cli_output
 [@@profiling]

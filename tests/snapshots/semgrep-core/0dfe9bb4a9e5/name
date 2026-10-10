@@ -1,1 +1,0 @@
-Osemgrep Scan autofix (e2e) > autofix: python-delete-import.yaml python-delete-import.py json --dryrun

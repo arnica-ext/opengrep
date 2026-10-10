@@ -26,10 +26,10 @@ type conf = {
   core_runner_conf : Core_runner.conf;
   output_conf : Output.conf;
   (* osemgrep-only: *)
-  (* --no-progress-bar: no status line during the scan *)
-  no_progress_bar : bool;
   incremental_output : bool;
   incremental_output_postprocess : bool;
+  (* Networking options *)
+  version_check : bool;
   (* Debugging/logging/profiling options *)
   common : CLI_common.conf;
   (* trace : bool; *)
@@ -81,10 +81,12 @@ val o_dynamic_timeout : bool Cmdliner.Term.t
 val o_dynamic_timeout_max_multiplier : int Cmdliner.Term.t
 val o_dynamic_timeout_unit_kb : int Cmdliner.Term.t
 val o_max_match_per_file : int Cmdliner.Term.t
+val o_opengrep_ignore_pattern : string option Cmdliner.Term.t
 val o_autofix : bool Cmdliner.Term.t
 val o_baseline_commit : string option Cmdliner.Term.t
 val o_dataflow_traces : bool Cmdliner.Term.t
 val o_dryrun : bool Cmdliner.Term.t
+val o_dump_command_for_core : bool Cmdliner.Term.t
 val o_emacs : bool Cmdliner.Term.t
 val o_emacs_outputs : string list Cmdliner.Term.t
 val o_exclude_minified_files : bool Cmdliner.Term.t
@@ -106,19 +108,14 @@ val o_matching_explanations : bool Cmdliner.Term.t
 val o_max_chars_per_line : int Cmdliner.Term.t
 val o_max_lines_per_finding : int Cmdliner.Term.t
 val o_max_log_list_entries : int Cmdliner.Term.t
-val o_max_memory_mb : int option Cmdliner.Term.t
+val o_max_memory_mb : int Cmdliner.Term.t
 val o_max_target_bytes : int Cmdliner.Term.t
 val o_num_jobs : int Cmdliner.Term.t
 val o_nosem : bool Cmdliner.Term.t
 val o_optimizations : bool Cmdliner.Term.t
 val o_output : string option Cmdliner.Term.t
 val o_output_enclosing_context : bool Cmdliner.Term.t
-val o_taint_interfile : bool Cmdliner.Term.t
-val o_taint_interfile_depth : int Cmdliner.Term.t
-val o_interfile_dedup_by : Core_match.interfile_dedup_by Cmdliner.Term.t
 val o_taint_intrafile : bool Cmdliner.Term.t
-val o_disable_intrafile : bool Cmdliner.Term.t
-val o_disable_interfile : bool Cmdliner.Term.t
 val o_rewrite_rule_ids : bool Cmdliner.Term.t
 val o_sarif : bool Cmdliner.Term.t
 val o_sarif_outputs : string list Cmdliner.Term.t
@@ -128,9 +125,9 @@ val o_test : bool Cmdliner.Term.t
 val o_text : bool Cmdliner.Term.t
 val o_text_outputs : string list Cmdliner.Term.t
 val o_time : bool Cmdliner.Term.t
-val o_timeout : float option Cmdliner.Term.t
+val o_timeout : float Cmdliner.Term.t
 val o_timeout_interfile : int Cmdliner.Term.t
-val o_timeout_threshold : int option Cmdliner.Term.t
+val o_timeout_threshold : int Cmdliner.Term.t
 val o_inline_metavariables : bool Cmdliner.Term.t
 (* val o_trace : bool Cmdliner.Term.t
    val o_trace_endpoint : string option Cmdliner.Term.t *)

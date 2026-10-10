@@ -28,7 +28,6 @@ type conf = {
    * in the log output.
    *)
   max_log_list_entries : int;
-  skin : Skin.name;
   (* true for 'opengrep ci': the Text format then keeps blocking and
    * non-blocking findings in separate groups and appends the
    * "RULES FIRED" sections *)
@@ -38,17 +37,8 @@ type conf = {
 
 val default : conf
 
-(* The settings that a skin renders the text report with: the width and the
-   options of the text format. *)
-val skin_ctx :
-  ?interfile_dedup_by:Core_match.interfile_dedup_by ->
-  ?is_interfile:(Rule_ID.t -> bool) ->
-  conf ->
-  Skin.ctx
-
-
-val is_interfile_rule_id :
-  taint_interfile:bool -> Rule.hrules -> Rule_ID.t -> bool
+(* used with max_log_list_entries *)
+val too_much_data : string
 
 (* Aborts on a destination we will not write to: a URL, a symlink, or one
  * named by both -o and a --<format>-output flag. Called at CLI-parsing time
@@ -56,35 +46,11 @@ val is_interfile_rule_id :
  *)
 val check_destinations : conf -> unit
 
-val setup_stdout : conf -> unit
-
 (* Whether any of the outputs in conf wants the nosem-ignored matches, so
  * that they must be left in the results instead of being filtered out.
  * Only SARIF wants them, as it reports them as suppressed.
  *)
 val keeps_ignores : conf -> bool
-
-(* The findings and errors of a scan in the output format: nosem filtering,
-   messages, fingerprints and profiling times. Independent of the terminal,
-   so a caller can render it later. *)
-val cli_output_of_result :
-  keep_ignored:bool ->
-  conf ->
-  Profiler.t ->
-  Core_runner.result ->
-  Out.cli_output
-
-(* Writes the output: the primary format on stdout (or its -o file), and
-   every --<format>-output destination. *)
-val dispatch :
-  < Cap.stdout > ->
-  Profiler.t ->
-  conf ->
-  Out.cli_output ->
-  Rule.hrules ->
-  interfile_dedup_by:Core_match.interfile_dedup_by ->
-  is_interfile:(Rule_ID.t -> bool) ->
-  unit
 
 (* Output the core results on stdout (and in the files given by
  * -o/--output and --<format>-output) depending on flags in conf.
@@ -95,7 +61,6 @@ val dispatch :
  * to log in and try Pro.
  *)
 val output_result :
-  keep_ignored:bool ->
   < Cap.stdout > ->
   conf ->
   Profiler.t ->
@@ -104,10 +69,10 @@ val output_result :
 
 (* helper used in output_result() and other callsites.
  * This handles nosemgrep, interpolating messages, and more.
- * keep_ignored keeps the matches a 'nosemgrep' comment suppressed; they are
- * dropped after the match-based ids are indexed, so that the index counts
- * them as pysemgrep's did.
  *)
-val preprocess_result :
-  fixed_lines:bool -> keep_ignored:bool -> Core_runner.result -> Out.cli_output
+val preprocess_result : fixed_lines:bool -> Core_runner.result -> Out.cli_output
 
+(* used by RPC_return.ml for Vim/Emacs/Junit_xml/Gitlab_xxx for now *)
+val format :
+  ?profiler : Profiler.t ->
+  Output_format.t -> Out.cli_output -> string list

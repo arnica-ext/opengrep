@@ -56,7 +56,6 @@ let visitor_info_of_tok f = function
   | NONLOCAL ii -> NONLOCAL (f ii)
   | MATCH ii -> MATCH (f ii)
   | CASE ii -> CASE (f ii)
-  | TYPE ii -> TYPE (f ii)
   | ELLIPSES ii -> ELLIPSES (f ii)
   | LDots ii -> LDots (f ii)
   | RDots ii -> RDots (f ii)

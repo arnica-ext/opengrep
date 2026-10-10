@@ -14,7 +14,6 @@
     semgrep.core_runner
     semgrep.osemgrep_core
     semgrep.osemgrep_networking
-    semgrep.osemgrep_reporting
   )
  (preprocess
    (pps

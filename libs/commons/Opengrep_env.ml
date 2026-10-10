@@ -21,16 +21,10 @@ let getenv_nonempty (var : string) : string option =
   | Some "" -> None
   | x -> x
 
-let getenv_with_name_opt (var : string) : (string * string) option =
-  let named (var : string) : (string * string) option =
-    getenv_nonempty var |> Option.map (fun (value : string) -> (var, value))
-  in
+let getenv_opt (var : string) : string option =
   match opengrep_alias var with
   | Some alias -> (
-      match named alias with
+      match getenv_nonempty alias with
       | Some _ as v -> v
-      | None -> named var)
-  | None -> named var
-
-let getenv_opt (var : string) : string option =
-  getenv_with_name_opt var |> Option.map snd
+      | None -> getenv_nonempty var)
+  | None -> getenv_nonempty var

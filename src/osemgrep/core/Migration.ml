@@ -21,6 +21,7 @@ let abort_if_use_of_legacy_dot_semgrep_yml () =
     flush stdout;
     Logs.err (fun m ->
         m
-          "The implicit use of .semgrep.yml (or .semgrep/) is not supported\n\
+          "The implicit use of .semgrep.yml (or .semgrep/) has been deprecated \
+           in Semgrep 1.38.0.\n\
            Please use an explicit --config .semgrep.yml (or --config .semgrep/)");
     Error.exit_code_exn (Exit_code.fatal ~__LOC__))
