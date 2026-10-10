@@ -25,7 +25,7 @@ jobs:
       matrix:
         ocaml_version: ["5.3.0"]
     container:
-      image: ocamlpro/ocaml:${{ matrix.ocaml_version }}
+      image: ocamlpro/ocaml:5.3-2025-11-30@sha256:ef0e36ea8080aba35c0a96753205711eade438c0c8ec77d111bda963fa0b9b6b
       # NOTE: Can also match the UID between Alpine and Ubuntu users, removing `--user root`.
       # See: https://github.com/actions/checkout/issues/956.
       # But this suggest to run as root: https://docs.github.com/en/enterprise-server@3.12/actions/sharing-automations/creating-actions/dockerfile-support-for-github-actions#user
@@ -55,7 +55,7 @@ jobs:
       - name: Set GHA cache for OPAM
         uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # ratchet:actions/cache@v4
         with:
-          key: ${{ runner.os }}-${{ runner.arch }}-v1-opam-${{ matrix.ocaml_version }}-${{ hashFiles('opam/*.opam') }}
+          key: ${{ runner.os }}-${{ runner.arch }}-v1-opam-${{ matrix.ocaml_version }}-${{ hashFiles('opam/*.opam', '.github/workflows/build-test-core-x86.yml') }}
           path: _opam
 
       - name: Create switch
