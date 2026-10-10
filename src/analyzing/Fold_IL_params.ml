@@ -35,7 +35,9 @@ let fold :
       fun acc par ->
         match par with
         | Param { pname = name; pdefault }
-        | ParamRest { pname = name; pdefault } ->
+        | ParamReceiver { pname = name; pdefault }
+        | ParamRest { pname = name; pdefault }
+        | ParamKwd { pname = name; pdefault } ->
             f acc name.ident name.id_info pdefault
         | ParamPattern ({ pname = name; pdefault }, pat) ->
             let acc = f acc name.ident name.id_info pdefault in
@@ -67,7 +69,9 @@ let fold_top_level :
       fun acc par ->
         match par with
         | Param { pname = name; pdefault }
+        | ParamReceiver { pname = name; pdefault }
         | ParamRest { pname = name; pdefault }
+        | ParamKwd { pname = name; pdefault }
         | ParamPattern ({ pname = name; pdefault }, _) ->
             f acc name.ident name.id_info pdefault
         | IL.ParamFixme -> acc)

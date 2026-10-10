@@ -70,6 +70,9 @@ val setup_basic : ?level:Logs.level option -> unit -> unit
    via 'require_one_of_these_tags'. This variable is "LOG_TAGS"
    by default.
 
+   'copy_to_file': a file, truncated, that receives the same messages as
+   stderr, without colours.
+
    'additional_reporters' is a list of additonal loggers that will be called
    after the default logger. Useful for writing the logs to multiple
    destinations, e.g. an opentelemetry collector, a log file, etc.
@@ -99,6 +102,7 @@ val setup_basic : ?level:Logs.level option -> unit -> unit
 val setup :
   ?highlight_setting:Console.highlight_setting ->
   ?log_to_file:Fpath.t ->
+  ?copy_to_file:Fpath.t ->
   ?additional_reporters:Logs.reporter list ->
   ?require_one_of_these_tags:string list ->
   ?read_level_from_env_vars:string list ->
@@ -173,3 +177,18 @@ val array : ('a -> string) -> 'a array -> string
 (* The mutex used for logging, exposed so it can
  * be shared by pretty-printing functions. *)
 val logs_mutex : Mutex.t
+
+(* While the status line occupies the terminal (Status_bar), the reporter
+   that writes to stderr passes each message to the sink instead, as the
+   complete text it would have written, colours included. The log file still
+   receives its copy; a debug message that the tag filter drops reaches no
+   sink.
+
+   [restore_stderr flush] ends the redirection and runs [flush], which writes
+   out what the sink still holds, before any later message can reach stderr.
+
+   Both take [logs_mutex], so a message is either wholly redirected or wholly
+   written. Neither may be called while logging, and neither the sink nor
+   [flush] may log: the mutex is not re-entrant. *)
+val redirect_stderr : (string -> unit) -> unit
+val restore_stderr : (unit -> unit) -> unit

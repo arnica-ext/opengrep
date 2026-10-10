@@ -76,23 +76,6 @@ let squiggly_indentation (body : string) : int =
   | [] -> 0
   | n :: ns -> List.fold_left min n ns
 
-let dedent (indentation : int) (text : string) : string =
-  let rex = Pcre2_.regexp (spf "\n[ \t]{0,%d}" indentation) in
-  Pcre2_.replace ~rex ~template:"\n" text
-
-(* tree-sitter starts a body at the end of the marker line, but the newline
- * ending that line is not part of the string. *)
-let drop_marker_newline contents =
-  let after_newline s = String.sub s 1 (String.length s - 1) in
-  match contents with
-  | `Text (((loc : Tree_sitter_run.Loc.t), text), value) :: rest
-    when String.starts_with ~prefix:"\n" value -> (
-      let start = { Tree_sitter_run.Loc.row = loc.start.row + 1; column = 0 } in
-      match after_newline value with
-      | "" -> rest
-      | value -> `Text (({ loc with start }, after_newline text), value) :: rest)
-  | _ -> contents
-
 (* The contents of a heredoc body, each text with the string it stands for.
  * Its token stays the one of the source, so that its range is the real one. *)
 let heredoc_contents (context : context) (marker : string) contents =
@@ -120,14 +103,20 @@ let heredoc_contents (context : context) (marker : string) contents =
   contents
   |> List_.map (function
        | `Here_content ((_, text) as tok) ->
-           `Text (tok, ellipsis (dedent indentation text))
+           `Text (tok, ellipsis (H.dedent indentation text))
        | (`Interp _ | `Esc_seq _) as x -> x)
-  |> drop_marker_newline
+  |> H.drop_marker_newline
+       ~text_part:(function
+         | `Text (tok, value) -> Some (tok, value)
+         | `Interp _
+         | `Esc_seq _ ->
+             None)
+       ~make_text_part:(fun tok value -> `Text (tok, value))
 
 (* The body of the heredoc opened by a marker, e.g. "<<~SQL". *)
 let heredoc_body (env : env) ((marker_loc, _) : CST.heredoc_beginning) :
     CST.heredoc_body option =
-  List.assoc_opt marker_loc (snd env.extra)
+  H.heredoc_body marker_loc (snd env.extra)
 
 (*****************************************************************************)
 (* Boilerplate converter *)
@@ -2517,25 +2506,7 @@ let program (env : env) ((v1, _v2interpreted) : CST.program) : AST.stmts =
 (* Heredocs *)
 (*****************************************************************************)
 
-module R = Tree_sitter_run.Raw_tree
-
-let rec heredoc_markers (tree : _ R.t) : CST.heredoc_beginning list =
-  match tree with
-  | R.Case ("Here_begin", R.Token marker) -> [ marker ]
-  | R.Case (_, x)
-  | R.Option (Some x) ->
-      heredoc_markers x
-  | R.List xs
-  | R.Tuple xs ->
-      List.concat_map heredoc_markers xs
-  | R.Option None
-  | R.Token _
-  | R.Any _ ->
-      []
-
-(* Each heredoc marker with its body. The markers are taken in source order,
- * and each takes the first body left after it that its delimiter closes:
- * the bodies of the markers of a line follow that line, in the same order. *)
+(* Each heredoc marker with its body, see [H.pair_heredocs]. *)
 let heredocs (cst : CST.program) (extras : CST.extras) =
   let bodies =
     extras
@@ -2552,31 +2523,15 @@ let heredocs (cst : CST.program) (extras : CST.extras) =
     |> String_.strip_wrapping_char '"'
     |> String_.strip_wrapping_char '`'
   in
-  (* The terminator is empty when it ends a file that has no last newline:
-   * the scanner does not close the heredoc then. *)
-  let is_body_of (marker_loc, marker) ((loc : Tree_sitter_run.Loc.t), body) =
-    let _, _, (_, terminator) = body in
-    let terminator = String.trim terminator in
-    Stdlib.compare loc.start marker_loc.Tree_sitter_run.Loc.end_ >= 0
-    && (String_.empty terminator || terminator = delimiter marker)
-  in
+  let terminator ((_, _, (_, terminator)) : CST.heredoc_body) = terminator in
   match bodies with
   | [] -> []
   | _ ->
       (* a marker can also be in an interpolation of a body *)
       Boilerplate.map_program () cst
       :: List_.map (fun (_, body) -> Boilerplate.map_heredoc_body () body) bodies
-      |> List.concat_map heredoc_markers
-      |> List.sort Stdlib.compare
-      |> List.fold_left
-           (fun (heredocs, bodies) ((marker_loc, _) as marker) ->
-             match List.find_opt (is_body_of marker) bodies with
-             | Some ((_, body) as claimed) ->
-                 ( (marker_loc, body) :: heredocs,
-                   List.filter (fun x -> not (phys_equal x claimed)) bodies )
-             | None -> (heredocs, bodies))
-           ([], bodies)
-      |> fst
+      |> List.concat_map (H.heredoc_markers ~constructor:"Here_begin")
+      |> fun markers -> H.pair_heredocs ~delimiter ~terminator markers bodies
 
 (*****************************************************************************)
 (* Entry point *)

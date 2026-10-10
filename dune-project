@@ -27,7 +27,7 @@
 (opam_file_location inside_opam_directory)
 
 ;; set here so the semgrep package below can use it and we can easily bump it
-(version 1.30.2)
+(version 1.30.0)
 
 ;; Default attributes of opam packages
 (source (github opengrep/opengrep))
@@ -106,7 +106,9 @@ a few other projects developed at r2c.
     (ANSITerminal (>= "0.8.4"))
     (alcotest (>= "1.5.0"))
     (cmdliner (>= "1.1.1" ))
-    (logs (>= "0.7.0" ))
+    ; 0.10.0 unlocks the reporter mutex when a reporter raises, which
+    ; Logs_.mk_reporter relies on
+    (logs (>= "0.10.0" ))
     (yojson (>= "1.7.0"))
     (re (>= "1.10.4"))
     ; we're currently "vendoring" pcre2 in libs/pcre2
@@ -395,6 +397,7 @@ time and memory used by Semgrep.
     (dune (>= "3.2.0" ))
     (commons (>= "1.5.5"))
     (memprof-limits (= "dev"))
+    (memtrace (= "dev"))
   )
 )
 
@@ -456,7 +459,7 @@ For more information see https://opengrep.dev.
     (ocaml (>= 5.2.1))
     (dune (>= 3.7))
     ; parser generators
-    (menhir (= 20230608))
+    (menhir (= 20250912))
     ; standard libraries
     ; We don't use Base directly. If it's being used indirectly
     ; (is it, though?), we need a version that doesn't register
@@ -469,7 +472,6 @@ For more information see https://opengrep.dev.
     ; unit testing (note that testo is vendored in libs/ so not listed here)
     ; TODO? still need those alcotest-xx now that we use testo?
     alcotest
-    alcotest-js
     alcotest-lwt
     calendar
     ; text and terminal formating
@@ -480,8 +482,8 @@ For more information see https://opengrep.dev.
     ; Unicode - used via python-str-repr
     uucp
     uutf
-    ; logging
-    logs
+    ; logging; see the commons package for the bound
+    (logs (>= "0.10.0"))
     ; JSON/YAML/XML
     atdgen
     (yojson (>= 2.0.0))
@@ -510,10 +512,8 @@ For more information see https://opengrep.dev.
     ocamlgraph
     semver
     (timedesc (>= 2.0.0)) ; used via git-wrapper
-    (lsp (= 1.22.0))
+    (lsp (= 1.27.0))
     git
-    ; tracing
-    ambient-context-lwt
     ; web stuff
     uri
     (uuidm (>= 0.9.9))
@@ -527,13 +527,14 @@ For more information see https://opengrep.dev.
     lwt
     lwt_ppx
     (conf-libev (<> :os win32)) ; for lwt, to get better FD perf
-    integers_stubs_js
     (memprof-limits (= "dev")) ; NOTE: Just to invalidate CI cache for now.
+    (memtrace (= "dev"))
     thread-local-storage ; NOTE: We should not mess with memprof-limits, but in
                          ; fact there is a TLS module in there also; however, it's
                          ; not exposed in the public interface.
     domainslib
     (saturn (>= "1.0.0")) ; Saturn.Htbl exists since 1.0.0.
+    otoml ; pyproject.toml include/exclude parsing in projidx
   )
 )
 

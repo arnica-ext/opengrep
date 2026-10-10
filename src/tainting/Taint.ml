@@ -87,8 +87,8 @@ let length_of_call_trace ct =
   loop 0 ct
 
 let compare_metavar_env env1 env2 =
-  (* It's important that we only return 0 if the two bindings are
-     structurally equal. Otherwise, there will be many duplicates. *)
+  (* Returns 0 only for bindings that [Metavariable.equal_bindings] treats
+     as equal. Otherwise, there will be many duplicates. *)
   Metavariable.compare_bindings env1 env2
 
 let compare_matches pm1 pm2 =
@@ -195,12 +195,12 @@ match o.o with
   when Float.is_integer f && Float.abs f < Float.of_int Int.max_int ->
     Oint (int_of_float f)
 (* In JS/TS `o[0]` and `o["0"]` are the same property: an integer key is
- * canonicalized to its decimal string spelling. Map a string index that
- * is such a canonical spelling to the [Oint] the numeric form takes, so
- * both sides unify. Non-canonical spellings (`"00"`, `"-0"`, `"0x10"`)
+ * canonicalized to its decimal string form. Map a string index that
+ * is in such a canonical form to the [Oint] the numeric form takes, so
+ * both sides unify. Non-canonical forms (`"00"`, `"-0"`, `"0x10"`)
  * name distinct properties in JS too and stay [Ostr]. Restricted to
  * integers that survive the float round-trip: past 2^53 the numeric key
- * collapses to a neighbouring integer while the string spelling remains
+ * collapses to a neighbouring integer while the string form remains
  * its own property. Every other language keeps the distinction — in
  * Python `d[0]` and `d["0"]` really are different dict keys. *)
 | IL.Index { e = IL.Literal (String (_, (s, _), _)); _ }
@@ -535,7 +535,7 @@ module Taint_set = struct
     | Shape_var _, Shape_var _
     | Control, Control ->
         (* Polymorphic taint should only be intraprocedural so the call-trace is irrelevant. *)
-        if List.length taint1.tokens < List.length taint2.tokens then taint1
+        if List.compare_lengths taint1.tokens taint2.tokens < 0 then taint1
         else taint2
     | Src src1, Src src2 ->
         let precondition =
@@ -584,7 +584,7 @@ module Taint_set = struct
         else if call_trace_cmp > 0 then taint2
         else if
           (* same length *)
-          List.length taint1.tokens < List.length taint2.tokens
+          List.compare_lengths taint1.tokens taint2.tokens < 0
         then taint1
         else taint2
     | (Src _ | Var _ | Shape_var _ | Control), _ ->

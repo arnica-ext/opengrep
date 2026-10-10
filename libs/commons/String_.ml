@@ -65,6 +65,16 @@ let lstrip_while (drop : char -> bool) (s : string) : string =
   let start = first_kept 0 in
   String.sub s start (len - start)
 
+let rstrip (s : string) : string =
+  let is_space (c : char) : bool =
+    Char.equal c ' ' || Char.equal c '\t' || Char.equal c '\r'
+    || Char.equal c '\n'
+  in
+  let rec last_kept (i : int) : int =
+    if i > 0 && is_space s.[i - 1] then last_kept (i - 1) else i
+  in
+  String.sub s 0 (last_kept (String.length s))
+
 let lines_of_range (start_offset, end_offset) str =
   let len = String.length str in
   if

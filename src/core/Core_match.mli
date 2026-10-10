@@ -52,8 +52,11 @@ and rule_id = {
 and rule_id_options  = {
   max_match_per_file : int option;
   (* maximum number of matches per file. *)
+  taint_interfile : bool;
 }
 [@@deriving show, eq]
+
+type interfile_dedup_by = Sink | Source_sink [@@deriving show, eq]
 
 val rule_id_options_of_rule_options: Rule_options_t.t -> rule_id_options
 val rule_id_options_of_rule_options_opt: Rule_options_t.t option -> rule_id_options option
@@ -64,9 +67,6 @@ val to_rule_id_options_map: t list -> rule_id_options Rule_ID.Map.t
 
 (* remove duplicate *)
 val uniq : t list -> t list
-
-(* set the engine_kind to `PRO in the match *)
-val to_proprietary : t -> t
 
 (* Remove matches that are strictly inside another match *)
 val no_submatches : t list -> t list

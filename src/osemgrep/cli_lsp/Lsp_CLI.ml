@@ -28,7 +28,7 @@ let man : Cmdliner.Manpage.block list =
   [ `S Cmdliner.Manpage.s_description; `P "Language server mode!!" ]
   @ CLI_common.help_page_bottom
 
-let cmdline_info : Cmd.info = Cmd.info "opengrep lsp" ~doc ~man
+let cmdline_info : Cmd.info = Cmd.info "opengrep lsp" ~doc ~man ~exits:CLI_common.exits_lsp
 
 (*****************************************************************************)
 (* Entry point *)
@@ -39,5 +39,4 @@ let cmdline_info : Cmd.info = Cmd.info "opengrep lsp" ~doc ~man
 
 let parse_argv (argv : string array) : conf =
   let cmd : conf Cmd.t = Cmd.v cmdline_info cmdline_term in
-  Fmt_tty.setup_std_outputs ?style_renderer:None ();
   CLI_common.eval_value ~argv cmd

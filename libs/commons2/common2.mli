@@ -45,13 +45,6 @@ type dirname = string
 type path = string
 
 (*****************************************************************************)
-(* Debugging/logging *)
-(*****************************************************************************)
-
-(* use Dumper.dump *)
-val mk_pr2_wrappers : bool Domain.DLS.key -> (string -> unit) * (string -> unit)
-
-(*****************************************************************************)
 (* Test. But have a look at ounit.mli *)
 (*****************************************************************************)
 
@@ -293,7 +286,6 @@ val timestamp : unit -> string
 val lines : string -> string list
 val words : string -> string list
 val nblines_eff : filename -> int
-val unix_diff : filename -> filename -> string list
 val n_space : int -> string
 
 (*****************************************************************************)
