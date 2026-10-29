@@ -6,6 +6,7 @@ Usage: python arnica_incremental_native.py --source <fork checkout> --python <py
 import argparse
 import hashlib
 import json
+import os
 import shutil
 import subprocess
 import tempfile
@@ -461,9 +462,11 @@ def run(source: Path, python: str) -> None:
         readable, readable_manifest = scan()
         assert readable_manifest and len(readable["results"]) == 2
         (repo / "denied.py").chmod(0)
+        # Root can still read the file (as in CI containers), so exclude it instead
+        still_readable = ("--exclude", "denied.py") if os.access(repo / "denied.py", os.R_OK) else ()
         try:
             excluded, excluded_manifest = scan(
-                readable_manifest, extra=("--exclude", "a.py")
+                readable_manifest, extra=("--exclude", "a.py", *still_readable)
             )
             assert excluded_manifest and not excluded["paths"]["scanned"]
             assert excluded_manifest["units"] == []
