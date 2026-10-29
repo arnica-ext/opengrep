@@ -316,6 +316,22 @@ class IncrementalScanTests(unittest.TestCase):
                 self.assertEqual(manifest["fallbackReason"], "unsupported_rules")
                 self.assertEqual(manifest["units"], [])
 
+    def test_should_name_the_fallback_reason_even_when_the_full_scan_has_diagnostics(self):
+        errors = [
+            {"level": "warn", "path": "a.py", "message": "Partial parsing"},
+            {"level": "error", "message": "Rule parse error"},
+        ]
+        self.report.write_text(json.dumps({"results": [], "errors": errors}))
+        scan = IncrementalScan(self.input, self.output, self.report, self.root)
+        scan.configure([{"id": "local", "languages": ["python"], "mode": "join"}], True)
+
+        scan.seal(errors)
+
+        manifest = json.loads(self.output.read_text())
+        self.assertEqual(manifest["mode"], "full")
+        self.assertEqual(manifest["fallbackReason"], "unsupported_rules")
+        self.assertEqual(manifest["reportSha256"], hashlib.sha256(self.report.read_bytes()).hexdigest())
+
     def test_should_fall_back_for_unsupported_invocations_with_reviewed_options(self):
         scan = IncrementalScan(self.input, self.output, self.report, self.root)
         scan.configure(

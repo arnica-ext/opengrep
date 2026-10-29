@@ -243,18 +243,22 @@ class IncrementalScan:
             self.core_warning_paths = warning_paths
 
     def seal(self, final_errors: list) -> None:
-        if self.reason is None and (not self.prepared or not self.core_complete):
-            return
-        final_warning_paths = self.warning_paths(final_errors)
-        if final_warning_paths is None:
-            return
-        report = self.report_path.read_bytes()
-        document = object_value(json.loads(report))
-        report_warning_paths = self.warning_paths(document.get("errors"))
-        if report_warning_paths is None or not (
-            self.core_warning_paths | final_warning_paths
-        ).issubset(report_warning_paths):
-            return
+        report = self.report_path.read_bytes() if self.reason else None
+        if report is None:
+            # Only an incremental receipt certifies coverage; a full-mode receipt just names the reason
+            if not self.prepared or not self.core_complete:
+                return
+            final_warning_paths = self.warning_paths(final_errors)
+            if final_warning_paths is None:
+                return
+            report = self.report_path.read_bytes()
+            report_warning_paths = self.warning_paths(
+                object_value(json.loads(report)).get("errors")
+            )
+            if report_warning_paths is None or not (
+                self.core_warning_paths | final_warning_paths
+            ).issubset(report_warning_paths):
+                return
         manifest = {
             "schemaVersion": 1,
             "configHash": self.config_hash,
