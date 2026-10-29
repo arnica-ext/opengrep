@@ -163,6 +163,19 @@ class IncrementalScanTests(unittest.TestCase):
         self.assertEqual(self.report.read_text(), report)
         self.assertEqual(manifest["reportSha256"], hashlib.sha256(report.encode()).hexdigest())
 
+    def test_should_certify_file_diagnostics_at_every_level(self):
+        for level in ("info", "warn", "error"):
+            with self.subTest(level=level):
+                diagnostic = {"level": level, "path": "a.py"}
+                scan = self.scan()
+                self.report.write_text(json.dumps({"results": [], "errors": [diagnostic]}))
+                scan.complete_core(["a.py"], [diagnostic], [], [])
+                scan.seal([diagnostic])
+
+                manifest = json.loads(self.output.read_text())
+                self.assertEqual(manifest["mode"], "incremental")
+                self.assertEqual([unit["disposition"] for unit in manifest["units"]], ["completed"])
+
     def test_should_reject_unsafe_diagnostics_from_every_source(self):
         warning = {"level": "warn", "path": "a.py"}
         for errors in [
@@ -170,8 +183,6 @@ class IncrementalScanTests(unittest.TestCase):
             {},
             ["warning"],
             [{}],
-            [{**warning, "level": "error"}],
-            [{**warning, "level": "info"}],
             [{**warning, "path": None}],
             [{"level": "warn", "spans": [{"file": "a.py"}]}],
             [{**warning, "path": "../outside.py"}],

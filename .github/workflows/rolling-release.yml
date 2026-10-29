@@ -24,6 +24,15 @@ jobs:
           test "$GITHUB_REPOSITORY" = arnica-ext/opengrep
           test "$RELEASE_TAG" = "$(cat ARNICA_VERSION)"
           echo "$RELEASE_TAG" | grep -Ex 'v[0-9]+\.[0-9]+\.[0-9]+-arnica-patch-[0-9]+\.[0-9]+\.[0-9]+'
+          # Arnica keys cached scan results by this version, so a published tag must never be rebuilt
+          set +e
+          git ls-remote --exit-code --tags "https://github.com/${GITHUB_REPOSITORY}.git" "refs/tags/${RELEASE_TAG}" > /dev/null
+          tag_status=$?
+          set -e
+          if [ "$tag_status" -ne 2 ]; then
+            echo "::error::${RELEASE_TAG} is already published or could not be checked; bump ARNICA_VERSION"
+            exit 1
+          fi
 
   build-linux-x86:
     needs: validate-inputs

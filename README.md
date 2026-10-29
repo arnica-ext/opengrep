@@ -60,6 +60,9 @@ After merging, run the `rolling-release` workflow on `main`, supplying the exact
 tag in `ARNICA_VERSION`. The workflow builds and tests the release artifacts,
 signs the binaries, and prepares a draft release with `SHA256SUMS`. Review the
 artifacts before publishing the draft. Release notes are not generated automatically.
+The workflow refuses a tag that is already published: Arnica identifies the scanner
+build by this version when it reuses cached results, so every rebuild needs a new
+`ARNICA_VERSION`.
 For reproducible application builds, pin the installer to the release commit and
 record the selected binary's SHA-256 checksum.
 
@@ -88,8 +91,9 @@ rule set, the path, file mode and bytes, and the file's assignments (digests of 
 analyzer and sorted rule IDs).
 
 The manifest (receipt) is written atomically only after every dispatched target
-appears in the core's output with no skipped targets or rules, no diagnostics other
-than `level: warn` scoped to dispatched files, and the report written. It binds the
+appears in the core's output with no skipped targets or rules, every diagnostic
+scoped to dispatched files (at any level), and the report written. Arnica holds the
+findings of a file with a diagnostic and never offers it for reuse. It binds the
 report bytes via `reportSha256`:
 
 - `mode: "incremental"`: one unit per target with at least one rule assignment:

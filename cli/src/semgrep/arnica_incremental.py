@@ -74,7 +74,7 @@ class IncrementalScan:
         self.expected: Counter[str] = Counter()
         self.prepared = False
         self.core_complete = False
-        self.core_warning_paths: set[str] = set()
+        self.core_diagnostic_paths: set[str] = set()
         self.rules_hash = ""
 
     def relative_path(self, value: object) -> str:
@@ -200,12 +200,13 @@ class IncrementalScan:
         )
         return dispatched
 
-    def warning_paths(self, errors: object) -> Optional[set[str]]:
+    def diagnostic_paths(self, errors: object) -> Optional[set[str]]:
         if not isinstance(errors, list):
             return None
         paths: set[str] = set()
+        # A diagnostic on a dispatched file, at any level, only holds that file; Arnica rescans it next time
         for error in errors:
-            if not isinstance(error, dict) or error.get("level") != "warn":
+            if not isinstance(error, dict):
                 return None
             spans = error.get("spans", [])
             if not isinstance(spans, list) or any(
@@ -232,23 +233,23 @@ class IncrementalScan:
     ) -> None:
         if self.reason is not None:
             return
-        warning_paths = self.warning_paths(errors)
+        diagnostic_paths = self.diagnostic_paths(errors)
         self.core_complete = (
-            warning_paths is not None
+            diagnostic_paths is not None
             and not skipped_rules
             and not skipped_targets
             and Counter(self.relative_path(path) for path in scanned) == self.expected
         )
-        if warning_paths is not None:
-            self.core_warning_paths = warning_paths
+        if diagnostic_paths is not None:
+            self.core_diagnostic_paths = diagnostic_paths
 
-    def certifies_coverage(self, report: bytes, final_warning_paths: set) -> bool:
-        report_warning_paths = self.warning_paths(
+    def certifies_coverage(self, report: bytes, final_diagnostic_paths: set) -> bool:
+        report_diagnostic_paths = self.diagnostic_paths(
             object_value(json.loads(report)).get("errors")
         )
-        return report_warning_paths is not None and (
-            self.core_warning_paths | final_warning_paths
-        ).issubset(report_warning_paths)
+        return report_diagnostic_paths is not None and (
+            self.core_diagnostic_paths | final_diagnostic_paths
+        ).issubset(report_diagnostic_paths)
 
     def seal(self, final_errors: list) -> None:
         # Only an incremental receipt certifies coverage; a full-mode receipt just names the reason
@@ -256,11 +257,11 @@ class IncrementalScan:
         if incremental:
             if not self.prepared or not self.core_complete:
                 return
-            final_warning_paths = self.warning_paths(final_errors)
-            if final_warning_paths is None:
+            final_diagnostic_paths = self.diagnostic_paths(final_errors)
+            if final_diagnostic_paths is None:
                 return
         report = self.report_path.read_bytes()
-        if incremental and not self.certifies_coverage(report, final_warning_paths):
+        if incremental and not self.certifies_coverage(report, final_diagnostic_paths):
             return
         manifest = {
             "schemaVersion": 1,
