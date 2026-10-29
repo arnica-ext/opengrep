@@ -88,7 +88,7 @@ class IncrementalScan:
             raise ValueError("Native target escapes scan root")
         return relative.as_posix()
 
-    def configure(self, rules: list[dict], supported_invocation: bool) -> None:
+    def configure(self, rules: list[dict], supported_invocation: bool, has_rule_errors: bool = False) -> None:
         allowed_keys = {
             "id",
             "message",
@@ -148,6 +148,9 @@ class IncrementalScan:
                 or metadata.get("product", "sast") != "sast"
             ):
                 self.reason = "unsupported_rules"
+        # Rule errors withhold every incremental receipt, so scan the whole plan without hashing it
+        if has_rule_errors and self.reason is None:
+            self.reason = "rule_diagnostics"
 
     def prepare(self, tasks: list[dict]) -> set[str]:
         if self.prepared:

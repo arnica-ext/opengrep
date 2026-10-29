@@ -343,6 +343,17 @@ class IncrementalScanTests(unittest.TestCase):
         self.assertEqual(manifest["fallbackReason"], "unsupported_rules")
         self.assertEqual(manifest["reportSha256"], hashlib.sha256(self.report.read_bytes()).hexdigest())
 
+    def test_should_fall_back_without_hashing_when_rules_report_errors(self):
+        scan = IncrementalScan(self.input, self.output, self.report, self.root)
+        scan.configure([{"id": "local", "languages": ["python"], "pattern": "eval($X)"}], True, has_rule_errors=True)
+
+        scan.seal([{"level": "info", "rule_id": "future-rule", "message": "Incompatible rule"}])
+
+        manifest = json.loads(self.output.read_text())
+        self.assertEqual(manifest["mode"], "full")
+        self.assertEqual(manifest["fallbackReason"], "rule_diagnostics")
+        self.assertEqual(manifest["units"], [])
+
     def test_should_fall_back_for_unsupported_invocations_with_reviewed_options(self):
         scan = IncrementalScan(self.input, self.output, self.report, self.root)
         scan.configure(

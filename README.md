@@ -101,8 +101,8 @@ report bytes via `reportSha256`:
   `reused` (merge the baseline's findings for that path). Files without assignments
   have no unit.
 - `mode: "full"`: the whole engine ran; `units` is empty and `fallbackReason` is
-  `unsupported_invocation` or `unsupported_rules` (an unreviewed rule mode, option
-  or product).
+  `unsupported_invocation`, `unsupported_rules` (an unreviewed rule mode, option
+  or product) or `rule_diagnostics` (the rules reported errors while loading).
 
 No manifest means the caller must fall back to a full scan.
 

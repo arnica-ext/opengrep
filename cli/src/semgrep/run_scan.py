@@ -690,6 +690,7 @@ def run_scan(
                 and not dump_command_for_core and not x_ls and not x_ls_long
                 and len(target) == 1 and Path(target[0]).resolve() == Path.cwd().resolve()
             ),
+            has_rule_errors=bool(config_errors),
         )
 
     if dump_n_rule_partitions:
