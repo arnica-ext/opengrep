@@ -919,13 +919,6 @@ Could not find the semgrep-core executable. Your Semgrep install is likely corru
                 )
 
             if arnica_incremental.active_scan is not None and arnica_incremental.active_scan.reason is None:
-                ignore_log = target_manager.ignore_log
-                excluded = set().union(
-                    ignore_log.semgrepignored, ignore_log.always_skipped,
-                    ignore_log.cli_includes, ignore_log.cli_excludes,
-                    ignore_log.insufficient_permissions, ignore_log.size_limit,
-                    *ignore_log.rule_includes.values(), *ignore_log.rule_excludes.values(),
-                )
                 assignment_digests: Dict[Tuple[str, Tuple[int, ...]], str] = {}
                 tasks = []
                 for task in plan.target_mappings:
@@ -936,11 +929,7 @@ Could not find the semgrep-core executable. Your Semgrep install is likely corru
                             {"analyzer": analyzer, "rules": sorted(rules[index].id for index in task.rule_nums)}
                         )
                     tasks.append({"path": task.path, "assignment": assignment_digests[assignment_key]})
-                dispatched = arnica_incremental.active_scan.prepare(
-                    tasks,
-                    {str(path) for path in target_manager.get_all_files()},
-                    {str(path) for path in excluded},
-                )
+                dispatched = arnica_incremental.active_scan.prepare(tasks)
                 plan = Plan(
                     [task for task in plan.target_mappings
                      if arnica_incremental.active_scan.relative_path(task.path) in dispatched],

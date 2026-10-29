@@ -68,8 +68,47 @@ record the selected binary's SHA-256 checksum.
 `opengrep scan --json --output <report> --arnica-incremental-input <file> --arnica-incremental-output <file>`
 lets Arnica reuse results for unchanged files from a previous scan. Without these
 flags the scanner behaves exactly as the base release. The protocol is implemented
-in `cli/src/semgrep/arnica_incremental.py`; its contract, tests and benchmarks are
-documented in Arnica's `tools/incremental-scans/README.md`.
+in `cli/src/semgrep/arnica_incremental.py`. Run it from the scan root with `.` as
+the only target, and keep the protocol files outside the checkout.
+
+Input (unknown or missing fields are rejected; omit `baseline` for a cold run):
+
+```json
+{
+  "schemaVersion": 1,
+  "configHash": "<sha256>",
+  "baseline": {"units": [{"path": "src/a.py", "key": "<sha256>"}]}
+}
+```
+
+The caller owns `configHash` and offers a baseline only when it was produced with
+the same `configHash`. The scanner selects targets normally, then skips each target
+whose baseline key matches its current key. A key covers `configHash`, the resolved
+rule set, the path, file mode and bytes, and the file's assignments (digests of the
+analyzer and sorted rule IDs).
+
+The manifest (receipt) is written atomically only after every dispatched target
+appears in the core's output with no skipped targets or rules, no diagnostics other
+than `level: warn` scoped to dispatched files, and the report written. It binds the
+report bytes via `reportSha256`:
+
+- `mode: "incremental"`: one unit per target with at least one rule assignment:
+  `path`, `key`, `assignments` and a `disposition` of `completed` (scanned now) or
+  `reused` (merge the baseline's findings for that path). Files without assignments
+  have no unit.
+- `mode: "full"`: the whole engine ran; `units` is empty and `fallbackReason` is
+  `unsupported_invocation` or `unsupported_rules` (an unreviewed rule mode, option
+  or product).
+
+No manifest means the caller must fall back to a full scan.
+
+Tests (the native test needs the released core at `cli/src/semgrep/bin/opengrep-core`):
+
+```sh
+cd cli
+PYTHONPATH=src python -m pytest -q tests/default/unit/test_arnica_incremental.py
+python tests/arnica_incremental_native.py --source "$PWD/.." --python "$(command -v python)"
+```
 
 ## Getting started
 

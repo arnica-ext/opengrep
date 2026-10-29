@@ -9,6 +9,7 @@ import stat
 import tempfile
 from collections import Counter
 from pathlib import Path
+from typing import AbstractSet
 from typing import Optional
 
 
@@ -22,6 +23,15 @@ def object_value(value: object) -> dict:
     if not isinstance(value, dict):
         raise ValueError("Expected an object")
     return value
+
+
+def input_object(
+    value: object, required: AbstractSet[str], optional: AbstractSet[str] = frozenset()
+) -> dict:
+    data = object_value(value)
+    if not required <= data.keys() <= required | optional:
+        raise ValueError("Unexpected incremental input fields")
+    return data
 
 
 def hash_value(value: object) -> str:
@@ -42,24 +52,23 @@ class IncrementalScan:
         self.output_path = output_path
         self.report_path = report_path
         self.output_path.unlink(missing_ok=True)
-        data = object_value(json.loads(input_path.read_text()))
-        if type(data.get("schemaVersion")) is not int or data["schemaVersion"] != 1:
+        data = input_object(
+            json.loads(input_path.read_text()), {"schemaVersion", "configHash"}, {"baseline"}
+        )
+        if type(data["schemaVersion"]) is not int or data["schemaVersion"] != 1:
             raise ValueError("Unsupported incremental input schema")
-        self.config_hash = hash_value(data.get("configHash"))
+        self.config_hash = hash_value(data["configHash"])
         self.baseline: dict[str, str] = {}
-        baseline = data.get("baseline")
-        if baseline is not None:
-            baseline = object_value(baseline)
-            if hash_value(baseline.get("configHash")) == self.config_hash:
-                units = baseline.get("units")
-                if not isinstance(units, list):
-                    raise ValueError("Expected baseline units")
-                for value in units:
-                    unit = object_value(value)
-                    path = self.relative_path(unit.get("path"))
-                    if path in self.baseline:
-                        raise ValueError("Duplicate baseline path")
-                    self.baseline[path] = hash_value(unit.get("key"))
+        if "baseline" in data:
+            units = input_object(data["baseline"], {"units"})["units"]
+            if not isinstance(units, list):
+                raise ValueError("Expected baseline units")
+            for value in units:
+                unit = input_object(value, {"path", "key"})
+                path = self.relative_path(unit["path"])
+                if path in self.baseline:
+                    raise ValueError("Duplicate baseline path")
+                self.baseline[path] = hash_value(unit["key"])
         self.reason: Optional[str] = None
         self.units: list[dict] = []
         self.expected: Counter[str] = Counter()
@@ -73,7 +82,7 @@ class IncrementalScan:
             raise ValueError("Invalid native target path")
         path = Path(value)
         absolute = path if path.is_absolute() else self.root / path
-        # Agentic Rule (ARNIE_ACCESS_PERMISSION): Native targets must stay inside the scan root.
+        # Agentic Rule (ARNIE_PATH_BOUNDARY_CHECKING): Native targets must stay inside the scan root.
         relative = absolute.relative_to(self.root)
         if not relative.parts or any(part in (".", "..") for part in relative.parts):
             raise ValueError("Native target escapes scan root")
@@ -126,7 +135,7 @@ class IncrementalScan:
         }
         self.rules_hash = digest(rules)
         if not supported_invocation:
-            self.reason = "unsupported invocation"
+            self.reason = "unsupported_invocation"
         for rule in rules:
             options = rule.get("options", {})
             metadata = rule.get("metadata", {})
@@ -138,13 +147,9 @@ class IncrementalScan:
                 or not isinstance(metadata, dict)
                 or metadata.get("product", "sast") != "sast"
             ):
-                self.reason = "ruleset contains an unreviewed rule or option"
+                self.reason = "unsupported_rules"
 
-    def prepare(
-        self, tasks: list[dict], candidates: set[str], excluded: set[str]
-    ) -> set[str]:
-        if self.reason is not None:
-            return {self.relative_path(task["path"]) for task in tasks}
+    def prepare(self, tasks: list[dict]) -> set[str]:
         if self.prepared:
             raise ValueError(
                 "Incremental protocol requires one complete native core invocation"
@@ -154,47 +159,32 @@ class IncrementalScan:
         for task in tasks:
             path = self.relative_path(task["path"])
             selected.setdefault(path, []).append(task["assignment"])
-        native_candidates = {self.relative_path(path) for path in candidates}
-        native_excluded = {self.relative_path(path) for path in excluded}
-        # Baseline paths may leave Git's native inventory after an ignore change.
-        for path in self.baseline:
-            if path not in native_candidates and (self.root / path).exists():
-                native_candidates.add(path)
-                native_excluded.add(path)
         dispatched: set[str] = set()
-        for path in sorted(native_candidates | set(selected)):
-            assignments = sorted(set(selected.get(path, [])))
-            if assignments:
-                source = self.root / path
-                for component in (source, *source.parents):
-                    if component == self.root:
-                        break
-                    if component.is_symlink():
-                        raise ValueError("Native target contains a symlink")
-                mode = source.stat().st_mode
-                if not stat.S_ISREG(mode):
-                    raise ValueError("Native target is not a regular file")
-                content_hash = hashlib.sha256(source.read_bytes()).hexdigest()
-                key = digest(
-                    [
-                        self.config_hash,
-                        self.rules_hash,
-                        path,
-                        stat.S_IMODE(mode),
-                        content_hash,
-                        assignments,
-                    ]
-                )
-                disposition = (
-                    "reused"
-                    if self.reason is None and self.baseline.get(path) == key
-                    else "completed"
-                )
-                if disposition == "completed":
-                    dispatched.add(path)
-            else:
-                disposition = "excluded" if path in native_excluded else "notApplicable"
-                key = digest([self.config_hash, path, disposition])
+        for path in sorted(selected):
+            assignments = sorted(set(selected[path]))
+            source = self.root / path
+            for component in (source, *source.parents):
+                if component == self.root:
+                    break
+                if component.is_symlink():
+                    raise ValueError("Native target contains a symlink")
+            mode = source.stat().st_mode
+            if not stat.S_ISREG(mode):
+                raise ValueError("Native target is not a regular file")
+            content_hash = hashlib.sha256(source.read_bytes()).hexdigest()
+            key = digest(
+                [
+                    self.config_hash,
+                    self.rules_hash,
+                    path,
+                    stat.S_IMODE(mode),
+                    content_hash,
+                    assignments,
+                ]
+            )
+            disposition = "reused" if self.baseline.get(path) == key else "completed"
+            if disposition == "completed":
+                dispatched.add(path)
             self.units.append(
                 {
                     "path": path,
