@@ -19,8 +19,12 @@ def run(source: Path, python: str) -> None:
         repo = work / "repo"
         repo.mkdir()
         (work / "config").mkdir()
+        # Production scans target files through git, so the scanner must find it too
+        git_executable = shutil.which("git")
+        if git_executable is None:
+            raise RuntimeError("git is required for the native protocol test")
         env = {
-            "PATH": "/usr/bin:/bin:/usr/sbin:/sbin",
+            "PATH": os.pathsep.join([os.path.dirname(git_executable), "/usr/bin", "/bin", "/usr/sbin", "/sbin"]),
             "LANG": "en_US.UTF-8",
             "PYTHONPATH": str(source / "cli/src"),
             "PYTHONDONTWRITEBYTECODE": "1",
@@ -31,10 +35,6 @@ def run(source: Path, python: str) -> None:
             "GIT_CONFIG_GLOBAL": "/dev/null",
             "SEMGREP_SEND_METRICS": "off",
         }
-        # The scanner gets a fixed PATH; git may live elsewhere, as in the musllinux image
-        git_executable = shutil.which("git")
-        if git_executable is None:
-            raise RuntimeError("git is required for the native protocol test")
 
         def git(*args: str) -> None:
             subprocess.run(
@@ -65,9 +65,10 @@ def run(source: Path, python: str) -> None:
         ]
         rules_path.write_text(json.dumps({"rules": rules}))
         count = 0
-        cli = [python, str(source / "cli/src/semgrep/console_scripts/pysemgrep.py")]
+        # The release binary's entrypoint; Arnica passes --legacy so the Python CLI parses the protocol flags
+        cli = [python, str(source / "cli/src/semgrep/console_scripts/entrypoint.py")]
         help_result = subprocess.run(
-            cli + ["scan", "--help"],
+            cli + ["scan", "--legacy", "--help"],
             cwd=repo,
             env=env,
             check=True,
@@ -100,6 +101,7 @@ def run(source: Path, python: str) -> None:
             input_path.write_text(json.dumps(payload))
             command = cli + [
                 "scan",
+                "--legacy",
                 "--config",
                 str(rules_path),
                 "--json",
@@ -462,11 +464,9 @@ def run(source: Path, python: str) -> None:
         readable, readable_manifest = scan()
         assert readable_manifest and len(readable["results"]) == 2
         (repo / "denied.py").chmod(0)
-        # Root can still read the file (as in CI containers), so exclude it instead
-        still_readable = ("--exclude", "denied.py") if os.access(repo / "denied.py", os.R_OK) else ()
         try:
             excluded, excluded_manifest = scan(
-                readable_manifest, extra=("--exclude", "a.py", *still_readable)
+                readable_manifest, extra=("--exclude", "a.py")
             )
             assert excluded_manifest and not excluded["paths"]["scanned"]
             assert excluded_manifest["units"] == []

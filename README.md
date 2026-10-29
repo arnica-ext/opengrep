@@ -106,6 +106,10 @@ report bytes via `reportSha256`:
   `unsupported_invocation`, `unsupported_rules` (an unreviewed rule mode, option
   or product) or `rule_diagnostics` (the rules reported errors while loading).
 
+Pass `--legacy` with the protocol flags (and to `scan --help` when probing for them):
+the release binary parses `scan` with its OCaml front end first, which does not know
+these Python-only options.
+
 No manifest means the caller must fall back to a full scan. A full-mode manifest is
 only meaningful when the command exits 0 or 1.
 
