@@ -106,7 +106,8 @@ report bytes via `reportSha256`:
   `unsupported_invocation`, `unsupported_rules` (an unreviewed rule mode, option
   or product) or `rule_diagnostics` (the rules reported errors while loading).
 
-No manifest means the caller must fall back to a full scan.
+No manifest means the caller must fall back to a full scan. A full-mode manifest is
+only meaningful when the command exits 0 or 1.
 
 Tests (the native test needs the released core at `cli/src/semgrep/bin/opengrep-core`):
 

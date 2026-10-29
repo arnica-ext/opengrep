@@ -508,7 +508,7 @@ class OutputHandler:
             console.print(Title("Scan Summary"))
             logger.info(output_text)
 
-        if arnica_incremental.active_scan is not None and self.final_error is None:
+        if arnica_incremental.active_scan is not None:
             arnica_incremental.active_scan.seal(
                 [error.to_CliError().to_json() for error in self.semgrep_structured_errors]
             )

@@ -122,6 +122,12 @@ jobs:
           python3 -m venv venv
           . venv/bin/activate
           ./scripts/build-wheels.sh
+      - name: Arnica incremental protocol tests
+        run: |
+          . venv/bin/activate
+          pip install -e cli pytest
+          (cd cli && PYTHONPATH=src python -m pytest -q tests/default/unit/test_arnica_incremental.py)
+          python cli/tests/arnica_incremental_native.py --source "$PWD" --python "$(command -v python)"
       - uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # ratchet:actions/upload-artifact@v4
         with:
           name: musllinux-x86-wheel
