@@ -6,6 +6,7 @@ Usage: python arnica_incremental_native.py --source <fork checkout> --python <py
 import argparse
 import hashlib
 import json
+import shutil
 import subprocess
 import tempfile
 from pathlib import Path
@@ -29,10 +30,14 @@ def run(source: Path, python: str) -> None:
             "GIT_CONFIG_GLOBAL": "/dev/null",
             "SEMGREP_SEND_METRICS": "off",
         }
+        # The scanner gets a fixed PATH; git may live elsewhere, as in the musllinux image
+        git_executable = shutil.which("git")
+        if git_executable is None:
+            raise RuntimeError("git is required for the native protocol test")
 
         def git(*args: str) -> None:
             subprocess.run(
-                ["git", *args],
+                [git_executable, *args],
                 cwd=repo,
                 env=env,
                 check=True,
