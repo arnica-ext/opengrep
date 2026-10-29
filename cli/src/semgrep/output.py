@@ -25,6 +25,7 @@ from boltons.iterutils import partition
 import semgrep.app.auth as auth
 import semgrep.formatter.base as base
 import semgrep.semgrep_interfaces.semgrep_output_v1 as out
+import semgrep.arnica_incremental as arnica_incremental
 from semgrep.console import console
 from semgrep.console import Title
 from semgrep.constants import Colors
@@ -506,6 +507,11 @@ class OutputHandler:
             output_text = ignores_line + suggestion_line + stats_line
             console.print(Title("Scan Summary"))
             logger.info(output_text)
+
+        if arnica_incremental.active_scan is not None and self.final_error is None:
+            arnica_incremental.active_scan.seal(
+                [error.to_CliError().to_json() for error in self.semgrep_structured_errors]
+            )
 
         self._final_raise(final_error)
 

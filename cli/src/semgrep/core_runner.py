@@ -29,6 +29,7 @@ from ruamel.yaml import YAML
 
 import semgrep.semgrep_interfaces.semgrep_output_v1 as out
 from semgrep import tracing
+import semgrep.arnica_incremental as arnica_incremental
 from semgrep.app import auth
 from semgrep.config_resolver import Config
 from semgrep.console import console
@@ -917,6 +918,37 @@ Could not find the semgrep-core executable. Your Semgrep install is likely corru
                     bypass_includes_excludes_for_files=bypass_includes_excludes_for_files
                 )
 
+            if arnica_incremental.active_scan is not None and arnica_incremental.active_scan.reason is None:
+                ignore_log = target_manager.ignore_log
+                excluded = set().union(
+                    ignore_log.semgrepignored, ignore_log.always_skipped,
+                    ignore_log.cli_includes, ignore_log.cli_excludes,
+                    ignore_log.insufficient_permissions, ignore_log.size_limit,
+                    *ignore_log.rule_includes.values(), *ignore_log.rule_excludes.values(),
+                )
+                assignment_digests: Dict[Tuple[str, Tuple[int, ...]], str] = {}
+                tasks = []
+                for task in plan.target_mappings:
+                    analyzer = str(task.analyzer)
+                    assignment_key = (analyzer, task.rule_nums)
+                    if assignment_key not in assignment_digests:
+                        assignment_digests[assignment_key] = arnica_incremental.digest(
+                            {"analyzer": analyzer, "rules": sorted(rules[index].id for index in task.rule_nums)}
+                        )
+                    tasks.append({"path": task.path, "assignment": assignment_digests[assignment_key]})
+                dispatched = arnica_incremental.active_scan.prepare(
+                    tasks,
+                    {str(path) for path in target_manager.get_all_files()},
+                    {str(path) for path in excluded},
+                )
+                plan = Plan(
+                    [task for task in plan.target_mappings
+                     if arnica_incremental.active_scan.relative_path(task.path) in dispatched],
+                    plan.rules, product=plan.product,
+                    sca_subprojects=plan.sca_subprojects, unused_rules=plan.unused_rules,
+                )
+                all_targets = {Path(task.path) for task in plan.target_mappings}
+
             plan.record_metrics()
             if target_mode_config.is_historical_scan:
                 cmd.extend(["-historical", "-only_validated"])
@@ -1083,6 +1115,12 @@ Could not find the semgrep-core executable. Your Semgrep install is likely corru
             # end with tempfile.NamedTemporaryFile(...) ...
             outputs = core_matches_to_rule_matches(rules, core_output)
             parsed_errors = [core_error_to_semgrep_error(e) for e in core_output.errors]
+            if arnica_incremental.active_scan is not None:
+                arnica_incremental.active_scan.complete_core(
+                    [path.value for path in core_output.paths.scanned],
+                    [error.to_CliError().to_json() for error in parsed_errors],
+                    core_output.skipped_rules, core_output.paths.skipped or [],
+                )
             for err in core_output.errors:
                 if isinstance(err.error_type.value, out.Timeout):
                     assert err.location and err.location.path is not None

@@ -36,6 +36,7 @@ from rich.progress import SpinnerColumn
 from rich.progress import TextColumn
 
 import semgrep.scan_report as scan_report
+import semgrep.arnica_incremental as arnica_incremental
 import semgrep.semgrep_interfaces.semgrep_output_v1 as out
 from semdep.parsers.util import DependencyParserError
 from semgrep import __VERSION__
@@ -680,6 +681,16 @@ def run_scan(
             rule for rule in all_rules if rule.severity in shown_severities
         ]
     filtered_rules = filter_exclude_rule(filtered_rules, exclude_rule)
+    if arnica_incremental.active_scan is not None:
+        arnica_incremental.active_scan.configure(
+            [rule.raw for rule in filtered_rules],
+            supported_invocation=(
+                not engine_type.is_pro and not run_secrets and not historical_secrets and missed_rule_count == 0
+                and not baseline_commit and not autofix and not includes_remote_config
+                and not dump_command_for_core and not x_ls and not x_ls_long
+                and len(target) == 1 and Path(target[0]).resolve() == Path.cwd().resolve()
+            ),
+        )
 
     if dump_n_rule_partitions:
         rules = {"rules": [r.raw for r in filtered_rules]}

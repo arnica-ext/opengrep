@@ -5,5 +5,5 @@
 *)
 let version = "1.15.0"
 (* Distribution label, separate from engine/rule compatibility. *)
-let build_version = "1.15.0-arnica-patch-0.0.1"
+let build_version = "1.15.0-arnica-patch-0.0.2"
 let version_semgrep = "1.100.0"

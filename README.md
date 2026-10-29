@@ -30,15 +30,15 @@ Apex · Bash · C · C++ · C# · Clojure · Dart · Dockerfile · Elixir · Go 
 ## Installation
 
 This fork publishes Arnica builds under tags such as
-`v1.15.0-arnica-patch-0.0.1`. `ARNICA_VERSION` records the release tag;
+`v1.15.0-arnica-patch-0.0.2`. `ARNICA_VERSION` records the release tag;
 `opengrep --version` continues to report the underlying engine version, `1.15.0`.
 
 ### Quick Install (Recommended)
 
 ```bash
 # Available after this tag's release has been published:
-curl -fsSL https://raw.githubusercontent.com/arnica-ext/opengrep/v1.15.0-arnica-patch-0.0.1/install.sh \
-  | sudo bash -s -- -b /usr/local/bin v1.15.0-arnica-patch-0.0.1
+curl -fsSL https://raw.githubusercontent.com/arnica-ext/opengrep/v1.15.0-arnica-patch-0.0.2/install.sh \
+  | sudo bash -s -- -b /usr/local/bin v1.15.0-arnica-patch-0.0.2
 ```
 
 If you've cloned the repo and `install.sh` is in the root directory, you can run:
@@ -62,6 +62,14 @@ signs the binaries, and prepares a draft release with `SHA256SUMS`. Review the
 artifacts before publishing the draft. Release notes are not generated automatically.
 For reproducible application builds, pin the installer to the release commit and
 record the selected binary's SHA-256 checksum.
+
+### Incremental scan protocol
+
+`opengrep scan --json --output <report> --arnica-incremental-input <file> --arnica-incremental-output <file>`
+lets Arnica reuse results for unchanged files from a previous scan. Without these
+flags the scanner behaves exactly as the base release. The protocol is implemented
+in `cli/src/semgrep/arnica_incremental.py`; its contract, tests and benchmarks are
+documented in Arnica's `tools/incremental-scans/README.md`.
 
 ## Getting started
 

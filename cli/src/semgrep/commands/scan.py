@@ -17,6 +17,7 @@ from click_option_group import MutuallyExclusiveOptionGroup
 from click_option_group import optgroup
 
 import semgrep.app.auth as auth
+import semgrep.arnica_incremental as arnica_incremental
 import semgrep.config_resolver
 import semgrep.run_scan
 import semgrep.test
@@ -552,10 +553,14 @@ def scan_options(func: Callable) -> Callable:
     "run_secrets_flag",
     is_flag=True,
 )
+@click.option("--arnica-incremental-input", type=click.Path(exists=True, dir_okay=False), help="Read Arnica incremental baseline keys.")
+@click.option("--arnica-incremental-output", type=click.Path(dir_okay=False), help="Write Arnica native completion manifest.")
 @scan_options
 @handle_command_errors
 def scan(
     *,
+    arnica_incremental_input: Optional[str],
+    arnica_incremental_output: Optional[str],
     autofix: bool,
     baseline_commit: Optional[str],
     config: Optional[Tuple[str, ...]],
@@ -631,6 +636,15 @@ def scan(
     dynamic_timeout_unit_kb: int = DEFAULT_DYNAMIC_TIMEOUT_UNIT_KB,
     dynamic_timeout_max_multiplier: int = DEFAULT_DYNAMIC_TIMEOUT_MAX_MULTIPLIER,
 ) -> Optional[Tuple[RuleMatchMap, List[SemgrepError], List[Rule], Set[Path]]]:
+    arnica_incremental.reset()
+    click.get_current_context().call_on_close(arnica_incremental.reset)
+    if arnica_incremental_input or arnica_incremental_output:
+        if not arnica_incremental_input or not arnica_incremental_output or not output or output_format != OutputFormat.JSON:
+            raise SemgrepError("Incremental scans require input, manifest output, and a JSON report file")
+        arnica_incremental.active_scan = arnica_incremental.IncrementalScan(
+            Path(arnica_incremental_input), Path(arnica_incremental_output), Path(output), Path.cwd()
+        )
+
     if version:
         print(__BUILD_VERSION__)
         if enable_version_check:
