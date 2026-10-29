@@ -24,13 +24,17 @@ jobs:
           test "$GITHUB_REPOSITORY" = arnica-ext/opengrep
           test "$RELEASE_TAG" = "$(cat ARNICA_VERSION)"
           echo "$RELEASE_TAG" | grep -Ex 'v[0-9]+\.[0-9]+\.[0-9]+-arnica-patch-[0-9]+\.[0-9]+\.[0-9]+'
+          # `opengrep --version` prints these literals; Arnica uses that output as the cache identity
+          build_version="${RELEASE_TAG#v}"
+          grep -qx "__BUILD_VERSION__ = \"${build_version}\"" cli/src/semgrep/__init__.py
+          grep -qx "let build_version = \"${build_version}\"" src/core/Version.ml
           # Arnica keys cached scan results by this version, so a published tag must never be rebuilt
           set +e
           git ls-remote --exit-code --tags "https://github.com/${GITHUB_REPOSITORY}.git" "refs/tags/${RELEASE_TAG}" > /dev/null
           tag_status=$?
           set -e
           if [ "$tag_status" -ne 2 ]; then
-            echo "::error::${RELEASE_TAG} is already published or could not be checked; bump ARNICA_VERSION"
+            echo "::error::${RELEASE_TAG} is already published or could not be checked; bump ARNICA_VERSION, __BUILD_VERSION__ and build_version"
             exit 1
           fi
 

@@ -237,6 +237,7 @@ class IncrementalScan:
         if self.reason is not None:
             return
         diagnostic_paths = self.diagnostic_paths(errors)
+        # Core reports no skipped targets today, so the scanned-path count is the real completeness check
         self.core_complete = (
             diagnostic_paths is not None
             and not skipped_rules

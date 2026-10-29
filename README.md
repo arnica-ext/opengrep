@@ -30,8 +30,10 @@ Apex · Bash · C · C++ · C# · Clojure · Dart · Dockerfile · Elixir · Go 
 ## Installation
 
 This fork publishes Arnica builds under tags such as
-`v1.15.0-arnica-patch-0.0.2`. `ARNICA_VERSION` records the release tag;
-`opengrep --version` continues to report the underlying engine version, `1.15.0`.
+`v1.15.0-arnica-patch-0.0.2`. `ARNICA_VERSION` records the release tag, and
+`opengrep --version` prints the same label without the `v`
+(`__BUILD_VERSION__` in `cli/src/semgrep/__init__.py` and `build_version` in
+`src/core/Version.ml`); the engine version stays `1.15.0`.
 
 ### Quick Install (Recommended)
 
@@ -60,9 +62,9 @@ After merging, run the `rolling-release` workflow on `main`, supplying the exact
 tag in `ARNICA_VERSION`. The workflow builds and tests the release artifacts,
 signs the binaries, and prepares a draft release with `SHA256SUMS`. Review the
 artifacts before publishing the draft. Release notes are not generated automatically.
-The workflow refuses a tag that is already published: Arnica identifies the scanner
-build by this version when it reuses cached results, so every rebuild needs a new
-`ARNICA_VERSION`.
+The workflow refuses a tag that is already published and checks that both version
+literals match it: Arnica identifies the scanner build by `opengrep --version` when it
+reuses cached results, so every rebuild needs a new version in all three places.
 For reproducible application builds, pin the installer to the release commit and
 record the selected binary's SHA-256 checksum.
 
